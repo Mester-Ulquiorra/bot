@@ -16,7 +16,7 @@ const base = {
     MESTER_ID: "730775136881475645",
     GUILD_ID: "775789526781263912",
 
-    VERSION: "4.0.0-beta",
+    VERSION: "4.0.1",
 
     SUPER_USERS: [
         "730775136881475645",

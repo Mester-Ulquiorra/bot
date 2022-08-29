@@ -10,6 +10,8 @@ import { Snowflake } from "nodejs-snowflake";
 import ServerStats from "./util/ServerStats";
 import AutoUnpunish from "./util/AutoUnpunish";
 import CleanTickets from "./util/CleanTickets";
+import { createInterface } from "readline";
+import { HandleConsoleCommand } from "./util/ConsoleUtil";
 
 dotconfig({
 	path: join(__dirname, "..", test_mode ? ".env.test" : ".env")
@@ -53,6 +55,7 @@ Log("Loading commands and events...");
 Register(
 	join(__dirname, "commands"),
 	join(__dirname, "events"),
+	join(__dirname, "consolecommands"),
 	Ulquiorra
 ).then(() => {
 	Ulquiorra.login(process.env.TOKEN).then(async () => {
@@ -73,6 +76,16 @@ Register(
 		setInterval(() => {
 			AutoUnpunish();
 		}, 1000 * 60); // 1 minute
+	});
+
+	const rl = createInterface({
+		input: process.stdin,
+		output: process.stdout,
+		terminal: false
+	});
+
+	rl.on("line", (line) => {
+		HandleConsoleCommand(line, Ulquiorra);
 	});
 });
 export { 
