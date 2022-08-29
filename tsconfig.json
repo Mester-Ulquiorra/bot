@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "target": "ES2016",
+    "lib": [
+      "ES2021",
+      "ES6"
+    ],
+    "types": [
+      // add node as an option
+      "node",
+    ],
+    "typeRoots": [
+      // add path to @types
+      "node_modules/@types"
+    ],
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "outDir": "./dist",
+    "removeComments": true,
+  },
+  "include": [
+    "./src/",
+    "CreateCommands.ts"
+  ],
+  "exclude": [
+    "./node_modules/"
+  ],
+}
