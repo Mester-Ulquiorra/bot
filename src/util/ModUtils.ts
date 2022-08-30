@@ -1,4 +1,4 @@
-import { EmbedBuilder, inlineCode, User } from "discord.js";
+import { ActionRowBuilder, APIActionRowComponent, ButtonBuilder, ButtonStyle, EmbedBuilder, inlineCode, User } from "discord.js";
 import { PunishmentType } from "../database/PunishmentConfig";
 import UserConfig from "../database/UserConfig";
 import CreateEmbed, { EmbedColor } from "./CreateEmbed";
@@ -102,7 +102,7 @@ function addDurationField(embed: EmbedBuilder, punishmentType: number, actionNam
 	if (punishmentType !== PunishmentType.Ban && punishmentType !== PunishmentType.Mute) return;
 	embed.addFields([{
 		// uppercase the first letter of the mod action
-		name: actionName.charAt(0).toUpperCase() + actionName.slice(1),
+		name: actionName.charAt(0).toUpperCase() + actionName.slice(1) + " until",
 		value: until === -1 ? "Permanent" : `<t:${until}>`,
 		inline: true
 	}]);
@@ -157,4 +157,13 @@ export const CreateModEmbed = function (mod: User, target: User | string, punish
 		embed.addFields([{ name: "Details", value: inlineCode(options?.detail), inline: true }]);
 
 	return embed;
+}
+
+export const CreateAppealButton = function() {
+	return new ActionRowBuilder().addComponents(
+		new ButtonBuilder()
+			.setCustomId("appeal.appeal")
+			.setLabel("Appeal your punishment")
+			.setStyle(ButtonStyle.Primary)
+	).toJSON() as APIActionRowComponent<any>
 }

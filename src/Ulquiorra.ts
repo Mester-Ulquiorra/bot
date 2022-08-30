@@ -43,7 +43,7 @@ Mongoose.connect(`mongodb+srv://discordbot:${process.env.DB_PASS}@${process.env.
 const SnowFlake = new Snowflake({ custom_epoch: config.SNOWFLAKE_EPOCH });
 
 function shutdown(reason: string) {
-	Log(`Shutting down client: ${reason}`);
+	Log(`Shutting down client: ${reason}`, LogType.Fatal);
 	Ulquiorra.destroy();
 	Mongoose.disconnect();
 	process.exit(1);
@@ -88,6 +88,12 @@ Register(
 		HandleConsoleCommand(line, Ulquiorra);
 	});
 });
+// this is a really bad way of avoiding errors, but it is what it is
+if(!test_mode) {
+	process.on("uncaughtException", (error) => {
+		Log(`An uncaught exception has occured, ignoring, but may cause issues... ${error.stack}`, LogType.Warn);
+	})
+}
 export { 
 	shutdown,
 	SnowFlake

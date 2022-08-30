@@ -1,5 +1,5 @@
-import { AudioPlayer, AudioPlayerStatus, AudioResource, createAudioPlayer, createAudioResource, entersState, getVoiceConnection, joinVoiceChannel, VoiceConnectionStatus } from "@discordjs/voice";
-import { ChatInputCommandInteraction, GuildMember } from "discord.js";
+import { AudioPlayer, AudioPlayerStatus, AudioResource, createAudioPlayer, createAudioResource, entersState, getVoiceConnection, joinVoiceChannel, VoiceConnection, VoiceConnectionStatus } from "@discordjs/voice";
+import { ChatInputCommandInteraction, Embed, GuildMember } from "discord.js";
 import pldl from "play-dl";
 import SlashCommand from "../types/SlashCommand";
 import CreateEmbed, { EmbedColor } from "../util/CreateEmbed";
@@ -72,15 +72,6 @@ async function play(interaction: ChatInputCommandInteraction) {
 	// validate link
 	if ((await pldl.validate(videoLink)) == false) return "The link is invalid"
 
-	// this should only run when the bot joins a voice channel for the first time
-	// we basically initalize the player before playing the song
-	if (player == null) {
-		player = createAudioPlayer();
-
-		// subscribe to our player (the player should automatically be deleted when there are no songs left in the queue)
-		connection.subscribe(player);
-	}
-
 	// add the song to the queue, then start playing
 	const videoEmbed = await addSong(interaction, videoLink);
 
@@ -91,7 +82,7 @@ async function play(interaction: ChatInputCommandInteraction) {
 	if (!playing) startPlaying(interaction);
 }
 
-function skip(interaction: ChatInputCommandInteraction) {
+async function skip(interaction: ChatInputCommandInteraction) {
 	// just to make sure, check if we're playing music
 	if (!playing) return "There are currently no songs playing.";
 
@@ -104,16 +95,16 @@ function skip(interaction: ChatInputCommandInteraction) {
 	player.stop();
 }
 
-function stop(interaction: ChatInputCommandInteraction) {
+async function stop(interaction: ChatInputCommandInteraction) {
 	if(!playing) return "There are no songs playing right now!";
 	
-	const embed = CreateEmbed(`Succesfully stopped playing!`);
+	const embed = CreateEmbed(`Succesfully stopped playing!`, {color: EmbedColor.Success});
 	interaction.reply({ embeds: [embed] });
 
 	kill(interaction);
 }
 
-function loop(interaction: ChatInputCommandInteraction) {
+async function loop(interaction: ChatInputCommandInteraction) {
 	if (!playing) return "There is nothing to loop right now."
 
 	let embedDescription = "";
@@ -139,7 +130,7 @@ function loop(interaction: ChatInputCommandInteraction) {
 	interaction.reply({ embeds: [embed] });
 }
 
-function viewqueue(interaction: ChatInputCommandInteraction) {
+async function viewqueue(interaction: ChatInputCommandInteraction) {
 	if (queue.length === 0) return "There is nothing in the queue";
 
 	const page = interaction.options.getInteger("page") ?? 1;
@@ -168,7 +159,7 @@ function viewqueue(interaction: ChatInputCommandInteraction) {
 	})
 }
 
-function remove(interaction: ChatInputCommandInteraction) {
+async function remove(interaction: ChatInputCommandInteraction) {
     // get the index we want to remove
     const removeIndex = interaction.options.getInteger("song") - 1;
 
@@ -198,7 +189,7 @@ function pause(interaction: ChatInputCommandInteraction) {
 	interaction.reply({ embeds: [embed] });
 }
 
-function continueMusic(interaction: ChatInputCommandInteraction) {
+async function continueMusic(interaction: ChatInputCommandInteraction) {
 	if (!playing) return "No songs are playing right now";
 
 	player.unpause();
@@ -210,7 +201,7 @@ function continueMusic(interaction: ChatInputCommandInteraction) {
 /**
  * A function to join a voice channel, wait until we're ready to play music, then return the connnection
  */
-function join(interaction: ChatInputCommandInteraction) {
+async function join(interaction: ChatInputCommandInteraction) {
 	const connection = joinVoiceChannel({
 		channelId: (interaction.member as GuildMember).voice.channelId,
 		guildId: interaction.guild.id,
@@ -248,6 +239,8 @@ async function startPlaying(interaction: ChatInputCommandInteraction) {
 	const embed = CreateEmbed(`**${song.title}** has started playing!`);
 	interaction.channel.send({ embeds: [embed] });
 
+	if(player == null) initPlayer(getVoiceConnection(interaction.guildId));
+
 	// start playing the song
 	player.play(resource);
 
@@ -255,7 +248,7 @@ async function startPlaying(interaction: ChatInputCommandInteraction) {
     //@ts-expect-error
 	player.once(AudioPlayerStatus.Idle, () => {
 		// check if we have songs left
-		if (queue.length > 0) {
+		if (queue.length > 0 && playindex >= 0) {
 			// first we need to see if we've went over the queue
 			if (playindex >= queue.length - 1 && looptype !== 2) {
 				kill(interaction);
@@ -277,13 +270,14 @@ async function startPlaying(interaction: ChatInputCommandInteraction) {
  */
 function kill(interaction: ChatInputCommandInteraction) {
 	// stop the player
+	playindex = -1;
+
 	player?.stop(true);
 	player = null;
 
 	// destroy the connection
-	getVoiceConnection(interaction.guild.id).destroy();
+	getVoiceConnection(interaction.guildId)?.destroy();
 
-	playindex = 0;
 	queue = [];
 	playing = false;
 }
@@ -353,6 +347,13 @@ async function addSong(interaction: ChatInputCommandInteraction, link: string) {
 
 	// return false if song type is not supported
 	return false;
+}
+
+function initPlayer(connection: VoiceConnection) {
+	player = createAudioPlayer();
+
+	// subscribe to our player (the player should automatically be deleted when there are no songs left in the queue)
+	connection.subscribe(player);
 }
 
 type SongType = 'so_playlist' | 'so_track' | 'sp_track' | 'sp_album' | 'sp_playlist' | 'dz_track' | 'dz_playlist' | 'dz_album' | 'yt_video' | 'yt_playlist' | 'search';

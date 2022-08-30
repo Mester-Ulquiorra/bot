@@ -3,6 +3,7 @@ import { commands } from "../util/Register";
 import Event from "../types/Event";
 import CreateEmbed, { EmbedColor } from "../util/CreateEmbed";
 import Log, { LogType } from "../util/Log";
+import test_mode from "../test_mode";
 
 /**
  * A list of custom ids the interaction manager should ignore.
@@ -21,9 +22,9 @@ const InteractionCreateEvent: Event = {
 	async run(client: Client, interaction: BaseInteraction) {
 		// find the command and store its return value in return_message
 		let commandName = null;
-		if (!interaction.isCommand() && !interaction.isMessageComponent()) return;
+		if (!interaction.isCommand() && !interaction.isMessageComponent() && !interaction.isModalSubmit()) return;
 
-		if (interaction.isMessageComponent()) {
+		if (interaction.isMessageComponent() || interaction.isModalSubmit()) {
 			for (const dontCheck of IgnoredIds) {
 				if (interaction.customId?.match(dontCheck))
 					return;
@@ -33,7 +34,7 @@ const InteractionCreateEvent: Event = {
 		// so here we try to get the command name
 		// for message components like buttons, the customId is formatted like "<commandName>.<everything else>"
 		if (interaction.isChatInputCommand()) commandName = interaction.commandName;
-		if (interaction.isMessageComponent()) commandName = interaction.customId.split(".")[0];
+		if (interaction.isMessageComponent() || interaction.isModalSubmit()) commandName = interaction.customId.split(".")[0];
 		if (interaction.isCommand() && !interaction.isChatInputCommand()) {
 			for (const [name, command] of commands) {
 				if (interaction.isUserContextMenuCommand() && command.userContextCommandNames?.includes(interaction.commandName)) commandName = name;
@@ -91,8 +92,8 @@ const InteractionCreateEvent: Event = {
 			}
 
 			// we need to make sure to follow up instead of a simple reply since the command might have already sent a response
-			if (interaction.deferred || interaction.replied) interaction.followUp(options);
-			else interaction.reply(options);
+			if (interaction.deferred || interaction.replied) interaction.followUp(options).catch(() => { return; });
+			else interaction.reply(options).catch(() => { return; });
 		}
 
 		// bigger oops
@@ -109,8 +110,8 @@ const InteractionCreateEvent: Event = {
 				ephemeral: true
 			}
 
-			if (interaction.deferred || interaction.replied) interaction.followUp(options);
-			else interaction.reply(options);
+			if (interaction.deferred || interaction.replied) interaction.followUp(options).catch(() => { return; });
+			else interaction.reply(options).catch(() => { return; });
 		}
 	}
 }

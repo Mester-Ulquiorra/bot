@@ -35,7 +35,7 @@ export default function(description: string, options: EmbedOptions = null) {
 	if(options?.author != null)
 		embed.setAuthor({
 			name: options.author instanceof GuildMember ? options.author.displayName : options.author.tag,
-			iconURL: (options.author instanceof GuildMember ? options.author.displayAvatarURL() : options.author.avatarURL()) ?? ""
+			iconURL: options.author instanceof GuildMember ? options.author.displayAvatarURL() : options.author.displayAvatarURL()
 		});
 
 	return embed;

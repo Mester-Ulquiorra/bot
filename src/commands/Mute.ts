@@ -10,7 +10,7 @@ import CreateEmbed from "../util/CreateEmbed";
 import GetError from "../util/GetError";
 import Log from "../util/Log";
 import ManageRole from "../util/ManageRole";
-import { CanManageUser, CreateModEmbed } from "../util/ModUtils";
+import { CanManageUser, CreateAppealButton, CreateModEmbed } from "../util/ModUtils";
 
 const MuteCommand: SlashCommand = {
     name: "mute",
@@ -53,7 +53,7 @@ const MuteCommand: SlashCommand = {
         const userEmbed = CreateModEmbed(interaction.user, target.user, punishment, { userEmbed: true });
         const channelEmbed = CreateEmbed(`${target} has been muted: **${reason}**`);
 
-        target.send({ embeds: [userEmbed] }).catch(() => { return; });
+        target.send({ embeds: [userEmbed], components: [CreateAppealButton()] }).catch(() => { return; });
 
         interaction.channel.sendTyping().then(() => {
             interaction.channel.send({ embeds: [channelEmbed] });

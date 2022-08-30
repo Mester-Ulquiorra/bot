@@ -15,7 +15,7 @@ const SetModCommand: SlashCommand = {
 		if(!target) return "The member has left the server";
 
 		const modLevel = interaction.options.getInteger("modlevel");
-		const reason = interaction.options.getString("string") ?? "no reason provided";
+		const reason = interaction.options.getString("reason") ?? "no reason provided";
 
 		const userConfig = await GetUserConfig(interaction.user.id);
 		const targetConfig = await GetUserConfig(target.id);

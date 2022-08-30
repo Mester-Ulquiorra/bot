@@ -79,13 +79,13 @@ async function handleSuperuserCommand(client: Client, message: Message) {
     }
 
     if (command === "verify-send") {
-        const components: any = [
+        const components = [
             new ActionRowBuilder().addComponents([
                 new ButtonBuilder()
                     .setCustomId("verify")
                     .setLabel("Verify!")
                     .setStyle(ButtonStyle.Primary),
-            ])
+            ]).toJSON() as APIActionRowComponent<any>
         ];
 
         const embed = CreateEmbed(
@@ -96,7 +96,7 @@ async function handleSuperuserCommand(client: Client, message: Message) {
             }
         ).setFooter({ text: "Watch out, there's a 2 minute cooldown!" });
 
-        const verifyChannel: TextChannel = await GetGuild().channels.fetch("1006077960584970280") as TextChannel;
+        const verifyChannel = await GetGuild().channels.fetch("1006077960584970280") as TextChannel;
 
         verifyChannel.send({ embeds: [embed], components });
     }

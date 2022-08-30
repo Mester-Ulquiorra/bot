@@ -70,8 +70,8 @@ async function setupVerifyListener() {
 
 			// create the captcha using svg-captcha
 			const captcha = svgCreate({
-				size: 7,
-				noise: 2,
+				size: 6,
+				noise: 1,
 				color: true,
 				background: "#212121",
 			});

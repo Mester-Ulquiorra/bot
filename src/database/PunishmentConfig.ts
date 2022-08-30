@@ -63,6 +63,10 @@ const PunishmentConfigSchema = new mongoose.Schema({
         type: mongoose.SchemaTypes.Boolean,
         default: false,
     },
+    appealed: {
+        type: mongoose.SchemaTypes.Boolean,
+        default: false
+    }
 });
 
 export default mongoose.model("punishment", PunishmentConfigSchema);

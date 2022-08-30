@@ -9,10 +9,13 @@ import blacklist from "./blacklist.js";
  */
 export default function (message: Message): string {
     // run the function with new lines removed
-    return DetectProfanity(message.content.replaceAll(/\n/g, ""));
+    return DetectProfanity(message.content.replaceAll(/\n/g, " "));
 };
 
-function DetectProfanity(string: string): string {
+/**
+ * The internal function that detects profanity.
+ */
+export function DetectProfanity(string: string): string {
     // remove characters like - _ and so on and split the string into words
     const words = string.replaceAll(/[^\p{L}\s]+/giu, "").split(" ");
 
