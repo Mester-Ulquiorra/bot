@@ -9,13 +9,12 @@ export default async function() {
         const guild = GetGuild();
 
         // get the bots
-        const bots = await guild.members.fetch().then((members) => {
+        const bots = 1/*await guild.members.fetch().then((members) => {
             return members.reduce((acc, member) => member.user.bot ? acc + 1 : acc, 0);
-        });
+        });*/
 
         // edit the members channel
         guild.channels.fetch(MembersChannelId).then((channel) => {
-            // 3 is the bots on the server
             channel.edit({ name: `Members: ${guild.memberCount - bots}` });
         });
 

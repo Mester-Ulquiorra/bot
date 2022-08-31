@@ -88,12 +88,12 @@ Register(
 		HandleConsoleCommand(line, Ulquiorra);
 	});
 });
+
 // this is a really bad way of avoiding errors, but it is what it is
-if(!test_mode) {
-	process.on("uncaughtException", (error) => {
-		Log(`An uncaught exception has occured, ignoring, but may cause issues... ${error.stack}`, LogType.Warn);
-	})
-}
+process.on("uncaughtException", (error) => {
+	Log(`An uncaught exception has occured, ignoring, but may cause issues... ${error.stack}`, LogType.Warn);
+})
+
 export { 
 	shutdown,
 	SnowFlake

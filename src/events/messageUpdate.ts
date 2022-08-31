@@ -18,6 +18,9 @@ const MessageUpdateEvent: Event = {
 			newMessage.channel.type === ChannelType.DM
 		)
 			return;
+		
+		// this is a funny one, if the message just got (un)pinned, return
+		if(oldMessage.pinned !== newMessage.pinned) return;
 
 		let oldMessageContent = oldMessage.content != "" ? oldMessage.content : "[nothing]";
 		if (oldMessage.content.length > MaxContentLength) oldMessageContent = `${oldMessage.content.substring(0, MaxContentLength)}...`;

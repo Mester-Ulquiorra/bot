@@ -8,7 +8,7 @@ import ConvertDuration from "../util/ConvertDuration";
 import CreateEmbed from "../util/CreateEmbed";
 import GetError from "../util/GetError";
 import Log from "../util/Log";
-import { CanManageUser, CreateModEmbed } from "../util/ModUtils";
+import { CanManageUser, CreateAppealButton, CreateModEmbed } from "../util/ModUtils";
 
 const BanCommand: SlashCommand = {
     name: "ban",
@@ -52,7 +52,7 @@ const BanCommand: SlashCommand = {
         const channelEmbed = CreateEmbed(`${target.user} has been banned: **${reason}**`);
 
         target
-            .send({ embeds: [userEmbed] })
+            .send({ embeds: [userEmbed], components: [CreateAppealButton(true)] })
             .catch(() => { return;})
             .finally(() => {
                 target.ban({ reason: reason }).catch(() => { return; });

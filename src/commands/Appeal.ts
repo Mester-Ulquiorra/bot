@@ -1,7 +1,8 @@
-import { ActionRowBuilder, APIActionRowComponent, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildMember, ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
+import { ActionRowBuilder, APIActionRowComponent, bold, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildMember, ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
 import config from "../config";
-import PunishmentConfig, { PunishmentType } from "../database/PunishmentConfig";
+import PunishmentConfig, { PunishmentType, PunishmentTypeToName } from "../database/PunishmentConfig";
 import SlashCommand from "../types/SlashCommand";
+import Ulquiorra from "../Ulquiorra";
 import { GetGuild, GetSpecialChannel } from "../util/ClientUtils";
 import { GetUserConfig } from "../util/ConfigHelper";
 import CreateEmbed, { EmbedColor } from "../util/CreateEmbed";
@@ -89,6 +90,38 @@ const AppealCommand: SlashCommand = {
 
                     collected.first().delete().then(() => { reasonMessage.delete() });
 
+                    const user = await Ulquiorra.users
+                        .fetch(interaction.message.embeds[0].description.match(/<@(\d+)>/)[1])
+                        .then((user) => { return user; })
+                        .catch(() => { return; });
+
+                    if (!user) return "Somehow we couldn't fetch the user";
+
+                    const userConfig = await GetUserConfig(user.id);
+
+                    switch (punishment.type) {
+                        case PunishmentType.Mute:
+                            userConfig.muted = false;
+                            await userConfig.save();
+
+                            const member = await GetGuild().members
+                                .fetch(user.id)
+                                .then((user) => { return user; })
+                                .catch(() => { return; });
+
+                            if (!member) return GetError("MemberUnavailable");
+
+                            ManageRole(member, config.MUTED_ROLE, "Remove", `appeal accepted by ${interaction.user.tag}`);
+                        case PunishmentType.Ban:
+                            userConfig.banned = false;
+
+                            GetGuild().members.unban(user, `appeal accepted by ${interaction.user.tag}`).catch(() => { return; });
+                    }
+                    punishment.active = false;
+                    await punishment.save();
+
+                    Log(`${interaction.user.tag} (${interaction.user.id}) has accepted the punishment appeal of ${user.tag} (${user.id}). ID: ${punishment.id}`);
+
                     // add an extra field to the embed
                     const embed = EmbedBuilder.from(interaction.message.embeds[0])
                         .addFields(
@@ -100,36 +133,22 @@ const AppealCommand: SlashCommand = {
                         )
                         .setColor([22, 137, 101]);
 
-                    const member = await GetGuild().members
-                        .fetch(interaction.message.embeds[0].description.match(/<@(\d+)>/)[1])
-                        .then((user) => { return user; })
-                        .catch(() => { return; });
-                    
-                    if(!member) return GetError("MemberUnavailable");
-
-                    punishment.active = false;
-                    switch(punishment.type) {
-                        case PunishmentType.Mute:
-                            const userConfig = await GetUserConfig(member.id);
-
-                            userConfig.muted = false;
-                            await userConfig.save();
-
-                            ManageRole(member, config.MUTED_ROLE, "Remove", `appeal accepted by ${interaction.user.tag}`);
-                    }
-                    await punishment.save();
-                    
-                    Log(`${interaction.user.tag} (${interaction.user.id}) has accepted the punishment appeal of ${member.user.tag} (${member.user.id}). ID: ${punishment.id}`);
-
-                    const modEmbed = CreateModEmbed(interaction.user, member.user, punishment, {
-                        anti: true
-                    });
-                    const userEmbed = CreateModEmbed(interaction.user, member.user, punishment, {
+                    const modEmbed = CreateModEmbed(interaction.user, user, punishment, {
                         anti: true,
-                        userEmbed: true
+                        reason: `Punishment appeal accepted: ${bold(reason)}`
+                    });
+                    const userEmbed = CreateModEmbed(interaction.user, user, punishment, {
+                        anti: true,
+                        userEmbed: true,
+                        reason: `Punishment appeal accepted: ${bold(reason)}`
                     });
 
-                    member.send({ embeds: [userEmbed] }).catch(() => { return; });
+                    user.send({ embeds: [userEmbed] })
+                        .catch(() => { return; })
+                        .finally(() => {
+                            // kick the member from the prison
+                            GetGuild(true).members.kick(user, "appealed punishment").catch(() => { return; });
+                        })
                     GetSpecialChannel("ModLog").send({ embeds: [modEmbed] });
                     interaction.message.edit({ embeds: [embed], components: [] });
                 })
@@ -156,7 +175,7 @@ const AppealCommand: SlashCommand = {
                 max: 1,
                 time: 60_000
             })
-                .then((collected) => {
+                .then(async (collected) => {
                     let reason = collected.first().content;
                     if (reason.length > 1024) reason = reason.substring(0, 1024);
 
@@ -173,24 +192,35 @@ const AppealCommand: SlashCommand = {
                         )
                         .setColor([237, 56, 36]);
 
-                    // send an alert embed to the user
-                    const userId = interaction.message.embeds[0].description.match(/<@(\d+)>/)[1];
-
-                    client.users
-                        .fetch(userId).then((user) => {
-                            user.send({
-                                embeds: [
-                                    CreateEmbed(`**Your punishment appeal has been declined by ${interaction.user}**`, { color: EmbedColor.Error })
-                                        .addFields({
-                                            name: "Reason",
-                                            value: reason,
-                                        })
-                                ]
-                            }).catch(() => { return; });
-                        })
+                    const user = await client.users.fetch(interaction.message.embeds[0].description.match(/<@(\d+)>/)[1])
+                        .then((user) => { return user; })
                         .catch(() => { return; });
 
+                    if (!user) return "Couldn't fetch user";
+
+                    user.send({
+                        embeds: [
+                            CreateEmbed(`**Your punishment appeal has been declined by ${interaction.user}**`, { color: EmbedColor.Error })
+                                .addFields({
+                                    name: "Reason",
+                                    value: reason,
+                                })
+                        ]
+                    })
+                        .catch(() => { return; })
+                        .finally(() => {
+                            // kick the member from the prison
+                            GetGuild(true).members.kick(user, "appealed punishment").catch(() => { return; });
+                        })
+
                     interaction.message.edit({ embeds: [embed], components: [] });
+
+                    // kick the member from the prison
+                    GetGuild(true).members.kick(user, "appealed punishment");
+                })
+                .catch(() => {
+                    reasonMessage.delete();
+                    return "You've run out of time"
                 })
         }
     },
@@ -205,15 +235,20 @@ const AppealCommand: SlashCommand = {
             if (!punishment) return "The punishment ID is either invalid, or the punishment is not active anymore";
             if (punishment.appealed) return "You've already appealed this punishment.";
 
-            if(DetectProfanity(modal.fields.getTextInputValue("reason").replaceAll(/\n/g, " ")) || 
-                DetectProfanity(modal.fields.getTextInputValue("extra").replaceAll(/\n/g, " ")) )
-                return "Profanity detected in one of the fields, totally uncool"
+            if (DetectProfanity(modal.fields.getTextInputValue("reason").replaceAll(/\n/g, " ")) ||
+                DetectProfanity(modal.fields.getTextInputValue("extra").replaceAll(/\n/g, " ")))
+                return "Profanity detected in one of the fields, totally uncool";
 
             // create the embed
             const embed = CreateEmbed(`**Appeal request of punishment ${punishmentId} from ${modal.user}**`, {
                 author: modal.user
             })
                 .addFields(
+                    {
+                        name: "Punishment type",
+                        value: PunishmentTypeToName(punishment.type),
+                        inline: false
+                    },
                     {
                         name: "Why should your punishment be appealed?",
                         value: modal.fields.getTextInputValue("reason"),

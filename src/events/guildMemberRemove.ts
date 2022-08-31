@@ -1,4 +1,5 @@
 import { GuildMember } from "discord.js";
+import config from "../config";
 import Event from "../types/Event";
 import { GetSpecialChannel } from "../util/ClientUtils";
 import { GetUserConfig } from "../util/ConfigHelper";
@@ -8,6 +9,8 @@ const GuildMemberRemoveEvent: Event = {
     name: "guildMemberRemove",
 
     async run(_client, member: GuildMember) {
+        if (member.guild.id === config.PRISON_ID) return;
+
         // get member config
         const memberConfig = await GetUserConfig(member.id, "new member, leaving");
 

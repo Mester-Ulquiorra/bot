@@ -1,4 +1,5 @@
 import { ActionRowBuilder, APIActionRowComponent, ButtonBuilder, ButtonStyle, EmbedBuilder, inlineCode, User } from "discord.js";
+import config from "../config";
 import { PunishmentType } from "../database/PunishmentConfig";
 import UserConfig from "../database/UserConfig";
 import CreateEmbed, { EmbedColor } from "./CreateEmbed";
@@ -107,7 +108,7 @@ function addDurationField(embed: EmbedBuilder, punishmentType: number, actionNam
 		inline: true
 	}]);
 }
- 
+
 /**
  * A function for creating an universal mod embed
  */
@@ -159,11 +160,22 @@ export const CreateModEmbed = function (mod: User, target: User | string, punish
 	return embed;
 }
 
-export const CreateAppealButton = function() {
-	return new ActionRowBuilder().addComponents(
-		new ButtonBuilder()
-			.setCustomId("appeal.appeal")
-			.setLabel("Appeal your punishment")
-			.setStyle(ButtonStyle.Primary)
-	).toJSON() as APIActionRowComponent<any>
+export const CreateAppealButton = function (isBan = false) {
+	const components =
+		new ActionRowBuilder().addComponents(
+			new ButtonBuilder()
+				.setCustomId("appeal.appeal")
+				.setLabel("Appeal your punishment")
+				.setStyle(ButtonStyle.Primary)
+		)
+
+	if (isBan)
+		components.addComponents(
+			new ButtonBuilder()
+				.setLabel("Join Mester's Prison to get access to the appeal button")
+				.setStyle(ButtonStyle.Link)
+				.setURL(config.PRISON_INVITE)
+		)
+
+	return components.toJSON() as APIActionRowComponent<any>
 }

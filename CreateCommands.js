@@ -102,6 +102,49 @@ commands.push(
 		)
 )
 
+commands.push(
+	new SlashCommandBuilder()
+		.setName("giveaway")
+		.setDescription("The command for interacting with giveaways")
+		.addSubcommand(subcommand =>
+			subcommand
+				.setName("start")
+				.setDescription("Start a giveaway")
+				.addStringOption(option =>
+					option
+						.setName("name")
+						.setDescription("The name of the giveaway (basically what you're giving away)")
+						.setRequired(true)
+						.setMaxLength(200)
+				)
+				.addStringOption(option =>
+					option
+						.setName("duration")
+						.setDescription("The duration of the giveaway (accepts duration formatting)")
+						.setRequired(true)
+				)
+				.addIntegerOption(option =>
+					option
+						.setName("winners")
+						.setDescription("The count of winners of this giveaway (default is 1)")
+						.setMinValue(1)
+						.setMaxValue(40)
+						.setRequired(false)
+				)
+		)
+		.addSubcommand(subcommand =>
+			subcommand
+				.setName("end")
+				.setDescription("End a giveaway")
+				.addStringOption(option =>
+					option
+						.setName("giveaway")
+						.setDescription("The ID of the giveaway you want to end")
+						.setRequired(true)
+				)
+		)
+)
+
 commands.map(command => command.toJSON())
 for (const command of commands) {
 	console.log(JSON.stringify(command));

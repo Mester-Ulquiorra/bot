@@ -14,10 +14,12 @@ const ReadyEvent: Event = {
 	name: "ready",
 
 	async run(client: Client) {
-		// fetch the guild and its channels
+		// fetch the guild and their channels
 		client.guilds.fetch(config.GUILD_ID).then((guild) => {
 			guild.channels.fetch();
 		});
+		// fetch the prison
+		client.guilds.fetch(config.PRISON_ID);
 
 		client.user.setActivity({
 			name: `Version ${config.VERSION}`,
