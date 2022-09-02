@@ -138,9 +138,10 @@ export const CreateModEmbed = function (mod: User, target: User | string, punish
 	}]);
 
 	// set the footer to the punishment id
-	embed.setFooter({ text: `Punishment ID: ${punishment?.id ?? "#unknown#"} ` });
+	const footer = `Punishment ID: ${punishment?.id ?? "#unknown#"} ` + (punishment.automated && options?.userEmbed ? "(this is an automated punishment, false positives might occur)" : "")
+	embed.setFooter({ text: footer });
 
-	// we're done with the basic stuff, but if this is an anti punishment, we also need to add the original moderator, but that's all
+	// we're done with the basic stuff, but if this is an anti punishment, we also need to add the original moderator
 	if (options?.anti) {
 		embed.addFields([{
 			name: "Original moderator",
@@ -154,8 +155,8 @@ export const CreateModEmbed = function (mod: User, target: User | string, punish
 	addDurationField(embed, punishment?.type, modActionName, punishment?.until ?? -1);
 
 	// if detail is set, add it
-	if (options?.detail)
-		embed.addFields([{ name: "Details", value: inlineCode(options?.detail), inline: true }]);
+	if (options?.detail && !options?.userEmbed)
+		embed.addFields([{ name: "Details", value: inlineCode(options?.detail), inline: false }]);
 
 	return embed;
 }

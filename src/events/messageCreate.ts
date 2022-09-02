@@ -9,16 +9,13 @@ import { CheckMessage } from "../util/Reishi";
 import { CreateTicket, TicketTypeToName } from "../util/TicketUtils";
 
 const HelpMessage =
-    "**Our xp system works based on mathematical formulas.** \n\n When you send a message, its length is sent through this formula: \n `clamp(length * (1 + users_current_level / 140), 0, maximum_xp_of_level)` \n\n The maximum xp of a level (aka. the xp cap) is calculated using the following formula: \n `clamp(2000 * (1 - users_current_level / xp_cap_multiplier), 200, 2000)` \n\n The xp cap multiplier is `70 / (1 - 200 / 2000)` \n\n The xp it takes to reach a certain level is calculated using this formula: \n `floor(2000 + 5000 * (level - 1) * (1 + (min(1 - 0.005 * (level - 70), 1) * level - 1) / 35))` \n\n Nice, isn't it? \n\n **Special thanks to Finnegan for helping me with some of the math.** \n If you want to get a visual representation of the different formulas, here are the Desmos links: [[Level to XP]](https://www.desmos.com/calculator/966mlsftxg) - [[Length to XP]](https://www.desmos.com/calculator/lshbxdm5sn) - [[XP cap]](https://www.desmos.com/calculator/bdxwovexie)";
+    "**Our xp system works based on mathematical formulas.** \n\n When you send a message, its length is sent through this formula: \n `clamp(length * (1 + user's_current_level / 140), 0, maximum_xp_of_level)` \n\n The maximum xp of a level (aka. the xp cap) is calculated using the following formula: \n `clamp(2000 * (1 - user's_current_level / xp_cap_multiplier), 200, 2000)` \n\n The xp cap multiplier is `70 / (1 - 200 / 2000)` \n\n The xp it takes to reach a certain level is calculated using this formula: \n `floor(2000 + 5000 * (level - 1) * (1 + (min(1 - 0.005 * (level - 70), 1) * level - 1) / 35))` \n\n Nice, isn't it? \n\n **Special thanks to Finnegan for helping me with some of the math.** \n If you want to get a visual representation of the different formulas, here are the Desmos links: [[Level to XP]](https://www.desmos.com/calculator/966mlsftxg) - [[Length to XP]](https://www.desmos.com/calculator/lshbxdm5sn) - [[XP cap]](https://www.desmos.com/calculator/bdxwovexie)";
 
 const MessageCreateEvent: Event = {
     name: "messageCreate",
     async run(client: Client, message: Message) {
         if (config.SUPER_USERS.includes(message.author.id))
             handleSuperuserCommand(client, message);
-
-        // only continue to xp if the message is not blocked by Reishi
-        if (!(await CheckMessage(message, client))) return;
 
         // check if the message is the help command
         if (message.content === client.user.toString() + " " + "help") {
@@ -31,6 +28,9 @@ const MessageCreateEvent: Event = {
                 ],
             });
         }
+            
+        // only continue to xp if the message is not blocked by Reishi
+        if (!(await CheckMessage(message, client))) return;
 
         GetXPFromMessage(message);
     }

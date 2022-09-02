@@ -34,7 +34,28 @@ const GuildMemberRemoveEvent: Event = {
             // set footer to member's id
             .setFooter({ text: `ID: ${member.id}` });
 
-        // get the welcome channel and send the embed
+        // create the embed for logs
+        const logEmbed = CreateEmbed(`${member} has left the server`)
+            .addFields(
+                {
+                    name: `Left at`,
+                    // set it to current time
+                    value: `<t:${Math.floor(Date.now() / 1000)}>`,
+                    inline: true,
+                },
+                {
+                    name: `Roles`,
+                    value: member.roles.cache.size > 1 ?
+                        member.roles.cache
+                            .map(role => role.toString())
+                            .slice(0, -1)
+                            .join(", ") : "none",
+                    inline: false
+                }
+            )
+            .setThumbnail(member.displayAvatarURL());
+
+        GetSpecialChannel("MiscLog").send({ embeds: [logEmbed] })
         GetSpecialChannel("Welcome").send({ embeds: [embed] });
     }
 };

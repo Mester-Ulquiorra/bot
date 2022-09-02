@@ -1,16 +1,53 @@
 import { GuildMember } from "discord.js";
 import config from "../config";
+import PunishmentConfig, { PunishmentType } from "../database/PunishmentConfig";
 import Event from "../types/Event";
+import { SnowFlake } from "../Ulquiorra";
 import { GetSpecialChannel } from "../util/ClientUtils";
 import { GetUserConfig } from "../util/ConfigHelper";
 import CreateEmbed from "../util/CreateEmbed";
+import Log from "../util/Log";
 import ManageRole from "../util/ManageRole";
+import { CreateModEmbed } from "../util/ModUtils";
+import { DetectProfanity } from "../util/Reishi/CheckProfanity";
 
 const GuildMemberAddEvent: Event = {
 	name: "guildMemberAdd",
 
-	async run(_client, member: GuildMember) {
+	async run(client, member: GuildMember) {
 		if (member.guild.id === config.PRISON_ID) return;
+
+		// first of all, check if the member has an inappropriate username
+		if (DetectProfanity(member.displayName)) {
+			if (!member.kickable) return;
+
+			const punishmentId = SnowFlake.getUniqueID().toString();
+
+			const punishment = await PunishmentConfig.create({
+				id: punishmentId,
+				user: member.id,
+				mod: client.user.id,
+				type: PunishmentType.Kick,
+				at: Math.floor(Date.now() / 1000),
+				active: false,
+				automated: true,
+				reason: "member had an inappropriate username"
+			});
+
+			const modEmbed = CreateModEmbed(client.user, member.user, punishment, { detail: member.displayName });
+			const userEmbed = CreateModEmbed(client.user, member.user, punishment, { userEmbed: true, detail: member.displayName });
+
+			member
+				.send({ embeds: [userEmbed] })
+				.catch(() => { return; })
+				.finally(() => { member.kick("inappropriate username") });
+
+			Log(`${member.user.tag} (${member.id}) has been automatically kicked: ${punishment.reason}. Punishment ID: ${punishment.id}`);
+
+			GetSpecialChannel("ModLog").send({ embeds: [modEmbed] });
+
+			return;
+		}
 
 		// get the member config (doesn't matter if it didn't exist before)
 		const memberConfig = await GetUserConfig(member.id, "new member");

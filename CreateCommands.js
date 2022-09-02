@@ -43,6 +43,12 @@ commands.push(
 				.setDescription("The member whose rank you want to see")
 				.setRequired(false)
 		)
+		.addBooleanOption(option =>
+			option
+				.setName("textmode")
+				.setDescription("Enable this to get the rank as a text instead of an image")
+				.setRequired(false)
+		)
 )
 
 commands.push(

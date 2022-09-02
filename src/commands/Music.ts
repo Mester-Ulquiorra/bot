@@ -101,7 +101,7 @@ async function stop(interaction: ChatInputCommandInteraction) {
 	const embed = CreateEmbed(`Succesfully stopped playing!`, {color: EmbedColor.Success});
 	interaction.reply({ embeds: [embed] });
 
-	kill(interaction);
+	kill(interaction.guildId);
 }
 
 async function loop(interaction: ChatInputCommandInteraction) {
@@ -221,7 +221,7 @@ async function startPlaying(interaction: ChatInputCommandInteraction) {
 	if (playindex >= queue.length) {
 		// the index has overflown, so we either have to kill the player or reset playindex
 		if (looptype !== 2) {
-			kill(interaction);
+			kill(interaction.guildId);
 			return;
 		}
 
@@ -251,7 +251,7 @@ async function startPlaying(interaction: ChatInputCommandInteraction) {
 		if (queue.length > 0 && playindex >= 0) {
 			// first we need to see if we've went over the queue
 			if (playindex >= queue.length - 1 && looptype !== 2) {
-				kill(interaction);
+				kill(interaction.guildId);
 				return;
 			}
 
@@ -260,7 +260,7 @@ async function startPlaying(interaction: ChatInputCommandInteraction) {
 
 			startPlaying(interaction);
 		} else {
-			kill(interaction);
+			kill(interaction.guildId);
 		}
 	})
 }
@@ -268,7 +268,7 @@ async function startPlaying(interaction: ChatInputCommandInteraction) {
 /**
  * A function for completely stopping the music player
  */
-function kill(interaction: ChatInputCommandInteraction) {
+export function kill(guildId: string) {
 	// stop the player
 	playindex = -1;
 
@@ -276,7 +276,7 @@ function kill(interaction: ChatInputCommandInteraction) {
 	player = null;
 
 	// destroy the connection
-	getVoiceConnection(interaction.guildId)?.destroy();
+	getVoiceConnection(guildId)?.destroy();
 
 	queue = [];
 	playing = false;
