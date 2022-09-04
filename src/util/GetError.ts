@@ -1,4 +1,4 @@
-type ErrorType = "Default" | "Permission" | "Database" | "BadUser" | "Duration" | "Value" | "MemberUnavailable";
+type ErrorType = "Default" | "Permission" | "Database" | "BadUser" | "Duration" | "Value" | "MemberUnavailable" | "NotallowedDuration";
 
 export default function(error: ErrorType = "Default", info: string = "[unknown]") {
 	switch(error) {
@@ -8,6 +8,7 @@ export default function(error: ErrorType = "Default", info: string = "[unknown]"
 		case "BadUser": return "You aren't allowed to perform this action on this user.";
 		case "Duration": return "Incorrect duration formatting.";
 		case "Value": return `Incorrect value for the following option: ${info}`;
-		case "MemberUnavailable": return "The member has left the server."
+		case "MemberUnavailable": return "The member has left the server.";
+		case "NotallowedDuration": return "You do not have the permissions for that duration."
 	}
 }

@@ -151,6 +151,63 @@ commands.push(
 		)
 )
 
+commands.push(
+	new SlashCommandBuilder()
+		.setName("info")
+		.setDescription(
+			"View information about members, punishments"
+		)
+		.addSubcommandGroup((subcommandgroup) =>
+			subcommandgroup
+				.setName("punishment")
+				.setDescription(
+					"View information about a punishment or list a member's punishments"
+				)
+				.addSubcommand((subcommand) =>
+					subcommand
+						.setName("id")
+						.setDescription(
+							"View a single punishment based on punishment id"
+						)
+						.addStringOption((option) =>
+							option
+								.setName("id")
+								.setDescription("The id of the punishment")
+								.setRequired(true)
+						)
+				)
+				.addSubcommand((subcommand) =>
+					subcommand
+						.setName("member")
+						.setDescription("List a member's punishments")
+						.addUserOption((option) =>
+							option
+								.setName("member")
+								.setDescription("The member to list the punishments of")
+								.setRequired(true)
+						)
+						.addIntegerOption((option) =>
+							option
+								.setName("page")
+								.setDescription("The page to view")
+								.setRequired(false)
+								.setMinValue(1)
+						)
+				)
+		)
+		.addSubcommand((subcommand) =>
+			subcommand
+				.setName("member")
+				.setDescription("View information about a member")
+				.addUserOption((option) =>
+					option
+						.setName("member")
+						.setDescription("The member you want to view information about")
+						.setRequired(true)
+				)
+		)
+)
+
 commands.map(command => command.toJSON())
 for (const command of commands) {
 	console.log(JSON.stringify(command));

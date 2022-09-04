@@ -1,38 +1,52 @@
 import test_mode from "./test_mode";
 
 const base = {
-    MUTED_ROLE: "951893872668213288",
-    MEMBER_ROLE: "953275784959774731",
-    GIVEAWAY_ROLE: "917079814115037224",
+    MutedRole: "951893872668213288",
+    MemberRole: "953275784959774731",
+    GiveawayRole: "917079814115037224",
 
-    MOD_LOG_CHANNEL: "942169939496820837",
-    MESSAGE_LOG_CHANNEL: "953289937791352892",
-    MISC_LOG_CHANNEL: "953290376037429258",
-    WELCOME_CHANNEL: "811677044949123142",
-    LEVEL_UP_CHANNEL: "953942388521447424",
-    TEST_MODE_CHANNEL: "985544314878840932",
-    APPEAL_CHANNEL: "1014149748015513712",
-    GIVEAWAY_CHANNEL: "1014540440319565927",
+    ModLogChannel: "942169939496820837",
+    MessageLogChannel: "953289937791352892",
+    MiscLogChannel: "953290376037429258",
+    WelcomeChannel: "811677044949123142",
+    LevelUpChannel: "953942388521447424",
+    TestModeChannel: "985544314878840932",
+    AppealChannel: "1014149748015513712",
+    GiveawayChannel: "1014540440319565927",
 
-    OPEN_TICKETS_CATEGORY: "846709798192152576",
-    CLOSED_TICKETS_CATEGORY: "846709831044825119",
+    OpenTicketsCategory: "846709798192152576",
+    ClosedTicketsCategory: "846709831044825119",
 
-    MESTER_ID: "730775136881475645",
-    GUILD_ID: "775789526781263912",
-    PRISON_ID: "1014272380534804581",
-    PRISON_INVITE: "https://discord.gg/G9SUcyzWCR",
+    MesterId: "730775136881475645",
+    GuildId: "775789526781263912",
+    PrisonId: "1014272380534804581",
+    PrisonInvite: "https://discord.gg/G9SUcyzWCR",
 
-    VERSION: "4.1.0",
+    Version: "4.1.1",
 
-    SUPER_USERS: [
+    SuperUsers: [
         "730775136881475645",
         "477521549969063936",
         "897423396126752809",
     ],
 
-    SNOWFLAKE_EPOCH: 1651269600,
+    SnowflakeEpoch: 1651269600,
 
-    LEVEL_ROLES: [
+    MaxDuration: 30758400000,
+
+    MaxMutes: [
+        { mod: 1, duration: 21600 },
+        { mod: 2, duration: 259200 },
+        { mod: 3, duration: 1209600 }
+    ],
+
+    MaxBans: [
+        { mod: 1, duration: 0 },
+        { mod: 2, duration: 2592000 },
+        { mod: 3, duration: 66355200 }
+    ],
+
+    LevelRoles: [
         { level: 5, id: "992427815490310194" },
         { level: 10, id: "992439841071571015" },
         { level: 20, id: "992441789074120854" },
@@ -51,7 +65,7 @@ const base = {
 };
 
 const test = {
-    VERSION: base.VERSION + "-test",
+    VERSION: base.Version + "-test",
 };
 
 export default test_mode ? Object.assign({}, base, test) : base;

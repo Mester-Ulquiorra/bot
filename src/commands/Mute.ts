@@ -10,12 +10,12 @@ import CreateEmbed from "../util/CreateEmbed";
 import GetError from "../util/GetError";
 import Log from "../util/Log";
 import ManageRole from "../util/ManageRole";
-import { CanManageUser, CreateAppealButton, CreateModEmbed } from "../util/ModUtils";
+import { CanManageUser, CanPerformPunishment, CreateAppealButton, CreateModEmbed } from "../util/ModUtils";
 
 const MuteCommand: SlashCommand = {
     name: "mute",
 
-    async run(interaction, client) {
+    async run(interaction, _client) {
         const target = interaction.options.getMember("member") as GuildMember;
         if (!target) return GetError("MemberUnavailable");
 
@@ -23,12 +23,13 @@ const MuteCommand: SlashCommand = {
         const duration = ConvertDuration(interaction.options.getString("duration"));
         if (isNaN(duration)) return GetError("Duration");
 
-        const targetConfig = await GetUserConfig(target.id);
         const userConfig = await GetUserConfig(interaction.user.id);
+        if(!CanPerformPunishment(userConfig, PunishmentType.Mute, duration)) return GetError("NotallowedDuration");
+        const targetConfig = await GetUserConfig(target.id);
 
         if (!CanManageUser(userConfig, targetConfig) || target.user.bot) return GetError("BadUser");
 
-        if (targetConfig.muted && (await ManageRole(target, config.MUTED_ROLE, "Check"))) return "Member is already muted";
+        if (targetConfig.muted && (await ManageRole(target, config.MutedRole, "Check"))) return "Member is already muted";
 
         const punishmentId = SnowFlake.getUniqueID().toString();
 
@@ -42,7 +43,7 @@ const MuteCommand: SlashCommand = {
             until: duration === -1 ? -1 : Math.floor(Date.now() / 1000) + duration
         });
 
-        ManageRole(target, config.MUTED_ROLE, "Add", `Muted by ${interaction.user.tag}: ${reason}`);
+        ManageRole(target, config.MutedRole, "Add", `Muted by ${interaction.user.tag}: ${reason}`);
 
         targetConfig.muted = true;
         await targetConfig.save();

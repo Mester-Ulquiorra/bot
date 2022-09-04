@@ -18,15 +18,15 @@ const RankCommand: SlashCommand = {
 
     async run(interaction, _client) {
         // get the member (might be null, if it is, we need to get the rank information of the user)
-        const member = interaction.options.getUser("member");
+        const member = interaction.options.getUser("member") ?? interaction.member as GuildMember;
 
         // get level config
-        const levelConfig = await GetLevelConfig(member ? member.id : interaction.user.id);
+        const levelConfig = await GetLevelConfig(member.id);
 
         if (interaction.options.getBoolean("textmode")) {
             // create the embed
             const embed = CreateEmbed(`Level rank of <@${levelConfig.id}>`, {
-                author: member ? member : interaction.member as GuildMember,
+                author: member,
             });
 
             // add the fields
@@ -49,7 +49,7 @@ const RankCommand: SlashCommand = {
         delete background.onload; delete background.src;
 
         // draw the avatar and username
-        const avatar = await loadImage((member ?? interaction.member as GuildMember).displayAvatarURL({ size: 256, extension: "png" }));
+        const avatar = await loadImage(member.displayAvatarURL({ size: 256, extension: "png" }));
         context.drawImage(avatar, (CardHeight - 256) / 2, (CardHeight - 256) / 2, 256, 256);
         delete avatar.onload; delete avatar.src;
 
@@ -59,7 +59,7 @@ const RankCommand: SlashCommand = {
         context.fillStyle = "#000000";
         context.font = "50px 'Merriweather' bold";
         context.textAlign = "start";
-        context.fillText(member?.tag ?? interaction.user.tag, meterStartX, meterStartY - 5);
+        context.fillText(member instanceof GuildMember ? member.user.tag : member.tag, meterStartX, meterStartY - 5);
 
         const relativexp = levelConfig.xp - LevelToXP(levelConfig.level);
         const levelupPercent = relativexp / XPToLevelUp(levelConfig.level);
@@ -127,9 +127,11 @@ const RankCommand: SlashCommand = {
 async function getBackground() {
     if (Background != null) return Background;
 
-    return await sharp(CardBackground)
+    Background = await sharp(CardBackground)
         .blur(9)
         .toBuffer();
+
+    return Background;
 }
 
 function loadImage(source: string | Buffer) {

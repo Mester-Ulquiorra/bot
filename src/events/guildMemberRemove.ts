@@ -9,7 +9,7 @@ const GuildMemberRemoveEvent: Event = {
     name: "guildMemberRemove",
 
     async run(_client, member: GuildMember) {
-        if (member.guild.id === config.PRISON_ID) return;
+        if (member.guild.id === config.PrisonId) return;
 
         // get member config
         const memberConfig = await GetUserConfig(member.id, "new member, leaving");

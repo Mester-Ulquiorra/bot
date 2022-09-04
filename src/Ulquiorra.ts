@@ -40,7 +40,7 @@ Mongoose.connect(`mongodb+srv://discordbot:${process.env.DB_PASS}@${process.env.
 });
 // ------------------------------------------
 
-const SnowFlake = new Snowflake({ custom_epoch: config.SNOWFLAKE_EPOCH });
+const SnowFlake = new Snowflake({ custom_epoch: config.SnowflakeEpoch });
 
 function shutdown(reason: string) {
 	Log(`Shutting down client: ${reason}`, LogType.Fatal);
@@ -61,7 +61,7 @@ Register(
 	Ulquiorra.login(process.env.TOKEN).then(async () => {
 		setInterval(() => {
 			Ulquiorra.user.setActivity({
-				name: `Version ${config.VERSION}`,
+				name: `Version ${config.Version}`,
 			});
 		}, 1000 * 60 * 60); // 1 hour
 

@@ -21,7 +21,7 @@
     "virustotal-api": "^1.1.7"
   },
   "name": "ulquiorra",
-  "version": "4.1.0",
+  "version": "4.1.1",
   "type": "commonjs",
   "main": "dist/Ulquiorra.js",
   "devDependencies": {

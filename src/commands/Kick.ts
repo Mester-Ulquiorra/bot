@@ -45,7 +45,7 @@ const KickCommand: SlashCommand = {
             .send({ embeds: [userEmbed] })
             .catch(() => { return; })
             .finally(() => {
-                target.kick(reason).catch(() => { return "Couldn't kick member" })
+                target.kick(`Kicked by ${interaction.user.tag}: ${reason}`).catch(() => { return "Couldn't kick member" })
             });
 
         interaction.channel.sendTyping().then(() => {

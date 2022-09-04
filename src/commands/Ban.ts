@@ -8,7 +8,7 @@ import ConvertDuration from "../util/ConvertDuration";
 import CreateEmbed from "../util/CreateEmbed";
 import GetError from "../util/GetError";
 import Log from "../util/Log";
-import { CanManageUser, CreateAppealButton, CreateModEmbed } from "../util/ModUtils";
+import { CanManageUser, CanPerformPunishment, CreateAppealButton, CreateModEmbed } from "../util/ModUtils";
 
 const BanCommand: SlashCommand = {
     name: "ban",
@@ -22,9 +22,11 @@ const BanCommand: SlashCommand = {
 
         // if duration is NaN, we have an error
         if (isNaN(duration)) return GetError("Duration");
-
+        
         // get the user config for both the interaction and the target user
         const userConfig = await GetUserConfig(interaction.user.id);
+        if(!CanPerformPunishment(userConfig, PunishmentType.Ban, duration)) return GetError("NotallowedDuration");
+
         const targetConfig = await GetUserConfig(target.id);
 
         // check if the user can manage the member
@@ -55,7 +57,7 @@ const BanCommand: SlashCommand = {
             .send({ embeds: [userEmbed], components: [CreateAppealButton(true)] })
             .catch(() => { return;})
             .finally(() => {
-                target.ban({ reason: reason }).catch(() => { return; });
+                target.ban({ reason: `Banned by ${interaction.user.tag}: ${reason}` }).catch(() => { return; });
             });
 
         interaction.channel.sendTyping().then(() => {

@@ -259,7 +259,7 @@ async function close(interaction: ChatInputCommandInteraction, userConfig: any) 
     const ticketChannel = interaction.channel as TextChannel;
 
     // move the ticket to closed tickets
-    ticketChannel.setParent(config.CLOSED_TICKETS_CATEGORY, {
+    ticketChannel.setParent(config.ClosedTicketsCategory, {
         // make sure we DON'T lock permissions
         lockPermissions: false,
         reason: `Ticket closed by ${interaction.user.tag}: ${reason}`,
@@ -400,7 +400,7 @@ async function reopen(interaction: ButtonInteraction, userConfig: any) {
     const ticketChannel = interaction.channel as TextChannel;
 
     // move channel to opened ticket category
-    ticketChannel.setParent(config.OPEN_TICKETS_CATEGORY, {
+    ticketChannel.setParent(config.OpenTicketsCategory, {
         // make sure we DON'T lock permissions
         lockPermissions: false,
         reason: `Ticket reopened by ${interaction.user.tag}`,

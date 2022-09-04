@@ -1,4 +1,4 @@
-import { ActionRowBuilder, APIActionRowComponent, ButtonInteraction, ChatInputCommandInteraction, SelectMenuBuilder, SelectMenuComponentOptionData, SelectMenuInteraction } from "discord.js";
+import { ActionRowBuilder, APIActionRowComponent, ButtonInteraction, ChatInputCommandInteraction, SelectMenuBuilder, SelectMenuComponentOptionData, SelectMenuInteraction, User } from "discord.js";
 import PunishmentConfig, { PunishmentTypeToName } from "../database/PunishmentConfig";
 import SlashCommand from "../types/SlashCommand";
 import CreateEmbed from "../util/CreateEmbed";
@@ -7,7 +7,7 @@ import { CalculateMaxPage } from "../util/MathUtils";
 const PageSize = 10;
 
 const PunishmentInfoCommand: SlashCommand = {
-	name: "punishmentinfo",
+    name: "punishmentinfo",
 
     async run(interaction, _client) {
         // check for subcommand
@@ -20,7 +20,7 @@ const PunishmentInfoCommand: SlashCommand = {
             case "member":
                 return showPunishmentsOfMember(
                     interaction,
-                    interaction.options.getString("id"),
+                    interaction.options.getUser("member"),
                     interaction.options.getInteger("page") ?? 1
                 );
         }
@@ -28,23 +28,29 @@ const PunishmentInfoCommand: SlashCommand = {
         return "How the fuck did you get here?";
     },
 
-    async runSelectMenu(interaction, _client) {
+    async runSelectMenu(interaction, client) {
         if (interaction.customId === "punishmentinfo.pageselector") {
             // get the user id using this very shitty and messy way
             const userid = interaction.message.embeds[0].footer.text
                 .match(/\d{17,}/)[0]
                 .replaceAll(/[<@>]/gi, "");
 
+            const user = await client.users.fetch(userid)
+                .then(user => { return user; })
+                .catch(() => { return; });
+
+            if (!user) return "User was not found";
+
             return showPunishmentsOfMember(
                 interaction,
-                userid,
+                user,
                 Number.parseInt(interaction.values[0]),
                 true
             );
         }
     },
 
-    async runButton(interaction, _client) {
+    async runButton(interaction, client) {
         if (interaction.customId === "punishmentinfo.showactivep") {
             // get the user id using this very shitty and messy way
             const userid = interaction.message.embeds[0].footer.text
@@ -72,9 +78,15 @@ const PunishmentInfoCommand: SlashCommand = {
                 .match(/\d{17,}/)[0]
                 .replaceAll(/[<@>]/gi, "");
 
+            const user = await client.users.fetch(userid)
+                .then(user => { return user; })
+                .catch(() => { return; });
+
+            if (!user) return "User was not found";
+
             return showPunishmentsOfMember(
                 interaction,
-                userid,
+                user,
                 1
             );
         }
@@ -146,26 +158,26 @@ async function showPunishmentById(interaction: ChatInputCommandInteraction | But
 /**
  *
  * @param interaction The interaction object.
- * @param userid The ID of the user.
+ * @param user The user.
  * @param page The page to display.
  * @param refresh If this is a refresh (the interaction already exists)
  */
-async function showPunishmentsOfMember(interaction: ChatInputCommandInteraction | ButtonInteraction | SelectMenuInteraction, userid: string, page: number, refresh: boolean = false) {
-    const maxPage = await GetMaxPunishmentPages(userid);
+async function showPunishmentsOfMember(interaction: ChatInputCommandInteraction | ButtonInteraction | SelectMenuInteraction, user: User, page: number, refresh: boolean = false) {
+    const maxPage = await GetMaxPunishmentPages(user.id);
 
     // check if page is bigger than the available pages
     if (page > maxPage) return "Page is not available.";
 
     // get every punishment of the user
     const punishments = await PunishmentConfig.find({
-        user: userid,
+        user: user.id,
     }).sort({ at: -1 });
 
-    if(punishments.length === 0) return "The member has no punishments."
+    if (punishments.length === 0) return "The member has no punishments."
 
     // create the embed
     const embed = await createPunishmentsEmbed(
-        userid,
+        user.id,
         punishments,
         page,
         maxPage
@@ -221,7 +233,7 @@ async function showPunishmentsOfMember(interaction: ChatInputCommandInteraction 
 async function createPunishmentsEmbed(userid: string, punishments: Array<any>, page: number, max_page: number) {
     // create the embed
     let returnembed = CreateEmbed(`**Punishments of <@${userid}> (page ${page} / ${max_page})**`)
-    	.setFooter({text: `User ID: ${userid}`});
+        .setFooter({ text: `User ID: ${userid}` });
 
     for (
         // this weird shit is doing some crazy magic to get the correct index values for the punishments

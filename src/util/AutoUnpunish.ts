@@ -56,7 +56,7 @@ export default async function() {
                     // remove the muted role
                     ManageRole(
                         member,
-                        config.MUTED_ROLE,
+                        config.MutedRole,
                         "Remove",
                         "automatic unmute"
                     );

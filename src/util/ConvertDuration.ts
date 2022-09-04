@@ -1,3 +1,5 @@
+import config from "../config";
+
 const DURATION_REGEX = /([1-9]\d{0,2})(s|mo|m|hr?|d|yr?)/g;
 
 /**
@@ -46,5 +48,5 @@ export default function ConvertDuration(stringDuration: string): number {
     DURATION_REGEX.lastIndex = 0;
 
     if(duration === 0) return NaN;
-    else return duration;
+    else return Math.min(duration, config.MaxDuration);
 }

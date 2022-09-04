@@ -17,20 +17,15 @@ const AppealCommand: SlashCommand = {
 
     async runButton(interaction, client) {
         if (interaction.customId === "appeal.appeal") {
-            // the punishment id will be in the embed
-            const punishmentId = interaction.message.embeds[0].footer.text.match(/\d+/)?.[0];
-
-            if (!punishmentId) return "For some super bizarre reason, the punishment id was not found";
-
-            // get punishment config
-            const punishment = await PunishmentConfig.findOne({ id: punishmentId });
-            if (!punishment) return GetError("Database");
+            // try to find the user's active punishment
+            const punishment = await PunishmentConfig.findOne({ user: interaction.user.id, active: true });
+            if (!punishment) return "You don't have any active punishments!";
             if (punishment.appealed) return "You've already appealed this punishment.";
 
             // create modal
             const modal =
                 new ModalBuilder()
-                    .setTitle(`Appeal punishment ${punishmentId}`)
+                    .setTitle(`Appeal punishment ${punishment.id}`)
                     .setCustomId("appeal.appealmodal")
                     .setComponents(
                         //@ts-expect-error
@@ -56,9 +51,9 @@ const AppealCommand: SlashCommand = {
                                 .setCustomId("punishment")
                                 .setLabel("Punishment ID (don't change)")
                                 .setStyle(TextInputStyle.Short)
-                                .setMaxLength(punishmentId.length)
-                                .setMinLength(punishmentId.length)
-                                .setValue(punishmentId)
+                                .setMaxLength(punishment.id.length)
+                                .setMinLength(punishment.id.length)
+                                .setValue(punishment.id)
                                 .setRequired(true)
                         ),
                     );
@@ -111,9 +106,10 @@ const AppealCommand: SlashCommand = {
 
                             if (!member) return GetError("MemberUnavailable");
 
-                            ManageRole(member, config.MUTED_ROLE, "Remove", `appeal accepted by ${interaction.user.tag}`);
+                            ManageRole(member, config.MutedRole, "Remove", `appeal accepted by ${interaction.user.tag}`);
                         case PunishmentType.Ban:
                             userConfig.banned = false;
+                            await userConfig.save();
 
                             GetGuild().members.unban(user, `appeal accepted by ${interaction.user.tag}`).catch(() => { return; });
                     }

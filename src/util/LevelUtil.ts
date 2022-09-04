@@ -12,7 +12,7 @@ import gib_detect from "./GibberishDetector/gib_detect"
  * A map to hold all the level roles.
  */
 const levelRoles = new Map(
-    config.LEVEL_ROLES.map((object) => {
+    config.LevelRoles.map((object) => {
         return [object.level, object.id];
     })
 );

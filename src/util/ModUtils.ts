@@ -74,6 +74,34 @@ export const CanManageUser = function (user: typeof userSchema, target: typeof u
 	return true;
 }
 
+/**
+ * A map to hold all the max mutes.
+ */
+const maxMutes = new Map(
+	config.MaxMutes.map((object) => {
+		return [object.mod, object.duration];
+	})
+);
+
+/**
+ * A map to hold all the max bans.
+ */
+const maxBans = new Map(
+	config.MaxBans.map((object) => {
+		return [object.mod, object.duration];
+	})
+);
+
+export const CanPerformPunishment = function (user: typeof userSchema, punishmentType: PunishmentType, duration: number) {
+	if (user.mod >= ModNameToLevel("Head") || user.mod === ModNameToLevel("Test")) return true;
+
+	if (punishmentType === PunishmentType.Kick || punishmentType === PunishmentType.Warn) return true;
+
+	const checkDuration = punishmentType === PunishmentType.Mute ? maxMutes.get(user.mod as number) : maxBans.get(user.mod as number);
+
+	return (checkDuration !== 0 && checkDuration >= duration)
+}
+
 interface CreateModEmbedOptions {
 	anti?: boolean,
 	backupType?: number,
@@ -162,21 +190,18 @@ export const CreateModEmbed = function (mod: User, target: User | string, punish
 }
 
 export const CreateAppealButton = function (isBan = false) {
-	const components =
+	return !isBan ?
 		new ActionRowBuilder().addComponents(
 			new ButtonBuilder()
 				.setCustomId("appeal.appeal")
 				.setLabel("Appeal your punishment")
 				.setStyle(ButtonStyle.Primary)
-		)
-
-	if (isBan)
-		components.addComponents(
+		).toJSON() as APIActionRowComponent<any>
+		:
+		new ActionRowBuilder().addComponents(
 			new ButtonBuilder()
 				.setLabel("Join Mester's Prison to get access to the appeal button")
 				.setStyle(ButtonStyle.Link)
-				.setURL(config.PRISON_INVITE)
-		)
-
-	return components.toJSON() as APIActionRowComponent<any>
+				.setURL(config.PrisonInvite)
+		).toJSON() as APIActionRowComponent<any>
 }

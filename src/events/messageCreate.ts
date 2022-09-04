@@ -5,6 +5,7 @@ import { shutdown } from "../Ulquiorra";
 import { GetGuild } from "../util/ClientUtils";
 import CreateEmbed, { EmbedColor } from "../util/CreateEmbed";
 import { GetXPFromMessage } from "../util/LevelUtil";
+import { CreateAppealButton } from "../util/ModUtils";
 import { CheckMessage } from "../util/Reishi";
 import { CreateTicket, TicketTypeToName } from "../util/TicketUtils";
 
@@ -14,7 +15,7 @@ const HelpMessage =
 const MessageCreateEvent: Event = {
     name: "messageCreate",
     async run(client: Client, message: Message) {
-        if (config.SUPER_USERS.includes(message.author.id))
+        if (config.SuperUsers.includes(message.author.id))
             handleSuperuserCommand(client, message);
 
         // check if the message is the help command
@@ -42,14 +43,14 @@ async function handleSuperuserCommand(client: Client, message: Message) {
     // get just the command using this thing
     const command = message.content.slice(client.user.toString().length + 1);
 
-    if (command === "shatter" && message.author.id == config.MESTER_ID)
+    if (command === "shatter" && message.author.id == config.MesterId)
         // simply run the shutdown function
         shutdown("Mester asked me nicely :)");
 
     if (command === "hi")
         message.reply({
             content: `Hi! Latency: ${Math.abs(Date.now() - message.createdTimestamp)}ms. API Latency: ${Math.round(client.ws.ping)}ms`
-                + `\nVersion: ${config.VERSION}`,
+                + `\nVersion: ${config.Version}`,
             allowedMentions: { users: [] },
         });
 
@@ -99,6 +100,19 @@ async function handleSuperuserCommand(client: Client, message: Message) {
         const verifyChannel = await GetGuild().channels.fetch("1006077960584970280") as TextChannel;
 
         verifyChannel.send({ embeds: [embed], components });
+    }
+
+    if(command === "appeal-send") {
+        (GetGuild(true).channels.cache.get("1014272383932186656") as TextChannel)
+            .send({
+                embeds: [
+                    CreateEmbed(`**Welcome to Mester's Prison! You're probably here because want to appeal your ban.**`
+                        + `\nAppealing your ban is easy: just click on this handy button!`)
+                ],
+                components: [
+                    CreateAppealButton()
+                ]
+            })
     }
 };
 

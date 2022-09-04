@@ -26,7 +26,7 @@ const MessageUpdateEvent: Event = {
 		if (oldMessage.content.length > MaxContentLength) oldMessageContent = `${oldMessage.content.substring(0, MaxContentLength)}...`;
 
 		// create a new embed
-		const embed = CreateEmbed(`**Message sent by <@${oldMessage.author.id}> has been edited in <#${oldMessage.channel.id}>** [Jump to message](${newMessage.url})`)
+		const embed = CreateEmbed(`**Message sent by <@${oldMessage.author.id}> has been edited in ${oldMessage.channel}** [Jump to message](${newMessage.url})`)
 			.addFields([
 				{
 					name: "Old content",

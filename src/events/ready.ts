@@ -15,14 +15,14 @@ const ReadyEvent: Event = {
 
 	async run(client: Client) {
 		// fetch the guild and their channels
-		client.guilds.fetch(config.GUILD_ID).then((guild) => {
+		client.guilds.fetch(config.GuildId).then((guild) => {
 			guild.channels.fetch();
 		});
 		// fetch the prison
-		client.guilds.fetch(config.PRISON_ID);
+		client.guilds.fetch(config.PrisonId);
 
 		client.user.setActivity({
-			name: `Version ${config.VERSION}`,
+			name: `Version ${config.Version}`,
 		});
 
 		AutoUnpunish();
@@ -128,7 +128,7 @@ async function setupVerifyListener() {
 								// give them the role
 								ManageRole(
 									interaction.member,
-									config.MEMBER_ROLE,
+									config.MemberRole,
 									"Add",
 									"verified user"
 								);

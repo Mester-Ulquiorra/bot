@@ -129,7 +129,7 @@ async function PunishMessage(message: Message, type: PunishmentNames, word: stri
     // give the user the muted role, + save their config
     ManageRole(
         message.member,
-        config.MUTED_ROLE,
+        config.MutedRole,
         "Add",
         `Muted by Ichigo - ${GetPunishmentReason(type)}`
     );

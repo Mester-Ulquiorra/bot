@@ -21,7 +21,7 @@ export const CreateTicket = async function(
 	const ticketChannel = await GetGuild().channels.create({
 		name: channelName,
 		topic: `Ticket created by ${ticketOwner}: **${reason}**`,
-		parent: config.OPEN_TICKETS_CATEGORY,
+		parent: config.OpenTicketsCategory,
 		reason: `Ticket created by ${ticketOwner.displayName}: ${reason}`
 	}).catch((error) => { throw error; });
 
