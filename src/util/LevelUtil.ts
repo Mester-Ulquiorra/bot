@@ -17,47 +17,47 @@ const levelRoles = new Map(
     })
 );
 
-const level_config = {
+const LevelConf = {
     /**
      * the required seconds between each message to gain xp
      */
-    MESSAGE_LIMIT: 30,
+    MessageLimit: 30,
     /**
      * the xp of the first level
      */
-    BASE_LEVEL: 2000,
+    BaseLevel: 2000,
     /**
      * the xp required to get the next level
      */
-    EXTRA_LEVEL: 5000,
+    ExtraLevel: 5000,
     /**
      * how much does EXTRA_LEVEL change after each level
      */
-    LEVEL_MULTIPLIER: 35,
+    LevelMultiplier: 35,
     /**
      * the level where things change (xp cap stops decreasing etc.)
      */
-    EVENT_HORIZON: 70,
+    EventHorizon: 70,
     /**
      * how much should EXTRA_LEVEL decrease after level hits the event horizon
      */
-    XP_DECREASE_RATE: 0.005,
+    XpDecreaseRate: 0.005,
     /**
      * the starting and maximum xp cap (aka. how much xp can be gained max)
      */
-    MAX_XP_CAP: 2000,
+    MaxXpCap: 2000,
     /**
      * how much should the xp cap decrease per level
      * thanks Finn for the formula
      */
-    XP_CAP_MULTIPLIER: 70 / (1 - 200 / 2000),
+    XpCapMultiplier: 70 / (1 - 200 / 2000),
 };
 
 /**
  * A map that holds when a user last sent a message.
  * Used to limit the xp gain rate.
  */
-const lastmessages = new Map<string, number>();
+const LastMessages = new Map<string, number>();
 
 /**
  * A function for getting the xp from a message.
@@ -69,36 +69,37 @@ async function GetXPFromMessage(message: Message): Promise<number> {
     const content = message.content.replaceAll(/[^a-zA-Z0-9]|\s/gu, "");
 
     // get the config from the map
-    if (!lastmessages.has(message.author.id))
+    if (!LastMessages.has(message.author.id))
         // make sure to add the member if they aren't in the map
-        lastmessages.set(message.author.id, 0);
+        LastMessages.set(message.author.id, 0);
 
     // get the last time the member has sent a message
-    const lastmessage = lastmessages.get(message.author.id);
+    const lastMessage = LastMessages.get(message.author.id);
 
     // get the level config of the user
-    const levelconfig = await GetLevelConfig(message.author.id);
+    const levelConfig = await GetLevelConfig(message.author.id);
 
-    // check if the user has sent a message less than 30 seconds ago
+    const currTime = Date.now();
+
+    // check if the user has sent a message in this half minute
     if (
-        message.createdTimestamp - lastmessage <
-        level_config.MESSAGE_LIMIT * 1000 &&
+        !(currTime - lastMessage >= LevelConf.MessageLimit * 1000) &&
         !test_mode
     )
         return 0;
 
     // set this message to the member's last message
-    lastmessages.set(message.author.id, message.createdTimestamp);
+    LastMessages.set(message.author.id, currTime);
 
     // check if the message is gibberish
     if (!gib_detect(content)) return 0;
 
     // calculate the xp gained from the message
-    const xp = LengthToXP(content.length, levelconfig.level);
+    const xp = LengthToXP(content.length, levelConfig.level);
     if (xp == 0) return null;
 
     // now add it to the user
-    AddXPToUser(levelconfig, xp, message);
+    AddXPToUser(levelConfig, xp, message);
 
     return xp;
 }
@@ -110,9 +111,9 @@ async function GetXPFromMessage(message: Message): Promise<number> {
  */
 function MaxXPOfLevel(level: number): number {
     return ClampNumber(
-        level_config.MAX_XP_CAP * (1 - level / level_config.XP_CAP_MULTIPLIER),
+        LevelConf.MaxXpCap * (1 - level / LevelConf.XpCapMultiplier),
         200,
-        level_config.MAX_XP_CAP
+        LevelConf.MaxXpCap
     );
 }
 
@@ -125,17 +126,17 @@ function LevelToXP(level: number) {
     return level == 0
         ? 0
         : Math.floor(
-            level_config.BASE_LEVEL +
-            level_config.EXTRA_LEVEL *
+            LevelConf.BaseLevel +
+            LevelConf.ExtraLevel *
             (level - 1) *
             (1 +
                 (Math.min(
-                    1 - 0.005 * (level - level_config.EVENT_HORIZON),
+                    1 - 0.005 * (level - LevelConf.EventHorizon),
                     1
                 ) *
                     level -
                     1) /
-                level_config.LEVEL_MULTIPLIER)
+                LevelConf.LevelMultiplier)
         );
 }
 
@@ -267,7 +268,7 @@ async function GetLevelConfig(userid: string) {
  * @param newRole The role id that was added to the user.
  */
 async function AlertMember(member: GuildMember, newlevel: number, message: Message, newRole: string) {
-    let embedDescription = `**Congratulations <@${member.id}>! You've successfully achieved level ${newlevel}**`;
+    let embedDescription = `**Congratulations <@${member.id}>! You've successfully achieved level ${newlevel}**! ([Jump to level message](${message.url}))`;
 
     // if new_role is not null, get the role name
     if (newRole) {
@@ -291,21 +292,10 @@ async function AlertMember(member: GuildMember, newlevel: number, message: Messa
         },
     ]);
 
-    const components = [
-        new ActionRowBuilder().addComponents([
-            new ButtonBuilder()
-                .setEmoji("✉️")
-                .setLabel("Show level message")
-                .setStyle(ButtonStyle.Link)
-                .setURL(message.url),
-        ]).toJSON(),
-    ];
-
     GetSpecialChannel("LevelUp")
         .send({
             content: spoiler(`<@${member.id}>`),
             embeds: [alertembed],
-            components: components as APIActionRowComponent<any>[],
         });
 }
 

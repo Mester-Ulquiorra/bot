@@ -5,7 +5,7 @@ import { GetUserConfig } from "../util/ConfigHelper";
 import CreateEmbed from "../util/CreateEmbed";
 import GetError from "../util/GetError";
 import Log from "../util/Log";
-import { CreateModEmbed } from "../util/ModUtils";
+import { CanPerformPunishment, CreateModEmbed } from "../util/ModUtils";
 
 const UnbanCommand: SlashCommand = {
     name: "unban",
@@ -16,7 +16,9 @@ const UnbanCommand: SlashCommand = {
         const reason = interaction.options.getString("reason") ?? "no reason provided";
 
         const userConfig = await GetUserConfig(interaction.user.id);
-        if(userConfig.mod == 0) return GetError("Permission");
+        if (userConfig.mod == 0) return GetError("Permission");
+        if (!CanPerformPunishment(userConfig, PunishmentType.Ban, 0)) // only head mods and higher can unban
+            return GetError("InsufficentModLevel");
 
         const targetConfig = await GetUserConfig(target.id);
 

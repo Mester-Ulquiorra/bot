@@ -5,9 +5,11 @@
     "canvas": "^2.9.3",
     "cli-color": "^2.0.3",
     "date-fns": "^2.29.2",
+    "deepl-node": "^1.6.0",
     "discord.js": "^14.3.0",
     "dotenv": "^16.0.1",
     "ffmpeg-static": "^5.1.0",
+    "languagedetect": "^2.0.0",
     "mongoose": "^6.5.3",
     "nodejs-snowflake": "^2.0.1",
     "open-trivia-db": "^1.0.1",
@@ -17,11 +19,10 @@
     "sodium": "^3.0.2",
     "svg-captcha": "^1.4.0",
     "typescript": "^4.8.2",
-    "uuid": "^8.3.2",
-    "virustotal-api": "^1.1.7"
+    "uuid": "^8.3.2"
   },
   "name": "ulquiorra",
-  "version": "4.1.1",
+  "version": "4.1.2",
   "type": "commonjs",
   "main": "dist/Ulquiorra.js",
   "devDependencies": {

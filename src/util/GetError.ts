@@ -1,4 +1,4 @@
-type ErrorType = "Default" | "Permission" | "Database" | "BadUser" | "Duration" | "Value" | "MemberUnavailable" | "NotallowedDuration";
+type ErrorType = "Default" | "Permission" | "Database" | "BadUser" | "Duration" | "Value" | "MemberUnavailable" | "InsufficentModLevel";
 
 export default function(error: ErrorType = "Default", info: string = "[unknown]") {
 	switch(error) {
@@ -9,6 +9,6 @@ export default function(error: ErrorType = "Default", info: string = "[unknown]"
 		case "Duration": return "Incorrect duration formatting.";
 		case "Value": return `Incorrect value for the following option: ${info}`;
 		case "MemberUnavailable": return "The member has left the server.";
-		case "NotallowedDuration": return "You do not have the permissions for that duration."
+		case "InsufficentModLevel": return "You do not have permissions for that permission."
 	}
 }

@@ -20,9 +20,9 @@ const base = {
     MesterId: "730775136881475645",
     GuildId: "775789526781263912",
     PrisonId: "1014272380534804581",
-    PrisonInvite: "https://discord.gg/G9SUcyzWCR",
+    PrisonInvite: "https://discord.gg/SNVtdQHpxm",
 
-    Version: "4.1.1",
+    Version: "4.1.2",
 
     SuperUsers: [
         "730775136881475645",

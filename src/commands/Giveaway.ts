@@ -10,6 +10,8 @@ import CreateEmbed, { EmbedColor } from "../util/CreateEmbed";
 import GetError from "../util/GetError";
 import Log from "../util/Log";
 
+const GiveawayEmoji = "✅";
+
 const GiveawayCommand: SlashCommand = {
     name: "giveaway",
 
@@ -36,14 +38,14 @@ async function startGiveaway(interaction: ChatInputCommandInteraction) {
     if (!(interaction.member as GuildMember).roles.cache.has(config.GiveawayRole) && !interaction.memberPermissions.has(PermissionsBitField.Flags.Administrator))
         return GetError("Permission");
 
-    if (!test_mode && interaction.channelId !== config.GiveawayChannel)
+    if (!interaction.memberPermissions.has(PermissionsBitField.Flags.Administrator) && interaction.channelId !== config.GiveawayChannel)
         return `You can only use this command in <#${config.GiveawayChannel}>`;
 
     const name = interaction.options.getString("name");
     const duration = ConvertDuration(interaction.options.getString("duration"));
     if (isNaN(duration))
         return GetError("Duration");
-    if (!test_mode && duration < 600)
+    if (!interaction.memberPermissions.has(PermissionsBitField.Flags.Administrator) && duration < 600)
         return "The giveaway's duration must be at least 10 minutes";
     const winners = interaction.options.getInteger("winners") ?? 1;
 
@@ -51,7 +53,7 @@ async function startGiveaway(interaction: ChatInputCommandInteraction) {
     const end = Math.floor(Date.now() / 1000) + duration;
     const giveawayId = SnowFlake.getUniqueID().toString();
 
-    const embed = CreateEmbed(`Giveaway hosted by ${interaction.user}!\nReach with ✅ to enter!`, {
+    const embed = CreateEmbed(`Giveaway hosted by ${interaction.user}!\nReach with ${GiveawayEmoji} to enter!`, {
         color: EmbedColor.Success,
         title: name
     })
@@ -70,7 +72,7 @@ async function startGiveaway(interaction: ChatInputCommandInteraction) {
         .setFooter({ text: `Giveaway ID: ${giveawayId}` });
 
     const message = await interaction.reply({ embeds: [embed], fetchReply: true });
-    message.react("✅");
+    message.react(GiveawayEmoji);
 
     const giveaway = await GiveawayConfig.create({
         id: giveawayId,
@@ -100,7 +102,7 @@ async function endGiveaway(giveaway: any) {
         return;
     }
 
-    const users = (await message.reactions.cache.get("✅").users.fetch())
+    const users = (await message.reactions.cache.get(GiveawayEmoji).users.fetch())
         .filter(user => !user.bot)
         .map(user => user);
 

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, ContextMenuCommandBuilder, ApplicationCommandType } = require("discord.js");
 
 const commands = [];
 
@@ -206,6 +206,18 @@ commands.push(
 						.setRequired(true)
 				)
 		)
+)
+
+commands.push(
+	new ContextMenuCommandBuilder()
+		.setName("Show punishment ID")
+		.setType(ApplicationCommandType.Message)
+)
+
+commands.push(
+	new ContextMenuCommandBuilder()
+		.setName("Translate message")
+		.setType(ApplicationCommandType.Message)
 )
 
 commands.map(command => command.toJSON())

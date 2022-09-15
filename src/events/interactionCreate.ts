@@ -38,7 +38,7 @@ const InteractionCreateEvent: Event = {
 		if (interaction.isCommand() && !interaction.isChatInputCommand()) {
 			for (const [name, command] of commands) {
 				if (interaction.isUserContextMenuCommand() && command.userContextCommandNames?.includes(interaction.commandName)) commandName = name;
-				if (interaction.isMessageContextMenuCommand() && command.userContextCommandNames?.includes(interaction.commandName)) commandName = name;
+				if (interaction.isMessageContextMenuCommand() && command.messageContextCommandNames?.includes(interaction.commandName)) commandName = name;
 			}
 		}
 

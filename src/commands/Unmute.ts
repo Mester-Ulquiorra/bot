@@ -8,7 +8,7 @@ import CreateEmbed from "../util/CreateEmbed";
 import GetError from "../util/GetError";
 import Log from "../util/Log";
 import ManageRole from "../util/ManageRole";
-import { CanManageUser, CreateModEmbed } from "../util/ModUtils";
+import { CanManageUser, CanPerformPunishment, CreateModEmbed } from "../util/ModUtils";
 
 const UnmuteCommand: SlashCommand = {
     name: "unmute",
@@ -22,6 +22,8 @@ const UnmuteCommand: SlashCommand = {
 
         // get user and member config
         const userConfig = await GetUserConfig(interaction.user.id);
+        if (!CanPerformPunishment(userConfig, PunishmentType.Mute, 259201)) // only level 3 and higher can unmute
+            return GetError("InsufficentModLevel");
         const targetConfig = await GetUserConfig(target.id);
 
         // check if user can manage member

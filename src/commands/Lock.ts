@@ -1,4 +1,4 @@
-import { ChannelType, ChatInputCommandInteraction, TextChannel } from "discord.js";
+import { ChatInputCommandInteraction, TextChannel } from "discord.js";
 import SlashCommand from "../types/SlashCommand";
 import { GetGuild } from "../util/ClientUtils";
 import { GetUserConfig } from "../util/ConfigHelper";
@@ -45,7 +45,7 @@ const LockCommand: SlashCommand = {
         const interactionChannel = interaction.channel;
 
         // check if channel is a text channel
-        if (interactionChannel.type !== ChannelType.GuildText)
+        if (interactionChannel.isDMBased() || interactionChannel.isThread())
             return "This command can only be used in text channels.";
 
         if (lock_all) {
@@ -69,7 +69,7 @@ const LockCommand: SlashCommand = {
         // --- This part is for a single channel only ---
 
         // do the lock
-        lockOne(interactionChannel, !unlock, reason, interaction);
+        lockOne(interactionChannel as TextChannel, !unlock, reason, interaction);
 
         // log
         Log(`${interaction.user.tag} (${interaction.user.id}) has ${unlock ? "un" : ""}locked channel ${interactionChannel.name} (${interactionChannel.id}). Reason: ${reason}`);

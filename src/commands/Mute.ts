@@ -24,7 +24,7 @@ const MuteCommand: SlashCommand = {
         if (isNaN(duration)) return GetError("Duration");
 
         const userConfig = await GetUserConfig(interaction.user.id);
-        if(!CanPerformPunishment(userConfig, PunishmentType.Mute, duration)) return GetError("NotallowedDuration");
+        if(!CanPerformPunishment(userConfig, PunishmentType.Mute, duration)) return GetError("InsufficentModLevel");
         const targetConfig = await GetUserConfig(target.id);
 
         if (!CanManageUser(userConfig, targetConfig) || target.user.bot) return GetError("BadUser");

@@ -25,7 +25,7 @@ const BanCommand: SlashCommand = {
         
         // get the user config for both the interaction and the target user
         const userConfig = await GetUserConfig(interaction.user.id);
-        if(!CanPerformPunishment(userConfig, PunishmentType.Ban, duration)) return GetError("NotallowedDuration");
+        if(!CanPerformPunishment(userConfig, PunishmentType.Ban, duration)) return GetError("InsufficentModLevel");
 
         const targetConfig = await GetUserConfig(target.id);
 

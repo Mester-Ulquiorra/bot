@@ -12,6 +12,7 @@ import AutoUnpunish from "./util/AutoUnpunish";
 import CleanTickets from "./util/CleanTickets";
 import { createInterface } from "readline";
 import { HandleConsoleCommand } from "./util/ConsoleUtil";
+import * as deepl from "deepl-node";
 
 dotconfig({
 	path: join(__dirname, "..", test_mode ? ".env.test" : ".env")
@@ -41,6 +42,7 @@ Mongoose.connect(`mongodb+srv://discordbot:${process.env.DB_PASS}@${process.env.
 // ------------------------------------------
 
 const SnowFlake = new Snowflake({ custom_epoch: config.SnowflakeEpoch });
+const DeeplTranslator = new deepl.Translator(process.env.DEEPL_KEY)
 
 function shutdown(reason: string) {
 	Log(`Shutting down client: ${reason}`, LogType.Fatal);
@@ -96,6 +98,7 @@ process.on("uncaughtException", (error) => {
 
 export { 
 	shutdown,
-	SnowFlake
+	SnowFlake,
+	DeeplTranslator
 }
 export default Ulquiorra;

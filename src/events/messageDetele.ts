@@ -20,7 +20,9 @@ const MessageDeleteEvent: Event = {
 
 		// check if the message is a reply and if that's true, store the replied message in replied_message
 		let repliedMessage: Message = message.reference?.messageId
-			? await message.channel.messages.fetch(message.reference.messageId).then((m) => { return m; }).catch(() => { return null; })
+			? await message.channel.messages.fetch(message.reference.messageId)
+				.then((m: Message) => { return m; })
+				.catch(() => { return null; })
 			: null;
 
 		// if the message is 2 characters long and replying to us, skip logging
