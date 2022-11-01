@@ -1,4 +1,4 @@
-import { ActionRowBuilder, APIActionRowComponent, ButtonBuilder, ButtonStyle, EmbedBuilder, inlineCode, User } from "discord.js";
+import { ActionRowBuilder, APIActionRowComponent, ButtonBuilder, ButtonStyle, EmbedBuilder, User } from "discord.js";
 import config from "../config";
 import { PunishmentType } from "../database/PunishmentConfig";
 import UserConfig from "../database/UserConfig";
@@ -97,8 +97,9 @@ export const CanPerformPunishment = function (user: typeof userSchema, punishmen
 
 	if (punishmentType === PunishmentType.Kick || punishmentType === PunishmentType.Warn) return true;
 
-	const checkDuration = punishmentType === PunishmentType.Mute ? maxMutes.get(user.mod as number) : maxBans.get(user.mod as number);
+	if (duration === -1) return false;
 
+	const checkDuration = punishmentType === PunishmentType.Mute ? maxMutes.get(user.mod as number) : maxBans.get(user.mod as number);
 	return (checkDuration !== 0 && checkDuration >= duration)
 }
 
@@ -166,7 +167,7 @@ export const CreateModEmbed = function (mod: User, target: User | string, punish
 	}]);
 
 	// set the footer to the punishment id
-	const footer = `Punishment ID: ${punishment?.id ?? "#unknown#"} ` + (punishment.automated && options?.userEmbed ? "(this is an automated punishment, false positives might occur)" : "")
+	const footer = `Punishment ID: ${punishment?.id ?? "#unknown#"} ` + ((punishment.automated && options?.userEmbed && !options?.anti) ? "(this is an automated punishment, false positives might occur)" : "")
 	embed.setFooter({ text: footer });
 
 	// we're done with the basic stuff, but if this is an anti punishment, we also need to add the original moderator
@@ -184,7 +185,7 @@ export const CreateModEmbed = function (mod: User, target: User | string, punish
 
 	// if detail is set, add it
 	if (options?.detail && !options?.userEmbed)
-		embed.addFields([{ name: "Details", value: inlineCode(options?.detail), inline: false }]);
+		embed.addFields([{ name: "Details", value: options?.detail, inline: false }]);
 
 	return embed;
 }

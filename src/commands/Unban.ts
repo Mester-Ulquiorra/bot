@@ -20,8 +20,6 @@ const UnbanCommand: SlashCommand = {
         if (!CanPerformPunishment(userConfig, PunishmentType.Ban, 0)) // only head mods and higher can unban
             return GetError("InsufficentModLevel");
 
-        const targetConfig = await GetUserConfig(target.id);
-
         // check if member is banned by fetching their ban and seeing if it returns an error
         const ban = await GetGuild().bans
             .fetch(target)
@@ -44,10 +42,6 @@ const UnbanCommand: SlashCommand = {
 
         // if member is null, we got an error
         if (!member) return "Something has went wrong while trying to unban the member.";
-
-        // change memberConfig and the punishment (if it's not null) to inactive
-        targetConfig.banned = false;
-        await targetConfig.save();
 
         if (punishment) {
             punishment.active = false;

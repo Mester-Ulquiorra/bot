@@ -4,6 +4,7 @@ const base = {
     MutedRole: "951893872668213288",
     MemberRole: "953275784959774731",
     GiveawayRole: "917079814115037224",
+    ProtectedRole: "1037013896290123786",
 
     ModLogChannel: "942169939496820837",
     MessageLogChannel: "953289937791352892",
@@ -22,7 +23,7 @@ const base = {
     PrisonId: "1014272380534804581",
     PrisonInvite: "https://discord.gg/SNVtdQHpxm",
 
-    Version: "4.1.3",
+    Version: "4.1.4",
 
     SuperUsers: [
         "730775136881475645",

@@ -90,26 +90,26 @@ const TicketCommand: SlashCommand = {
             const uuid = uuidv4();
             switch (ticketType) {
                 case TicketType.General:
-                    modal.setCustomId(uuid + "0");
+                    modal.setCustomId(`ticket.open.${uuid}0`);
                     break;
 
                 case TicketType.MemberReport:
-                    modal.setCustomId(uuid + "1");
+                    modal.setCustomId(`ticket.open.${uuid}0`);
                     break;
 
                 case TicketType.ModReport:
-                    modal.setCustomId(uuid + "2");
+                    modal.setCustomId(`ticket.open.${uuid}0`);
                     break;
 
                 case TicketType.HeadModReport:
-                    modal.setCustomId(uuid + "3");
+                    modal.setCustomId(`ticket.open.${uuid}0`);
             }
 
             // send the modal and wait for it to return
             await interaction.showModal(modal);
 
             interaction.awaitModalSubmit({
-                filter: (x) => x.user.id === interaction.user.id && x.customId.startsWith(uuid),
+                filter: (x) => x.user.id === interaction.user.id && x.customId.startsWith(`ticket.open.${uuid}`),
                 time: 120_000,
             }).then((returnmodal) => {
                 const type = Number.parseInt(returnmodal.customId[returnmodal.customId.length - 1]);

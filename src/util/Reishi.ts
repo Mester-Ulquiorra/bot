@@ -11,6 +11,7 @@ import { CreateModEmbed } from "./ModUtils";
 import CheckFlood from "./Reishi/CheckFlood";
 import CheckLink from "./Reishi/CheckLink";
 import CheckProfanity from "./Reishi/CheckProfanity";
+import CheckProtectedPing from "./Reishi/CheckProtectedPing";
 
 const MASS_MENTION_THRESHOLD = 5;
 
@@ -39,22 +40,22 @@ export const CheckMessage = async function (message: Message, client: Client): P
     // check if we're in a ticket
     if (message.channel.name.startsWith("ticket-")) return true;
 
-    let result = CheckProfanity(message);
-    if (result) return PunishMessage(message, "BlacklistedWord", result, client);
+    let result: string;
+    if (result = CheckProfanity(message)) return PunishMessage(message, "BlacklistedWord", result, client);
 
-    result = CheckFlood(message);
-    if (result) return PunishMessage(message, "RepeatedText", result, client);
+    if (result = CheckFlood(message)) return PunishMessage(message, "RepeatedText", result, client);
 
-    result = CheckLink(message);
-    if (result) return PunishMessage(message, "Link", result, client);
+    if (result = CheckLink(message)) return PunishMessage(message, "Link", result, client);
 
     if (message.mentions.members?.size >= MASS_MENTION_THRESHOLD)
         return PunishMessage(message, "MassMention", null, client);
 
+    if (result = await CheckProtectedPing(message)) return PunishMessage(message, "ProtectedPing", result, client);
+
     return true;
 };
 
-type PunishmentNames = "RepeatedText" | "BlacklistedWord" | "MassMention" | "Link";
+type PunishmentNames = "RepeatedText" | "BlacklistedWord" | "MassMention" | "Link" | "ProtectedPing";
 
 /**
  *
@@ -67,9 +68,13 @@ function GetPunishmentLength(type: PunishmentNames) {
         case "RepeatedText":
             return 5 * 60; // 5 minutes
         case "MassMention":
-            return 30 * 60; // 30 minutes
+            return 60 * 60; // 1 hour
         case "Link":
             return 10 * 60; // 10 minutes
+        case "ProtectedPing":
+            return 30 * 60; // 30 minutes
+        default:
+            return 30 * 60;
     }
 }
 
@@ -87,6 +92,10 @@ function GetPunishmentReason(type: PunishmentNames) {
             return "Message containing mass mention";
         case "Link":
             return "Message containing link";
+        case "ProtectedPing":
+            return "Pinging protected member(s)";
+        default:
+            return "Default autopunish message (most likely an error)";
     }
 }
 
@@ -109,7 +118,7 @@ async function PunishMessage(message: Message, type: PunishmentNames, word: stri
     }
 
     // delete the message
-    if (type === "BlacklistedWord" || type === "Link" || (type === "RepeatedText" && message.mentions.members.size === 0)) message.delete();
+    if (!(type === "RepeatedText" && message.mentions.members.size !== 0)) message.delete();
 
     // get a punishment id
     const punishmentId = SnowFlake.getUniqueID().toString();
@@ -131,7 +140,7 @@ async function PunishMessage(message: Message, type: PunishmentNames, word: stri
         message.member,
         config.MutedRole,
         "Add",
-        `Muted by Ichigo - ${GetPunishmentReason(type)}`
+        `Muted by Ulquiorra - ${GetPunishmentReason(type)}`
     );
     userconfig.muted = true;
     await userconfig.save();

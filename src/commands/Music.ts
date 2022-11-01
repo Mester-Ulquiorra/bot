@@ -245,7 +245,6 @@ async function startPlaying(interaction: ChatInputCommandInteraction) {
 	player.play(resource);
 
 	// set up a listener when we end the song
-    //@ts-expect-error
 	player.once(AudioPlayerStatus.Idle, () => {
 		// check if we have songs left
 		if (queue.length > 0 && playindex >= 0) {

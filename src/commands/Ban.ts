@@ -15,17 +15,17 @@ const BanCommand: SlashCommand = {
 
     async run(interaction, _client) {
         const target = interaction.options.getMember("member") as GuildMember;
-        if(!target) return GetError("MemberUnavailable");
+        if (!target) return GetError("MemberUnavailable");
 
         const reason = interaction.options.getString("reason") ?? "no reason provided";
         const duration = ConvertDuration(interaction.options.getString("duration"));
 
         // if duration is NaN, we have an error
         if (isNaN(duration)) return GetError("Duration");
-        
+
         // get the user config for both the interaction and the target user
         const userConfig = await GetUserConfig(interaction.user.id);
-        if(!CanPerformPunishment(userConfig, PunishmentType.Ban, duration)) return GetError("InsufficentModLevel");
+        if (!CanPerformPunishment(userConfig, PunishmentType.Ban, duration)) return GetError("InsufficentModLevel");
 
         const targetConfig = await GetUserConfig(target.id);
 
@@ -50,12 +50,12 @@ const BanCommand: SlashCommand = {
         Log(`${target.user.tag} (${target.id}) has been banned by ${interaction.user.tag} (${interaction.user.id}): ${reason}. ID: ${punishmentId}`);
 
         const modEmbed = CreateModEmbed(interaction.user, target.user, punishment);
-        const userEmbed = CreateModEmbed(interaction.user, target.user, punishment, { userEmbed: true } );
+        const userEmbed = CreateModEmbed(interaction.user, target.user, punishment, { userEmbed: true });
         const channelEmbed = CreateEmbed(`${target.user} has been banned: **${reason}**`);
 
         target
             .send({ embeds: [userEmbed], components: [CreateAppealButton(true)] })
-            .catch(() => { return;})
+            .catch(() => { return; })
             .finally(() => {
                 target.ban({ reason: `Banned by ${interaction.user.tag}: ${reason}` }).catch(() => { return; });
             });

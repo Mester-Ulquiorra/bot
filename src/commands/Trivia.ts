@@ -1,4 +1,4 @@
-import { ActionRowBuilder, APIActionRowComponent, APISelectMenuOption, ButtonBuilder, ButtonInteraction, ButtonStyle, ComponentType, EmbedBuilder, GuildMember, InteractionCollector, Message, SelectMenuBuilder } from "discord.js";
+import { ActionRowBuilder, APIActionRowComponent, APISelectMenuOption, ButtonBuilder, ButtonInteraction, ButtonStyle, ComponentType, EmbedBuilder, GuildMember, Interaction, InteractionCollector, Message, SelectMenuBuilder, SelectMenuInteraction } from "discord.js";
 import { Question, getQuestions } from "open-trivia-db";
 import SlashCommand from "../types/SlashCommand";
 import CreateEmbed, { EmbedColor } from "../util/CreateEmbed";
@@ -220,10 +220,10 @@ class TriviaGame {
         // wait for a response
         this.message
             .awaitMessageComponent({
-                filter: (_) => _.user.id === this.player.id,
+                filter: (_: Interaction) => _.user.id === this.player.id,
                 time: 30_000,
             })
-            .then(async (interaction) => {
+            .then(async (interaction: ButtonInteraction | SelectMenuInteraction) => {
                 interaction.deferUpdate();
 
                 // get the id

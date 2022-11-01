@@ -346,7 +346,7 @@ class TicTacToeGame {
         // wait for a button to be pressed
         this.message
             .awaitMessageComponent({ filter, time: 60_000 })
-            .then((button) => {
+            .then((button: ButtonInteraction) => {
                 button.deferUpdate();
 
                 // check if game is still in progress

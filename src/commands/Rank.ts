@@ -40,26 +40,26 @@ const RankCommand: SlashCommand = {
 
         // now let's create the image
         let canvas = createCanvas(CardWidth, CardHeight);
-        const context = canvas.getContext("2d");
+        const ctx = canvas.getContext("2d");
 
         // draw the background
         const backgroundBuffer = await getBackground();
         const background = await loadImage(backgroundBuffer)
-        context.drawImage(background, 0, 0, CardWidth, CardHeight);
+        ctx.drawImage(background, 0, 0, CardWidth, CardHeight);
         delete background.onload; delete background.src;
 
         // draw the avatar and username
         const avatar = await loadImage(member.displayAvatarURL({ size: 256, extension: "png" }));
-        context.drawImage(avatar, (CardHeight - 256) / 2, (CardHeight - 256) / 2, 256, 256);
+        ctx.drawImage(avatar, (CardHeight - 256) / 2, (CardHeight - 256) / 2, 256, 256);
         delete avatar.onload; delete avatar.src;
 
         const meterStartX = 256 + (CardHeight - 256) / 2 + 50;
         const meterStartY = CardHeight - (CardHeight - 256) / 2 - 80;
 
-        context.fillStyle = "#000000";
-        context.font = "50px 'Merriweather' bold";
-        context.textAlign = "start";
-        context.fillText(member instanceof GuildMember ? member.user.tag : member.tag, meterStartX, meterStartY - 5);
+        ctx.fillStyle = "#000000";
+        ctx.font = "50px 'Merriweather' bold";
+        ctx.textAlign = "start";
+        ctx.fillText(member instanceof GuildMember ? member.user.tag : member.tag, meterStartX, meterStartY - 5);
 
         const relativexp = levelConfig.xp - LevelToXP(levelConfig.level);
         const levelupPercent = relativexp / XPToLevelUp(levelConfig.level);
@@ -68,48 +68,47 @@ const RankCommand: SlashCommand = {
         // draw levelup meter
 
         // fill
-        context.beginPath();
-        context.fillStyle = "#03ecfc";
-        context.moveTo(meterStartX, meterStartY);
-        context.lineTo(meterEndX, meterStartY);
-        context.lineTo(meterEndX, meterStartY + 30);
-        context.lineTo(meterStartX, meterStartY + 30);
-        context.bezierCurveTo(meterStartX - 10, meterStartY + 20, meterStartX - 10, meterStartY + 10, meterStartX, meterStartY);
-        context.fill();
+        ctx.beginPath();
+        ctx.fillStyle = "#03ecfc";
+        ctx.moveTo(meterStartX, meterStartY);
+        ctx.lineTo(meterEndX, meterStartY);
+        ctx.lineTo(meterEndX, meterStartY + 30);
+        ctx.lineTo(meterStartX, meterStartY + 30);
+        ctx.arc(meterStartX, meterStartY + 15, 15, 0.5 * Math.PI, 1.5 * Math.PI);
+        ctx.fill();
 
         // current xp
-        context.font = "25px 'Merriweather' bold";
-        context.textAlign = "center";
-        context.fillStyle = "#000000";
+        ctx.font = "25px 'Merriweather' bold";
+        ctx.textAlign = "start";
+        ctx.fillStyle = "#000000";
         let text = `Current XP: ${levelConfig.xp} (${(levelupPercent * 100).toFixed(2)}%)`;
-        context.fillText(text, meterStartX + (meterEndX - meterStartX) / 2, meterStartY + 25);
+        ctx.fillText(text, meterStartX + 10, meterStartY + 25);
 
         // outline
         meterEndX = CardWidth - 50;
-        context.beginPath();
-        context.strokeStyle = "#000000";
-        context.lineWidth = 2;
-        context.moveTo(meterStartX, meterStartY);
-        context.lineTo(meterEndX, meterStartY);
-        context.bezierCurveTo(meterEndX + 10, meterStartY + 10, meterEndX + 10, meterStartY + 20, meterEndX, meterStartY + 30);
-        context.lineTo(meterStartX, meterStartY + 30);
-        context.bezierCurveTo(meterStartX - 10, meterStartY + 20, meterStartX - 10, meterStartY + 10, meterStartX, meterStartY);
-        context.stroke();
+        ctx.beginPath();
+        ctx.strokeStyle = "#000000";
+        ctx.lineWidth = 2;
+        ctx.moveTo(meterStartX, meterStartY);
+        ctx.lineTo(meterEndX, meterStartY);
+        ctx.arc(meterEndX, meterStartY + 15, 15, 1.5 * Math.PI, 0.5 * Math.PI);
+        ctx.lineTo(meterStartX, meterStartY + 30);
+        ctx.arc(meterStartX, meterStartY + 15, 15, 0.5 * Math.PI, 1.5 * Math.PI);
+        ctx.stroke();
 
         // level texts
-        context.textAlign = "start";
-        context.font = "30px 'Merriweather' bold";
+        ctx.font = "30px 'Merriweather' bold";
         text = `Level ${levelConfig.level}`;
-        context.fillText(text, meterStartX, meterStartY + 60);
-        context.fillText(`(${LevelToXP(levelConfig.level)} XP)`, meterStartX, meterStartY + 95);
-        context.textAlign = "end";
+        ctx.fillText(text, meterStartX, meterStartY + 60);
+        ctx.fillText(`(${LevelToXP(levelConfig.level)} XP)`, meterStartX, meterStartY + 95);
+        ctx.textAlign = "end";
         text = `Level ${levelConfig.level + 1}`;
-        context.fillText(text, meterEndX, meterStartY + 60);
-        context.fillText(`(${LevelToXP(levelConfig.level + 1)} XP)`, meterEndX, meterStartY + 95);
+        ctx.fillText(text, meterEndX, meterStartY + 60);
+        ctx.fillText(`(${LevelToXP(levelConfig.level + 1)} XP)`, meterEndX, meterStartY + 95);
 
         // total xp
-        context.font = "50px 'Merriweather' bold";
-        context.fillText(`Total XP: ${levelConfig.xp}`, meterEndX, meterStartY - 5);
+        ctx.font = "50px 'Merriweather' bold";
+        ctx.fillText(`Total XP: ${levelConfig.xp}`, meterEndX, meterStartY - 5);
 
         const buffer = canvas.toBuffer("image/png");
 

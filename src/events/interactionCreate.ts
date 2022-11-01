@@ -3,8 +3,6 @@ import { commands } from "../util/Register";
 import Event from "../types/Event";
 import CreateEmbed, { EmbedColor } from "../util/CreateEmbed";
 import Log, { LogType } from "../util/Log";
-import test_mode from "../test_mode";
-
 /**
  * A list of custom ids the interaction manager should ignore.
  * The array contains regex patterns.
@@ -15,6 +13,7 @@ const IgnoredIds: Array<RegExp> = [
 	/chess\..+/,
 	/verify.*/,
 	/trivia.*/,
+	/ticket\.open\.*/
 ];
 
 const InteractionCreateEvent: Event = {
@@ -56,15 +55,16 @@ const InteractionCreateEvent: Event = {
 		const command = commands.get(commandName);
 
 		// let the game begin
-		let returnMessage: string | Error | void;
+		let returnMessage: Promise<string | void> | string | Error | void;
 
 		try {
-			if (interaction.isChatInputCommand()) returnMessage = await command.run(interaction, client).then((result) => { return result; }).catch((error) => { return error; });
-			if (interaction.isButton()) returnMessage = await command.runButton(interaction, client).then((result) => { return result; }).catch((error) => { return error; });
-			if (interaction.isModalSubmit()) returnMessage = await command.runModal(interaction, client).then((result) => { return result; }).catch((error) => { return error; });
-			if (interaction.isSelectMenu()) returnMessage = await command.runSelectMenu(interaction, client).then((result) => { return result; }).catch((error) => { return error; });
-			if (interaction.isMessageContextMenuCommand()) returnMessage = await command.runMessageContextCommand(interaction, client).then((result) => { return result; }).catch((error) => { return error; });
-			if (interaction.isUserContextMenuCommand()) returnMessage = await command.runUserContextCommand(interaction, client).then((result) => { return result; }).catch((error) => { return error; });
+			if (interaction.isChatInputCommand()) returnMessage = command.run(interaction, client);
+			if (interaction.isButton()) returnMessage = command.runButton(interaction, client);
+			if (interaction.isModalSubmit()) returnMessage = command.runModal(interaction, client);
+			if (interaction.isSelectMenu()) returnMessage = command.runSelectMenu(interaction, client);
+			if (interaction.isMessageContextMenuCommand()) returnMessage = command.runMessageContextCommand(interaction, client);
+			if (interaction.isUserContextMenuCommand()) returnMessage = command.runUserContextCommand(interaction, client);
+			returnMessage = await (returnMessage as Promise<string | void>).then(result => { return result; }).catch((error) => { return error; });
 		} catch (error) {
 			// most likely the command doesn't support that "type" of command we're trying to run
 			const embed = CreateEmbed(`Mester has not registered this type of interaction. What an idiot`, {
