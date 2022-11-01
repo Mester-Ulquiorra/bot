@@ -17,7 +17,7 @@ export default function (message: Message): string {
  */
 export function DetectProfanity(string: string): string {
     // remove characters like - _ and so on and split the string into words
-    const words = string.replaceAll(/[^\p{L}\s]+/giu, "").split(" ");
+    const words = string.toLowerCase().replaceAll(/[^\p{L}\s]+/giu, "").split(" ");
 
     const backCheck = new Array<string>();
 

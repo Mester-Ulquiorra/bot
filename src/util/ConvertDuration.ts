@@ -16,6 +16,7 @@ export default function ConvertDuration(stringDuration: string): number {
 
     // find every regex match on the string
     const matches = stringDuration.matchAll(DURATION_REGEX);
+    DURATION_REGEX.lastIndex = 0;
 
     for(const match of matches) {
         const number = Number.parseInt(match[1]);
@@ -44,8 +45,6 @@ export default function ConvertDuration(stringDuration: string): number {
                 break;
         }
     }
-
-    DURATION_REGEX.lastIndex = 0;
 
     if(duration === 0) return NaN;
     else return Math.min(duration, config.MaxDuration);

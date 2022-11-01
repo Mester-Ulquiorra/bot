@@ -1,7 +1,8 @@
-import { ActionRowBuilder, APIActionRowComponent, APISelectMenuOption, ButtonBuilder, ButtonInteraction, ButtonStyle, ComponentType, GuildMember, InteractionCollector, Message, SelectMenuBuilder } from "discord.js";
+import { ActionRowBuilder, APIActionRowComponent, APISelectMenuOption, ButtonBuilder, ButtonInteraction, ButtonStyle, ComponentType, EmbedBuilder, GuildMember, InteractionCollector, Message, SelectMenuBuilder } from "discord.js";
 import { Question, getQuestions } from "open-trivia-db";
 import SlashCommand from "../types/SlashCommand";
 import CreateEmbed, { EmbedColor } from "../util/CreateEmbed";
+import Log, { LogType } from "../util/Log";
 
 const TriviaCommmand: SlashCommand = {
     name: "trivia",
@@ -36,6 +37,7 @@ class TriviaGame {
     message: Message;
     correctAnswers: number;
     componentCollector: InteractionCollector<ButtonInteraction>;
+    summaryEmbed: EmbedBuilder;
 
     /**
      *
@@ -113,14 +115,21 @@ class TriviaGame {
                             ],
                         });
 
-                        // add a final 2 minute timer for the Show questions button
                         this.message
                             .createMessageComponentCollector({
                                 filter: (x) => x.customId === "trivia.history",
                                 componentType: ComponentType.Button,
                             })
                             .on("collect", (button2) => {
-                                // create embed
+                                // check if we already have a summery embed
+                                if (this.summaryEmbed) {
+                                    button2.reply({
+                                        embeds: [this.summaryEmbed],
+                                        ephemeral: true
+                                    });
+                                    return;
+                                }
+
                                 const embed2 = CreateEmbed(
                                     `Player: ${this.player}`,
                                     {
@@ -138,6 +147,9 @@ class TriviaGame {
                                     ]);
                                 }
 
+                                // save the summary embed
+                                this.summaryEmbed = embed2;
+
                                 button2.reply({
                                     embeds: [embed2],
                                     ephemeral: true,
@@ -152,7 +164,6 @@ class TriviaGame {
                     this.end();
                 }
             });
-
         this.start(amount);
     }
 
@@ -166,7 +177,6 @@ class TriviaGame {
                 Math.floor(amount / 3) + (amount % 3),
                 Math.floor(amount / 3),
             ];
-
 
             const easy =
                 await getQuestions({
@@ -216,26 +226,26 @@ class TriviaGame {
             .then(async (interaction) => {
                 interaction.deferUpdate();
 
-                let string_answer = "";
-
-                // check if the interaction is a button
+                // get the id
+                let id = 0;
                 if (interaction.isButton()) {
-                    // get the last character of the id and turn it into a number
-                    string_answer =
-                        Number.parseInt(
-                            interaction.customId.charAt(interaction.customId.length - 1)
-                        ) === 0
-                            ? "True"
-                            : "False";
+                    id = Number.parseInt(interaction.customId[interaction.customId.length - 1]);
+                } else if (interaction.isSelectMenu()) {
+                    id = Number.parseInt(interaction.values[0]);
                 } else {
-                    string_answer = this.questions[this.turn].allAnswers[Number.parseInt(interaction.values[0])].toString();
+                    // wtf
+                    Log(`Trivia question got neither a button or select menu???`, LogType.Error);
+                    this.end(true, "a fatal error has occured, please alert Mester");
+                    return;
                 }
 
+                const userAnswer = this.questions[this.turn].mappedAnswers.get(id);
+
                 // save user's answer
-                this.questions[this.turn].userAnswer = string_answer;
+                this.questions[this.turn].userAnswer = userAnswer;
 
                 // check if the answer is correct
-                if (string_answer === this.questions[this.turn].correctAnswer) {
+                if (this.questions[this.turn].checkAnswer(userAnswer)) {
                     // correct answer
                     this.correctAnswers++;
 
@@ -244,7 +254,7 @@ class TriviaGame {
                         this.generateMessage(
                             true,
                             this.questions[this.turn].value +
-                            `\nYour answer: **${string_answer}**`
+                            `\nYour answer: **${userAnswer}**`
                         );
 
                     this.message.edit({
@@ -343,16 +353,29 @@ class TriviaGame {
             return { embed, components };
         }
 
+        let ids: number[] = [];
+        for (let i = 0; i < this.questions[this.turn].allAnswers.length; i++) {
+            ids.push(i);
+        }
+        ids = shuffle(ids);
+
+        const allAnswers = [this.questions[this.turn].correctAnswer, ...this.questions[this.turn].incorrectAnswers].map(x => String(x));
+
+        // set the mapped answers
+        this.questions[this.turn].mappedAnswers = new Map<number, string>(
+            allAnswers.map((x, i) => { return [ids[i], x] })
+        )
+
         // check if correct answer is a yes/no question
         if (this.questions[this.turn].type === "boolean") {
             components = [
                 new ActionRowBuilder().addComponents([
                     new ButtonBuilder()
-                        .setCustomId("trivia.answer0")
+                        .setCustomId(`trivia.answer${ids[0]}`)
                         .setLabel("Correct")
                         .setStyle(ButtonStyle.Success),
                     new ButtonBuilder()
-                        .setCustomId("trivia.answer1")
+                        .setCustomId(`trivia.answer${ids[1]}`)
                         .setLabel("Incorrect")
                         .setStyle(ButtonStyle.Danger),
                 ]).toJSON(),
@@ -360,20 +383,12 @@ class TriviaGame {
         } else {
             let options: Array<APISelectMenuOption> = [];
 
-            options.push({
-                label: this.questions[this.turn].correctAnswer,
-                value: "0",
-            });
-
-            for (
-                let i = 0;
-                i < this.questions[this.turn].incorrectAnswers.length;
-                i++
-            ) {
+            // fill options based on allAnswers and ids
+            for (let i = 0, answer = allAnswers[0]; i < allAnswers.length; i++, answer = allAnswers[i]) {
                 options.push({
-                    label: this.questions[this.turn].incorrectAnswers[i].toString(),
-                    value: `${i + 1}`,
-                });
+                    label: answer,
+                    value: ids[i].toString()
+                })
             }
 
             // shuffle options
@@ -396,11 +411,12 @@ class TriviaGame {
     /**
      *
      * @param {boolean} didQuit If the player quit the game (false if it's actually the end of the game)
+     * @param {string} reason Optional reason for the end
      */
-    end(didQuit: boolean = true) {
+    end(didQuit: boolean = true, reason: string = null) {
         this.componentCollector.stop("The game has ended!");
         if (didQuit) {
-            const embed = CreateEmbed("You quit the game!", {
+            const embed = CreateEmbed(reason ? reason : "You quit the game!", {
                 title: `Trivia game (Question ${this.turn + 1}/${this.questions.length})`,
                 color: EmbedColor.Error,
             });
@@ -410,7 +426,8 @@ class TriviaGame {
 }
 
 interface TriviaQuestion extends Question {
-    userAnswer: string
+    userAnswer: string,
+    mappedAnswers: Map<number, string>
 }
 
 /**

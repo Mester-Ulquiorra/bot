@@ -22,7 +22,7 @@ const base = {
     PrisonId: "1014272380534804581",
     PrisonInvite: "https://discord.gg/SNVtdQHpxm",
 
-    Version: "4.1.2",
+    Version: "4.1.3",
 
     SuperUsers: [
         "730775136881475645",
@@ -32,7 +32,7 @@ const base = {
 
     SnowflakeEpoch: 1651269600,
 
-    MaxDuration: 30758400000,
+    MaxDuration: 31536000000,
 
     MaxMutes: [
         { mod: 1, duration: 21600 },
@@ -65,7 +65,7 @@ const base = {
 };
 
 const test = {
-    VERSION: base.Version + "-test",
+    Version: base.Version + "-test",
 };
 
 export default test_mode ? Object.assign({}, base, test) : base;

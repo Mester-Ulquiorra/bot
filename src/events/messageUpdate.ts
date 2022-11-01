@@ -43,12 +43,7 @@ const MessageUpdateEvent: Event = {
 							? `${newMessage.content.substring(0, MaxContentLength)}...`
 							: newMessage.content,
 					inline: false,
-				},
-				{
-					name: `Edited at:`,
-					value: `<t:${Math.floor(Date.now() / 1000)}>`,
-					inline: true,
-				},
+				}
 			])
 			.setFooter({
 				text: `Member ID: ${oldMessage.author.id} | Message ID: ${oldMessage.id}`,
