@@ -1,4 +1,4 @@
-import config from "../config";
+import config from "../config.js";
 
 const DURATION_REGEX = /([1-9]\d{0,2})(s|mo|m|hr?|d|yr?)/g;
 

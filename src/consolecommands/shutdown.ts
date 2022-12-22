@@ -1,5 +1,5 @@
-import ConsoleCommand from "../types/ConsoleCommand";
-import { shutdown } from "../Ulquiorra";
+import ConsoleCommand from "../types/ConsoleCommand.js";
+import { shutdown } from "../Ulquiorra.js";
 
 const ShutdownConsoleCommand: ConsoleCommand = {
     name: "shutdown",

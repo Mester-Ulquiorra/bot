@@ -1,11 +1,11 @@
-import { ActionRowBuilder, APIActionRowComponent, Client, EmbedBuilder, SelectMenuBuilder } from "discord.js";
-import LevelConfig from "../database/LevelConfig";
-import SlashCommand from "../types/SlashCommand";
-import { GetGuild } from "../util/ClientUtils";
-import CreateEmbed from "../util/CreateEmbed";
-import { LevelToXP, XPToLevelUp } from "../util/LevelUtil";
-import Log, { LogType } from "../util/Log";
-import { CalculateMaxPage } from "../util/MathUtils";
+import { ActionRowBuilder, Client, EmbedBuilder, StringSelectMenuBuilder } from "discord.js";
+import LevelConfig from "../database/LevelConfig.js";
+import { DBLevel } from "../types/Database.js";
+import SlashCommand from "../types/SlashCommand.js";
+import { GetGuild } from "../util/ClientUtils.js";
+import CreateEmbed from "../util/CreateEmbed.js";
+import { LevelToXP, XPToLevelUp } from "../util/LevelUtil.js";
+import { CalculateMaxPage } from "../util/MathUtils.js";
 
 const PageSize = 10;
 /**
@@ -82,7 +82,7 @@ interface PageCache {
     /**
      * The level config of the user.
      */
-    level: any,
+    level: DBLevel,
 };
 
 /**
@@ -114,7 +114,7 @@ async function ReadFromPage(page: number, maxPage: number): Promise<EmbedBuilder
     if (!PageInCache(page)) return "That page is not cached, which should NOT happen";
 
     // get page from cache
-    const cachepage = GetPageFromCache(page) as Array<PageCache>;
+    const cachedPage = GetPageFromCache(page) as Array<PageCache>;
 
     const embed = CreateEmbed(
         `**Rank leaderboard of ${GetGuild().name}**`,
@@ -127,9 +127,9 @@ async function ReadFromPage(page: number, maxPage: number): Promise<EmbedBuilder
 
     // read from the page
     for (let i = 0; i < PageSize; i++) {
-        if (!cachepage[i]) break; // we have reached the end of the page
+        if (!cachedPage[i]) break; // we have reached the end of the page
 
-        const rank = cachepage[i];
+        const rank = cachedPage[i];
         const level = rank.level;
 
         // get the relative xp from the level config
@@ -190,12 +190,12 @@ function GetPageSelector(maxPage: number) {
         });
     }
 
-    return new ActionRowBuilder().addComponents([
-        new SelectMenuBuilder()
+    return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents([
+        new StringSelectMenuBuilder()
             .setCustomId("leaderboard.pageselector")
             .setMaxValues(1)
             .setOptions(options),
-    ]).toJSON() as APIActionRowComponent<any>;
+    ]).toJSON()
 }
 
 /**
@@ -204,7 +204,7 @@ function GetPageSelector(maxPage: number) {
  * @param page The page to cache.
  * @param client The bot client.
  */
-async function CachePage(levels: Array<any>, page: number, client: Client) {
+async function CachePage(levels: Array<DBLevel>, page: number, client: Client) {
     // create a buffer to later write into cache
     const buffer = new Array<PageCache>(PageSize);
 
@@ -221,12 +221,12 @@ async function CachePage(levels: Array<any>, page: number, client: Client) {
         const level = levels[j];
 
         // try to get name
-        const user = await client.users
-            .fetch(level.id)
-            .catch(() => Log(`Couldn't fetch user, perhaps they left?`, LogType.Warn));
+        const user = await client.users.fetch(level.userId)
+            .then((user) => { return user; })
+            .catch(() => { return null; });
 
         // get the name (user might be null, then we should use Unknown)
-        const name = user ? user.tag : "Unknown";
+        const name = user ? user.tag : "#Unknown#";
 
         // write to buffer
         buffer[j - start_index] = {

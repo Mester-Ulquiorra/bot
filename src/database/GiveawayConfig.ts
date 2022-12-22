@@ -1,7 +1,10 @@
-import mongoose, { SchemaTypes } from "mongoose";
+import mongoose, { Document, SchemaTypes } from "mongoose";
+import { DBGiveaway } from "../types/Database.js";
 
-const GiveawayConfigSchema = new mongoose.Schema({
-    id: {
+export interface IDBGiveaway extends DBGiveaway, Document { };
+
+const GiveawayConfigSchema = new mongoose.Schema<IDBGiveaway>({
+    giveawayId: {
         type: SchemaTypes.String,
         unique: true,
         required: true
@@ -37,6 +40,7 @@ const GiveawayConfigSchema = new mongoose.Schema({
     },
     winners: {
         type: SchemaTypes.Number,
+        default: 1
     }
 })
 

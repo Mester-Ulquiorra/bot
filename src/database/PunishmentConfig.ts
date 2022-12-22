@@ -1,4 +1,5 @@
-import mongoose from "mongoose";
+import mongoose, { Document } from "mongoose";
+import { DBPunishment } from "../types/Database.js";
 
 export enum PunishmentType {
     Warn = 0,
@@ -25,8 +26,10 @@ export function PunishmentTypeToName(type: PunishmentType) {
     }
 }
 
-const PunishmentConfigSchema = new mongoose.Schema({
-    id: {
+export interface IDBPunishment extends DBPunishment, Document { };
+
+const PunishmentConfigSchema = new mongoose.Schema<IDBPunishment>({
+    punishmentId: {
         type: mongoose.SchemaTypes.String,
         unique: true,
         required: true,

@@ -1,16 +1,16 @@
 import { GuildMember } from "discord.js";
-import config from "../config";
-import PunishmentConfig, { PunishmentType } from "../database/PunishmentConfig";
-import SlashCommand from "../types/SlashCommand";
-import { SnowFlake } from "../Ulquiorra";
-import { GetSpecialChannel } from "../util/ClientUtils";
-import { GetUserConfig } from "../util/ConfigHelper";
-import ConvertDuration from "../util/ConvertDuration";
-import CreateEmbed from "../util/CreateEmbed";
-import GetError from "../util/GetError";
-import Log from "../util/Log";
-import ManageRole from "../util/ManageRole";
-import { CanManageUser, CanPerformPunishment, CreateAppealButton, CreateModEmbed } from "../util/ModUtils";
+import config from "../config.js";
+import PunishmentConfig, { PunishmentType } from "../database/PunishmentConfig.js";
+import SlashCommand from "../types/SlashCommand.js";
+import { SnowFlake } from "../Ulquiorra.js";
+import { GetSpecialChannel } from "../util/ClientUtils.js";
+import { GetUserConfig } from "../util/ConfigHelper.js";
+import ConvertDuration from "../util/ConvertDuration.js";
+import CreateEmbed from "../util/CreateEmbed.js";
+import GetError from "../util/GetError.js";
+import Log from "../util/Log.js";
+import ManageRole from "../util/ManageRole.js";
+import { CanManageUser, CanPerformPunishment, CreateAppealButton, CreateModEmbed } from "../util/ModUtil.js";
 
 const MuteCommand: SlashCommand = {
     name: "mute",
@@ -24,7 +24,7 @@ const MuteCommand: SlashCommand = {
         if (isNaN(duration)) return GetError("Duration");
 
         const userConfig = await GetUserConfig(interaction.user.id);
-        if(!CanPerformPunishment(userConfig, PunishmentType.Mute, duration)) return GetError("InsufficentModLevel");
+        if (!CanPerformPunishment(userConfig, PunishmentType.Mute, duration)) return GetError("InsufficentModLevel");
         const targetConfig = await GetUserConfig(target.id);
 
         if (!CanManageUser(userConfig, targetConfig) || target.user.bot) return GetError("BadUser");
@@ -34,7 +34,7 @@ const MuteCommand: SlashCommand = {
         const punishmentId = SnowFlake.getUniqueID().toString();
 
         const punishment = await PunishmentConfig.create({
-            id: punishmentId,
+            punishmentId,
             user: target.id,
             mod: interaction.user.id,
             type: PunishmentType.Mute,

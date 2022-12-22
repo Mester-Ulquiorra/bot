@@ -1,6 +1,6 @@
 import { GuildBan } from "discord.js";
-import Event from "../types/Event";
-import { GetUserConfig } from "../util/ConfigHelper";
+import Event from "../types/Event.js";
+import { GetUserConfig } from "../util/ConfigHelper.js";
 
 const GuildBanAddEvent: Event = {
     name: "guildBanAdd",

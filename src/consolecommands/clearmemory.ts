@@ -1,4 +1,4 @@
-import ConsoleCommand from "../types/ConsoleCommand";
+import ConsoleCommand from "../types/ConsoleCommand.js";
 
 const ClearMemoryConsoleCommand: ConsoleCommand = {
     name: "clearmemory",

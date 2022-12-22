@@ -1,12 +1,12 @@
 import { AuditLogEvent, GuildMember } from "discord.js";
-import PunishmentConfig, { PunishmentType } from "../database/PunishmentConfig";
-import Event from "../types/Event";
-import Ulquiorra, { SnowFlake } from "../Ulquiorra";
-import { GetGuild, GetSpecialChannel } from "../util/ClientUtils";
-import CreateEmbed from "../util/CreateEmbed";
-import Log from "../util/Log";
-import { CreateModEmbed } from "../util/ModUtils";
-import { DetectProfanity } from "../util/Reishi/CheckProfanity";
+import PunishmentConfig, { PunishmentType } from "../database/PunishmentConfig.js";
+import Event from "../types/Event.js";
+import Ulquiorra, { SnowFlake } from "../Ulquiorra.js";
+import { GetGuild, GetSpecialChannel } from "../util/ClientUtils.js";
+import CreateEmbed from "../util/CreateEmbed.js";
+import Log from "../util/Log.js";
+import { CreateModEmbed } from "../util/ModUtil.js";
+import { DetectProfanity } from "../util/Reishi/CheckProfanity.js";
 
 const GuildMemberUpdateEvent: Event = {
     name: "guildMemberUpdate",
@@ -75,36 +75,37 @@ async function nicknameChange(oldMember: GuildMember, newMember: GuildMember) {
                     if (change.key === "nick" && change.new === newMember.nickname) return true;
                 }
                 return false;
-            }) == null
-        ) {
-            // the member has changed it
-            if (!newMember.kickable) return;
+            })
+        ) return;
 
-            const punishmentId = SnowFlake.getUniqueID().toString();
+        // the member has changed it
+        if (!newMember.kickable) return;
 
-            const punishment = await PunishmentConfig.create({
-                id: punishmentId,
-                user: newMember.id,
-                mod: Ulquiorra.user.id,
-                type: PunishmentType.Kick,
-                at: Math.floor(Date.now() / 1000),
-                active: false,
-                automated: true,
-                reason: "member has set their nickname to something inappropriate"
-            });
+        const punishmentId = SnowFlake.getUniqueID().toString();
 
-            const modEmbed = CreateModEmbed(Ulquiorra.user, newMember.user, punishment, { detail: newMember.nickname });
-            const userEmbed = CreateModEmbed(Ulquiorra.user, newMember.user, punishment, { userEmbed: true, detail: newMember.nickname });
+        const punishment = await PunishmentConfig.create({
+            punishmentId: punishmentId,
+            user: newMember.id,
+            mod: Ulquiorra.user.id,
+            type: PunishmentType.Kick,
+            at: Math.floor(Date.now() / 1000),
+            active: false,
+            automated: true,
+            reason: "member has set their nickname to something inappropriate"
+        });
 
-            newMember
-                .send({ embeds: [userEmbed] })
-                .catch(() => { return; })
-                .finally(() => { newMember.kick("inappropriate nickname") });
+        const modEmbed = CreateModEmbed(Ulquiorra.user, newMember.user, punishment, { detail: newMember.nickname });
+        const userEmbed = CreateModEmbed(Ulquiorra.user, newMember.user, punishment, { userEmbed: true, detail: newMember.nickname });
 
-            Log(`${newMember.user.tag} (${newMember.id}) has been automatically kicked: ${punishment.reason}. Punishment ID: ${punishment.id}`);
+        newMember
+            .send({ embeds: [userEmbed] })
+            .catch(() => { return; })
+            .finally(() => { newMember.kick("inappropriate nickname") });
 
-            GetSpecialChannel("ModLog").send({ embeds: [modEmbed] });
-        }
+        Log(`${newMember.user.tag} (${newMember.id}) has been automatically kicked: ${punishment.reason}. Punishment ID: ${punishment.punishmentId}`);
+
+        GetSpecialChannel("ModLog").send({ embeds: [modEmbed] });
+
     }
 }
 

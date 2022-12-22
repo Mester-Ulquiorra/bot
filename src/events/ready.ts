@@ -1,14 +1,15 @@
 import { Client, ComponentType, TextChannel } from "discord.js";
-import config from "../config";
-import Event from "../types/Event";
-import { GetGuild } from "../util/ClientUtils";
-import Log from "../util/Log";
+import config from "../config.js";
+import Event from "../types/Event.js";
+import { GetGuild } from "../util/ClientUtils.js";
+import Log from "../util/Log.js";
 import { create as svgCreate } from "svg-captcha";
-import * as sharp from "sharp";
-import CreateEmbed, { EmbedColor } from "../util/CreateEmbed";
-import ManageRole from "../util/ManageRole";
-import AutoUnpunish from "../util/AutoUnpunish";
-import ServerStats from "../util/ServerStats";
+import sharp from "sharp";
+import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
+import ManageRole from "../util/ManageRole.js";
+import AutoUnpunish from "../util/AutoUnpunish.js";
+import ServerStats from "../util/ServerStats.js";
+import Ulquiorra from "../Ulquiorra.js";
 
 const ReadyEvent: Event = {
 	name: "ready",
@@ -44,7 +45,9 @@ async function setupVerifyListener() {
 	const verifyChannel = await GetGuild().channels.fetch("1006077960584970280") as TextChannel;
 
 	// fetch the first message in the verify channel (should be ours);
-	const verifyMessage = (await verifyChannel.messages.fetch()).last();
+	const verifyMessage = (await verifyChannel.messages.fetch())
+		.filter(m => m.author.id === Ulquiorra.user.id)
+		.last();
 
 	// set up the component listener
 	verifyMessage
@@ -68,11 +71,11 @@ async function setupVerifyListener() {
 				interaction.editReply({ content: "You are currently in cooldown, please try again later." });
 				return;
 			}
-            
+
 
 			// create the captcha using svg-captcha
 			const captcha = svgCreate({
-				size: 6,
+				size: 5,
 				noise: 1,
 				color: true,
 				background: "#212121",
@@ -141,7 +144,6 @@ async function setupVerifyListener() {
 											{ color: EmbedColor.Success }
 										),
 									],
-									files: [],
 								});
 							} else {
 								// the code is wrong
@@ -152,7 +154,6 @@ async function setupVerifyListener() {
 											{ color: EmbedColor.Error }
 										),
 									],
-									files: [],
 								});
 							}
 						})
@@ -165,7 +166,6 @@ async function setupVerifyListener() {
 										{ color: EmbedColor.Error }
 									),
 								],
-								files: [],
 							});
 						});
 				})

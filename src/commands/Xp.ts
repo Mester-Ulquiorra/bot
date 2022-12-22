@@ -1,9 +1,9 @@
-import SlashCommand from "../types/SlashCommand";
-import CreateEmbed, { EmbedColor } from "../util/CreateEmbed";
-import GetError from "../util/GetError";
-import { GetLevelConfig, LevelToXP, XPToLevel } from "../util/LevelUtil";
-import Log from "../util/Log";
-import { AddRankFieldEmbeds } from "./Rank";
+import SlashCommand from "../types/SlashCommand.js";
+import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
+import GetError from "../util/GetError.js";
+import { GetLevelConfig, LevelToXP, XPToLevel } from "../util/LevelUtil.js";
+import Log from "../util/Log.js";
+import { AddRankFieldEmbeds } from "./Rank.js";
 
 const MaxXp = LevelToXP(100);
 

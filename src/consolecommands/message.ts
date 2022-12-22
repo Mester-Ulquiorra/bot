@@ -1,5 +1,5 @@
 import { EmbedBuilder } from "discord.js";
-import ConsoleCommand from "../types/ConsoleCommand";
+import ConsoleCommand from "../types/ConsoleCommand.js";
 
 /**
  * A map to hold every user the bot is waiting for.
@@ -60,9 +60,12 @@ const MessageConsoleCommand: ConsoleCommand = {
                 console.log(`[Message] Waiting for response from ${user.tag}`);
 
                 collector.on("collect", (m) => {
-                    console.log(
-                        `[Message] Response from ${m.author.tag}: ${m.content}`
-                    );
+                    console.log(`[Message] Response from ${m.author.tag}: ${m.content}`);
+
+                    // write out all the attachments
+                    for(const [_, attachment] of m.attachments) {
+                        console.log(`[Message] Message attachment from ${m.author.tag}: ${attachment.url}`);
+                    }
 
                     // edit the message to show that they have responded
                     message.edit({

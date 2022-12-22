@@ -1,21 +1,23 @@
 import { ActionRowBuilder, APIActionRowComponent, bold, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildMember, ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
-import config from "../config";
-import PunishmentConfig, { PunishmentType, PunishmentTypeToName } from "../database/PunishmentConfig";
-import SlashCommand from "../types/SlashCommand";
-import Ulquiorra from "../Ulquiorra";
-import { GetGuild, GetSpecialChannel } from "../util/ClientUtils";
-import { GetUserConfig } from "../util/ConfigHelper";
-import CreateEmbed, { EmbedColor } from "../util/CreateEmbed";
-import GetError from "../util/GetError";
-import Log from "../util/Log";
-import ManageRole from "../util/ManageRole";
-import { CreateModEmbed } from "../util/ModUtils";
-import { DetectProfanity } from "../util/Reishi/CheckProfanity";
+import config from "../config.js";
+import PunishmentConfig, { PunishmentType, PunishmentTypeToName } from "../database/PunishmentConfig.js";
+import SlashCommand from "../types/SlashCommand.js";
+import Ulquiorra from "../Ulquiorra.js";
+import { GetGuild, GetSpecialChannel } from "../util/ClientUtils.js";
+import { GetUserConfig } from "../util/ConfigHelper.js";
+import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
+import GetError from "../util/GetError.js";
+import Log from "../util/Log.js";
+import ManageRole from "../util/ManageRole.js";
+import { CreateModEmbed } from "../util/ModUtil.js";
+import { DetectProfanity } from "../util/Reishi/CheckProfanity.js";
 
 const AppealCommand: SlashCommand = {
     name: "appeal",
 
     async runButton(interaction, client) {
+        const userConfig = await GetUserConfig(interaction.user.id, null, false);
+
         if (interaction.customId === "appeal.appeal") {
             // try to find the user's active punishment
             const punishment = await PunishmentConfig.findOne({ user: interaction.user.id, active: true });
@@ -25,7 +27,7 @@ const AppealCommand: SlashCommand = {
             // create modal
             const modal =
                 new ModalBuilder()
-                    .setTitle(`Appeal punishment ${punishment.id}`)
+                    .setTitle(`Appeal punishment ${punishment.punishmentId}`)
                     .setCustomId("appeal.appealmodal")
                     .setComponents(
                         //@ts-expect-error
@@ -51,21 +53,24 @@ const AppealCommand: SlashCommand = {
                                 .setCustomId("punishment")
                                 .setLabel("Punishment ID (don't change)")
                                 .setStyle(TextInputStyle.Short)
-                                .setMaxLength(punishment.id.length)
-                                .setMinLength(punishment.id.length)
-                                .setValue(punishment.id)
+                                .setMaxLength(punishment.punishmentId.length)
+                                .setMinLength(punishment.punishmentId.length)
+                                .setValue(punishment.punishmentId)
                                 .setRequired(true)
                         ),
                     );
 
             // send the modal
             interaction.showModal(modal);
+            return;
         }
+
+        if (!userConfig || userConfig.mod < 2) return GetError("Permission");
 
         if (interaction.customId === "appeal.accept") {
             //if (interaction.message.embeds[0].fields.length !== 2) return "That appeal has already been declined/accepted.";
 
-            const punishment = await PunishmentConfig.findOne({ id: interaction.message.embeds[0].footer.text.match(/\d+/)?.[0] })
+            const punishment = await PunishmentConfig.findOne({ punishmentId: interaction.message.embeds[0].footer.text.match(/\d+/)?.[0] })
             if (!punishment) return GetError("Database");
 
             // get the reason for the action
@@ -116,7 +121,7 @@ const AppealCommand: SlashCommand = {
                     punishment.active = false;
                     await punishment.save();
 
-                    Log(`${interaction.user.tag} (${interaction.user.id}) has accepted the punishment appeal of ${user.tag} (${user.id}). ID: ${punishment.id}`);
+                    Log(`${interaction.user.tag} (${interaction.user.id}) has accepted the punishment appeal of ${user.tag} (${user.id}). ID: ${punishment.punishmentId}`);
 
                     // add an extra field to the embed
                     const embed = EmbedBuilder.from(interaction.message.embeds[0])
@@ -157,7 +162,7 @@ const AppealCommand: SlashCommand = {
         if (interaction.customId === "appeal.decline") {
             //if (interaction.message.embeds[0].fields.length !== 2) return "That appeal has already been declined/accepted.";
 
-            const punishment = await PunishmentConfig.findOne({ id: interaction.message.embeds[0].footer.text.match(/\d+/)?.[0] })
+            const punishment = await PunishmentConfig.findOne({ punishmentId: interaction.message.embeds[0].footer.text.match(/\d+/)?.[0] })
             if (!punishment) return GetError("Database");
 
             // get the reason for the action
@@ -226,7 +231,7 @@ const AppealCommand: SlashCommand = {
             const punishmentId = modal.fields.getTextInputValue("punishment");
 
             // validate punishment
-            const punishment = await PunishmentConfig.findOne({ user: modal.user.id, active: true, id: punishmentId });
+            const punishment = await PunishmentConfig.findOne({ user: modal.user.id, active: true, punishmentId: punishmentId });
 
             if (!punishment) return "The punishment ID is either invalid, or the punishment is not active anymore";
             if (punishment.appealed) return "You've already appealed this punishment.";

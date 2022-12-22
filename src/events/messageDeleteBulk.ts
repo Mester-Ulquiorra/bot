@@ -1,7 +1,7 @@
 import { Collection, GuildTextBasedChannel, Message, Snowflake } from "discord.js";
-import Event from "../types/Event";
-import { GetSpecialChannel } from "../util/ClientUtils";
-import CreateEmbed from "../util/CreateEmbed";
+import Event from "../types/Event.js";
+import { GetSpecialChannel } from "../util/ClientUtils.js";
+import CreateEmbed from "../util/CreateEmbed.js";
 
 const MessageDeleteBulkEvent: Event = {
     name: "messageDeleteBulk",

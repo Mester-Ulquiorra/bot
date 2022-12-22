@@ -1,14 +1,14 @@
 import { GuildMember } from "discord.js";
-import config from "../config";
-import PunishmentConfig, { PunishmentType } from "../database/PunishmentConfig";
-import SlashCommand from "../types/SlashCommand";
-import { GetSpecialChannel } from "../util/ClientUtils";
-import { GetUserConfig } from "../util/ConfigHelper";
-import CreateEmbed from "../util/CreateEmbed";
-import GetError from "../util/GetError";
-import Log from "../util/Log";
-import ManageRole from "../util/ManageRole";
-import { CanManageUser, CanPerformPunishment, CreateModEmbed } from "../util/ModUtils";
+import config from "../config.js";
+import PunishmentConfig, { PunishmentType } from "../database/PunishmentConfig.js";
+import SlashCommand from "../types/SlashCommand.js";
+import { GetSpecialChannel } from "../util/ClientUtils.js";
+import { GetUserConfig } from "../util/ConfigHelper.js";
+import CreateEmbed from "../util/CreateEmbed.js";
+import GetError from "../util/GetError.js";
+import Log from "../util/Log.js";
+import ManageRole from "../util/ManageRole.js";
+import { CanManageUser, CanPerformPunishment, CreateModEmbed } from "../util/ModUtil.js";
 
 const UnmuteCommand: SlashCommand = {
     name: "unmute",

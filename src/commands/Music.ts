@@ -1,9 +1,15 @@
 import { AudioPlayer, AudioPlayerStatus, AudioResource, createAudioPlayer, createAudioResource, entersState, getVoiceConnection, joinVoiceChannel, VoiceConnection, VoiceConnectionStatus } from "@discordjs/voice";
-import { ChatInputCommandInteraction, Embed, GuildMember } from "discord.js";
+import { ChatInputCommandInteraction, GuildMember } from "discord.js";
 import pldl from "play-dl";
-import SlashCommand from "../types/SlashCommand";
-import CreateEmbed, { EmbedColor } from "../util/CreateEmbed";
-import { CalculateMaxPage } from "../util/MathUtils";
+import SlashCommand from "../types/SlashCommand.js";
+import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
+import { CalculateMaxPage } from "../util/MathUtils.js";
+
+enum LoopType {
+    NoLoop,
+    LoopOne,
+    LoopAll
+}
 
 /**
  * The player object (automatically deleted if we don't have a subscriber)
@@ -20,143 +26,143 @@ let queue: Array<Song> = [];
 /**
  * What type of looping is currently active. 0 = no looping, 1 = repeat one, 2 = repeat all
  */
-let looptype: number = 0;
+let loopType: LoopType = LoopType.NoLoop;
 /**
  * Which song we should play in the queue
  */
-let playindex: number = -1;
+let playIndex = -1;
 
 const MusicCommmand: SlashCommand = {
     name: "music",
 
     async run(interaction, _client) {
-        if ((interaction.member as GuildMember).voice.channelId == null) return "You are not connected to a voice chat!";
+        if (!(interaction.member as GuildMember).voice.channelId) return "You are not connected to a voice chat!";
 
-		// check if the user is in the same voice channel
-		if (interaction.guild.members.me.voice.channelId !== (interaction.member as GuildMember).voice.channelId &&
-			interaction.guild.members.me.voice.channelId != null)
-			return "You are not in the same voice channel with the bot."
+        // check if the user is in the same voice channel
+        if (interaction.guild.members.me.voice.channelId !== (interaction.member as GuildMember).voice.channelId
+            && interaction.guild.members.me.voice.channelId)
+            return "You are not in the same voice channel with the bot."
 
-		switch (interaction.options.getSubcommand()) {
-			case "play":
-				return play(interaction);
-			case "skip":
-				return skip(interaction);
-			case "stop":
-				return stop(interaction);
-			case "loop":
-				return loop(interaction);
-			case "queue":
-				return viewqueue(interaction);
-			case "remove":
-				return remove(interaction);
-			case "pause":
-				return pause(interaction);
-			case "continue":
-				return continueMusic(interaction);
-		}
+        switch (interaction.options.getSubcommand()) {
+            case "play":
+                return play(interaction);
+            case "skip":
+                return skip(interaction);
+            case "stop":
+                return stop(interaction);
+            case "loop":
+                return loop(interaction);
+            case "queue":
+                return viewqueue(interaction);
+            case "remove":
+                return remove(interaction);
+            case "pause":
+                return pause(interaction);
+            case "continue":
+                return continueMusic(interaction);
+        }
     }
 }
 
 async function play(interaction: ChatInputCommandInteraction) {
-	// first check if our bot is already in a voice channel
-	let connection = getVoiceConnection(interaction.guild.id);
+    // first check if our bot is already in a voice channel
+    let connection = getVoiceConnection(interaction.guild.id);
 
-	if (connection == undefined) {
-		// we need to join the voice channel
-		connection = await join(interaction);
-	}
+    if (connection == undefined) {
+        // we need to join the voice channel
+        connection = await join(interaction);
+    }
 
-	const videoLink = interaction.options.getString("link");
+    const videoLink = interaction.options.getString("link");
 
-	// validate link
-	if ((await pldl.validate(videoLink)) == false) return "The link is invalid"
+    // validate link
+    if ((await pldl.validate(videoLink)) == false) return "The link is invalid";
 
-	// add the song to the queue, then start playing
-	const videoEmbed = await addSong(interaction, videoLink);
+    // add the song to the queue, then start playing
+    const videoEmbed = await addSong(interaction, videoLink);
 
-	if (videoEmbed == false) return "This link type is not supported";
+    if (!videoEmbed) return "This link type is not supported";
 
-	interaction.editReply({ embeds: [videoEmbed.setFooter({ text: `Requested by ${interaction.user.tag}` })] });
+    interaction.editReply({ embeds: [videoEmbed.setFooter({ text: `Requested by ${interaction.user.tag}` })] });
 
-	if (!playing) startPlaying(interaction);
+    if (!playing) startPlaying(interaction);
 }
 
 async function skip(interaction: ChatInputCommandInteraction) {
-	// just to make sure, check if we're playing music
-	if (!playing) return "There are currently no songs playing.";
+    // just to make sure, check if we're playing music
+    if (!playing) return "There are currently no songs playing.";
 
-	interaction.reply({
-		embeds: [CreateEmbed(`**${(playing as Song).title}** has been skipped!`)]
-	});
+    interaction.reply({
+        embeds: [CreateEmbed(`**${(playing as Song).title}** has been skipped!`)]
+    });
 
-	// basically we just want to call startPlaying again 
-	if (looptype === 1) playindex++;
-	player.stop();
+    // basically we just want to call startPlaying again 
+    if (loopType === LoopType.LoopOne) playIndex++;
+    player.stop();
 }
 
 async function stop(interaction: ChatInputCommandInteraction) {
-	if(!playing) return "There are no songs playing right now!";
-	
-	const embed = CreateEmbed(`Succesfully stopped playing!`, {color: EmbedColor.Success});
-	interaction.reply({ embeds: [embed] });
+    if (!playing) return "There are no songs playing right now!";
 
-	kill(interaction.guildId);
+    const embed = CreateEmbed(`Succesfully stopped playing!`, { color: EmbedColor.Success });
+    interaction.reply({ embeds: [embed] });
+
+    kill(interaction.guildId);
 }
 
 async function loop(interaction: ChatInputCommandInteraction) {
-	if (!playing) return "There is nothing to loop right now."
+    if (!playing) return "There is nothing to loop right now."
 
-	let embedDescription = "";
-	
-	// set looptype based on the interaction
-	switch (interaction.options.getString("looptype")) {
-		case "LOOP_ALL":
-			looptype = 2;
-			embedDescription = "Started looping the whole queue!";
-			break;
-		case "LOOP_ONE":
-			looptype = 1;
-			embedDescription = "Started looping one song!"
-			break;
-		case "NO_LOOP":
-			looptype = 0;
-			embedDescription = "Stopped looping!"
-			break;
-	}
+    let embedDescription = "";
 
-	const embed = CreateEmbed(embedDescription);
+    // set looptype based on the interaction
+    switch (interaction.options.getString("looptype")) {
+        case "LOOP_ALL":
+            loopType = LoopType.LoopAll;
+            embedDescription = "Started looping the whole queue!";
+            break;
+        case "LOOP_ONE":
+            loopType = LoopType.LoopOne;
+            embedDescription = "Started looping one song!"
+            break;
+        case "NO_LOOP":
+            loopType = LoopType.NoLoop;
+            embedDescription = "Stopped looping!"
+            break;
+    }
 
-	interaction.reply({ embeds: [embed] });
+    const embed = CreateEmbed(embedDescription);
+
+    interaction.reply({ embeds: [embed] });
 }
 
 async function viewqueue(interaction: ChatInputCommandInteraction) {
-	if (queue.length === 0) return "There is nothing in the queue";
+    if (queue.length === 0) return "There is nothing in the queue";
 
-	const page = interaction.options.getInteger("page") ?? 1;
+    const page = interaction.options.getInteger("page") ?? 1;
 
-	const maxPage = CalculateMaxPage(queue.length, 10)
+    const maxPage = CalculateMaxPage(queue.length, 10)
 
-	// check if that page is allowed
-	if (page > maxPage) return "That page does not exist!";
+    // check if that page is allowed
+    if (page > maxPage) return "That page does not exist!";
 
-	const startIndex = (page - 1) * 10;
+    const startIndex = (page - 1) * 10;
 
-	const embed = CreateEmbed(`**Song queue of ${interaction.guild.name}** (${page} / ${maxPage})! `);
+    const embed = CreateEmbed(`**Song queue of ${interaction.guild.name}** (${page} / ${maxPage})! `);
 
-	for (let i = startIndex; i < startIndex + 10 && i < queue.length; i++) {
-		const video = queue[i];
-		embed.addFields([{
-			name: `${i + 1}.` + (playindex === i ? " Now playing" : ""),
-			value: video.title,
-			inline: false
-		}]);
-	}
+    for (let i = startIndex; i < startIndex + 10 && i < queue.length; i++) {
+        const video = queue[i];
+        embed.addFields([{
+            name: `${i + 1}.` + (playIndex === i ? " Now playing" : ""),
+            value: video.title,
+            inline: false
+        }]);
+    }
 
-	interaction.reply({
-		embeds: [embed],
-		ephemeral: true
-	})
+    interaction.reply({
+        embeds: [embed],
+        ephemeral: true
+    })
 }
 
 async function remove(interaction: ChatInputCommandInteraction) {
@@ -170,45 +176,45 @@ async function remove(interaction: ChatInputCommandInteraction) {
     });
 
     // decrement playindex when needed
-    if(playindex >= removeIndex) { 
-        playindex--;
+    if (playIndex >= removeIndex) {
+        let playAgain = removeIndex === playIndex;
+        playIndex--;
 
         // if we've removed the currently playing song, start playing
-        if(removeIndex === (playindex + 1)) 
-            startPlaying(interaction);
+        if (playAgain) startPlaying(interaction);
     }
 
 }
 
 function pause(interaction: ChatInputCommandInteraction) {
-	if (!playing) return "No songs are playing right now";
+    if (!playing) return "No songs are playing right now";
 
-	player.pause();
+    player.pause();
 
-	const embed = CreateEmbed(`Successfully paused **${queue[playindex].title}**!`, { color: EmbedColor.Success });
-	interaction.reply({ embeds: [embed] });
+    const embed = CreateEmbed(`Successfully paused **${queue[playIndex].title}**!`, { color: EmbedColor.Success });
+    interaction.reply({ embeds: [embed] });
 }
 
 async function continueMusic(interaction: ChatInputCommandInteraction) {
-	if (!playing) return "No songs are playing right now";
+    if (!playing) return "No songs are playing right now";
 
-	player.unpause();
+    player.unpause();
 
-	const embed = CreateEmbed(`Successfully continued **${queue[playindex].title}**!`, { color: EmbedColor.Success });
-	interaction.reply({ embeds: [embed] });
+    const embed = CreateEmbed(`Successfully continued **${queue[playIndex].title}**!`, { color: EmbedColor.Success });
+    interaction.reply({ embeds: [embed] });
 }
 
 /**
  * A function to join a voice channel, wait until we're ready to play music, then return the connnection
  */
 async function join(interaction: ChatInputCommandInteraction) {
-	const connection = joinVoiceChannel({
-		channelId: (interaction.member as GuildMember).voice.channelId,
-		guildId: interaction.guild.id,
-		adapterCreator: interaction.guild.voiceAdapterCreator
-	});
+    const connection = joinVoiceChannel({
+        channelId: (interaction.member as GuildMember).voice.channelId,
+        guildId: interaction.guild.id,
+        adapterCreator: interaction.guild.voiceAdapterCreator
+    });
 
-	return entersState(connection, VoiceConnectionStatus.Ready, 5_000);
+    return entersState(connection, VoiceConnectionStatus.Ready, 5_000);
 }
 
 /**
@@ -216,69 +222,55 @@ async function join(interaction: ChatInputCommandInteraction) {
  * It expects the queue to have songs
  */
 async function startPlaying(interaction: ChatInputCommandInteraction) {
-	playindex++;
+    if (loopType !== LoopType.LoopOne) playIndex++;
 
-	if (playindex >= queue.length) {
-		// the index has overflown, so we either have to kill the player or reset playindex
-		if (looptype !== 2) {
-			kill(interaction.guildId);
-			return;
-		}
+    if (queue.length === 0) return kill(interaction.guildId);
 
-		playindex = 0;
-	}
+    if (playIndex >= queue.length) {
+        // the index has overflown, so we either have to kill the player or reset playindex
+        if (loopType !== LoopType.LoopAll) return kill(interaction.guildId);
 
-	const song = queue[playindex];
+        playIndex = 0;
+    }
 
-	playing = song;
+    const song = queue[playIndex];
 
-	// initialize song resource
-	const resource = await song.init()
-		.then((songData) => { return songData.resource });
+    playing = song;
 
-	const embed = CreateEmbed(`**${song.title}** has started playing!`);
-	interaction.channel.send({ embeds: [embed] });
+    // initialize song resource
+    const resource = await song.init()
+        .then((songData) => { return songData.resource });
 
-	if(player == null) initPlayer(getVoiceConnection(interaction.guildId));
+    const embed = CreateEmbed(`**${song.title}** has started playing!`);
+    interaction.channel.send({ embeds: [embed] });
 
-	// start playing the song
-	player.play(resource);
+    if (player == null) initPlayer(getVoiceConnection(interaction.guildId));
 
-	// set up a listener when we end the song
-	player.once(AudioPlayerStatus.Idle, () => {
-		// check if we have songs left
-		if (queue.length > 0 && playindex >= 0) {
-			// first we need to see if we've went over the queue
-			if (playindex >= queue.length - 1 && looptype !== 2) {
-				kill(interaction.guildId);
-				return;
-			}
+    // start playing the song
+    player.play(resource);
 
-			// since startPlaying will increase playindex, we want to keep it the same when we're looping only one
-			if (looptype === 1) playindex--;
-
-			startPlaying(interaction);
-		} else {
-			kill(interaction.guildId);
-		}
-	})
+    // set up a listener when we end the song
+    player.once(AudioPlayerStatus.Idle, () => {
+        // the automatic stop will be handled, so no worries
+        startPlaying(interaction);
+    })
 }
 
 /**
  * A function for completely stopping the music player
  */
 export function kill(guildId: string) {
-	// stop the player
-	playindex = -1;
+    // stop the player
+    playIndex = -1;
 
-	player?.stop(true);
-	player = null;
+    player?.stop(true);
+    player = null;
 
-	// destroy the connection
-	getVoiceConnection(guildId)?.destroy();
+    // destroy the connection
+    getVoiceConnection(guildId)?.destroy();
 
-	queue = [];
-	playing = false;
+    queue = [];
+    playing = false;
 }
 
 /**
@@ -288,71 +280,71 @@ export function kill(guildId: string) {
  * @returns An embed with some metadata of the bot / false in case the song type is not supported
  */
 async function addSong(interaction: ChatInputCommandInteraction, link: string) {
-	await interaction.deferReply();
+    await interaction.deferReply();
 
-	// check what type of song we have
-	const songType = await pldl.validate(link);
+    // check what type of song we have
+    const songType = await pldl.validate(link);
 
-	if (songType === "yt_video") {
-		// get the metadata from the video
-		const videoInfo = await pldl.video_basic_info(link).then((info) => { return info.video_details });
+    if (songType === "yt_video") {
+        // get the metadata from the video
+        const videoInfo = await pldl.video_basic_info(link).then((info) => { return info.video_details });
 
-		const song = new Song(link, songType, videoInfo.title);
-		queue.push(song);
+        const song = new Song(link, songType, videoInfo.title);
+        queue.push(song);
 
-		return CreateEmbed(`**${song.title}** has been added to the queue!`, {
-			color: EmbedColor.Success
-		})
-			.setThumbnail(videoInfo.thumbnails[videoInfo.thumbnails.length - 1].url)
-			.addFields([
-				{
-					name: "Uploaded by",
-					value: videoInfo.channel.name,
-					inline: true
-				},
-				{
-					name: "Likes",
-					value: videoInfo.likes.toString(),
-					inline: true
-				}
-			]);
-	}
+        return CreateEmbed(`**${song.title}** has been added to the queue!`, {
+            color: EmbedColor.Success
+        })
+            .setThumbnail(videoInfo.thumbnails[videoInfo.thumbnails.length - 1].url)
+            .addFields([
+                {
+                    name: "Uploaded by",
+                    value: videoInfo.channel.name,
+                    inline: true
+                },
+                {
+                    name: "Likes",
+                    value: videoInfo.likes.toString(),
+                    inline: true
+                }
+            ]);
+    }
 
-	if (songType === "yt_playlist") {
-		// we're going to add all the videos in the playlist (that sounds kinda bad and it is, but who cares)
-		const playlist = await pldl.playlist_info(link, { incomplete: true });
+    if (songType === "yt_playlist") {
+        // we're going to add all the videos in the playlist (that sounds kinda bad and it is, but who cares)
+        const playlist = await pldl.playlist_info(link, { incomplete: true });
 
-		const doShuffle = interaction.options.getBoolean("shuffle") ?? false;
+        const doShuffle = interaction.options.getBoolean("shuffle") ?? false;
 
-		const videos = doShuffle ? shuffle(await playlist.all_videos()) : await playlist.all_videos();
+        const videos = doShuffle ? shuffle(await playlist.all_videos()) : await playlist.all_videos();
 
-		for (const video of videos) {
-			const song = new Song(video.url, "yt_video", video.title);
-			queue.push(song);
-		}
+        for (const video of videos) {
+            const song = new Song(video.url, "yt_video", video.title);
+            queue.push(song);
+        }
 
-		return CreateEmbed(`Successfully added **${videos.length}** videos to the queue!`, {
-			color: EmbedColor.Success
-		})
-			.setThumbnail(playlist.thumbnail.url)
-			.addFields([
-				{
-					name: "Uploaded by",
-					value: playlist.channel.name,
-					inline: true
-				}
-			]);
-	}
+        return CreateEmbed(`Successfully added **${videos.length}** videos to the queue!`, {
+            color: EmbedColor.Success
+        })
+            .setThumbnail(playlist.thumbnail.url)
+            .addFields([
+                {
+                    name: "Uploaded by",
+                    value: playlist.channel.name,
+                    inline: true
+                }
+            ]);
+    }
 
-	// return false if song type is not supported
-	return false;
+    // return false if song type is not supported
+    return false;
 }
 
 function initPlayer(connection: VoiceConnection) {
-	player = createAudioPlayer();
+    player = createAudioPlayer();
 
-	// subscribe to our player (the player should automatically be deleted when there are no songs left in the queue)
-	connection.subscribe(player);
+    // subscribe to our player (the player should automatically be deleted when there are no songs left in the queue)
+    connection.subscribe(player);
 }
 
 type SongType = 'so_playlist' | 'so_track' | 'sp_track' | 'sp_album' | 'sp_playlist' | 'dz_track' | 'dz_playlist' | 'dz_album' | 'yt_video' | 'yt_playlist' | 'search';
@@ -405,23 +397,23 @@ class Song {
  * @returns The shuffled array
  */
 function shuffle(array: Array<any>) {
-	let currentIndex = array.length,
-		randomIndex: number;
+    let currentIndex = array.length,
+        randomIndex: number;
 
-	// While there remain elements to shuffle.
-	while (currentIndex != 0) {
-		// Pick a remaining element.
-		randomIndex = Math.floor(Math.random() * currentIndex);
-		currentIndex--;
+    // While there remain elements to shuffle.
+    while (currentIndex != 0) {
+        // Pick a remaining element.
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
 
-		// And swap it with the current element.
-		[array[currentIndex], array[randomIndex]] = [
-			array[randomIndex],
-			array[currentIndex],
-		];
-	}
+        // And swap it with the current element.
+        [array[currentIndex], array[randomIndex]] = [
+            array[randomIndex],
+            array[currentIndex],
+        ];
+    }
 
-	return array;
+    return array;
 }
 
 export default MusicCommmand;

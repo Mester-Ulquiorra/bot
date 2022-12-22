@@ -1,8 +1,8 @@
 import { BaseInteraction, Client, InteractionReplyOptions } from "discord.js";
-import { commands } from "../util/Register";
-import Event from "../types/Event";
-import CreateEmbed, { EmbedColor } from "../util/CreateEmbed";
-import Log, { LogType } from "../util/Log";
+import { commands } from "../util/Register.js";
+import Event from "../types/Event.js";
+import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
+import Log, { LogType } from "../util/Log.js";
 /**
  * A list of custom ids the interaction manager should ignore.
  * The array contains regex patterns.
@@ -61,7 +61,7 @@ const InteractionCreateEvent: Event = {
 			if (interaction.isChatInputCommand()) returnMessage = command.run(interaction, client);
 			if (interaction.isButton()) returnMessage = command.runButton(interaction, client);
 			if (interaction.isModalSubmit()) returnMessage = command.runModal(interaction, client);
-			if (interaction.isSelectMenu()) returnMessage = command.runSelectMenu(interaction, client);
+			if (interaction.isStringSelectMenu()) returnMessage = command.runSelectMenu(interaction, client);
 			if (interaction.isMessageContextMenuCommand()) returnMessage = command.runMessageContextCommand(interaction, client);
 			if (interaction.isUserContextMenuCommand()) returnMessage = command.runUserContextCommand(interaction, client);
 			returnMessage = await (returnMessage as Promise<string | void>).then(result => { return result; }).catch((error) => { return error; });
@@ -100,7 +100,7 @@ const InteractionCreateEvent: Event = {
 		if (returnMessage instanceof Error) {
 			Log(returnMessage.stack, LogType.Error);
 
-			const embed = CreateEmbed(`Something has gone terribly wrong, ask your Console buddy for more info\nDetails: **${returnMessage.message}**`, {
+			const embed = CreateEmbed(`Something has gone terribly wrong, ask your Console buddy for more info.\nDetails: **${returnMessage.message}**`, {
 				title: "Unexpected error",
 				color: EmbedColor.Error
 			});

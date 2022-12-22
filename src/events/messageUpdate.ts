@@ -1,9 +1,9 @@
 import { ChannelType, Message, PermissionsBitField } from "discord.js";
-import test_mode from "../test_mode";
-import Event from "../types/Event";
-import { GetSpecialChannel } from "../util/ClientUtils";
-import CreateEmbed from "../util/CreateEmbed";
-import { CheckMessage } from "../util/Reishi";
+import test_mode from "../test_mode.js";
+import Event from "../types/Event.js";
+import { GetSpecialChannel } from "../util/ClientUtils.js";
+import CreateEmbed from "../util/CreateEmbed.js";
+import { CheckMessage } from "../util/Reishi.js";
 
 const MaxContentLength = 1021;
 

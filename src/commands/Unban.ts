@@ -1,11 +1,11 @@
-import PunishmentConfig, { PunishmentType } from "../database/PunishmentConfig";
-import SlashCommand from "../types/SlashCommand";
-import { GetGuild, GetSpecialChannel } from "../util/ClientUtils";
-import { GetUserConfig } from "../util/ConfigHelper";
-import CreateEmbed from "../util/CreateEmbed";
-import GetError from "../util/GetError";
-import Log from "../util/Log";
-import { CanPerformPunishment, CreateModEmbed } from "../util/ModUtils";
+import PunishmentConfig, { PunishmentType } from "../database/PunishmentConfig.js";
+import SlashCommand from "../types/SlashCommand.js";
+import { GetGuild, GetSpecialChannel } from "../util/ClientUtils.js";
+import { GetUserConfig } from "../util/ConfigHelper.js";
+import CreateEmbed from "../util/CreateEmbed.js";
+import GetError from "../util/GetError.js";
+import Log from "../util/Log.js";
+import { CanPerformPunishment, CreateModEmbed } from "../util/ModUtil.js";
 
 const UnbanCommand: SlashCommand = {
     name: "unban",

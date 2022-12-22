@@ -1,7 +1,10 @@
-import mongoose from "mongoose";
+import mongoose, { Document } from "mongoose";
+import { DBLevel } from "../types/Database.js";
 
-const LevelConfigSchema = new mongoose.Schema({
-    id: {
+export interface IDBLevel extends DBLevel, Document { }
+
+const LevelConfigSchema = new mongoose.Schema<IDBLevel>({
+    userId: {
         type: mongoose.SchemaTypes.String,
         unique: true,
         required: true,

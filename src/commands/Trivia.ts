@@ -1,8 +1,8 @@
-import { ActionRowBuilder, APIActionRowComponent, APISelectMenuOption, ButtonBuilder, ButtonInteraction, ButtonStyle, ComponentType, EmbedBuilder, GuildMember, Interaction, InteractionCollector, Message, SelectMenuBuilder, SelectMenuInteraction } from "discord.js";
+import { ActionRowBuilder, APIActionRowComponent, APIButtonComponent, APISelectMenuOption, APIStringSelectComponent, ButtonBuilder, ButtonInteraction, ButtonStyle, ComponentType, EmbedBuilder, GuildMember, Interaction, InteractionCollector, Message, SelectMenuBuilder, SelectMenuInteraction, StringSelectMenuBuilder } from "discord.js";
 import { Question, getQuestions } from "open-trivia-db";
-import SlashCommand from "../types/SlashCommand";
-import CreateEmbed, { EmbedColor } from "../util/CreateEmbed";
-import Log, { LogType } from "../util/Log";
+import SlashCommand from "../types/SlashCommand.js";
+import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
+import Log, { LogType } from "../util/Log.js";
 
 const TriviaCommmand: SlashCommand = {
     name: "trivia",
@@ -230,7 +230,7 @@ class TriviaGame {
                 let id = 0;
                 if (interaction.isButton()) {
                     id = Number.parseInt(interaction.customId[interaction.customId.length - 1]);
-                } else if (interaction.isSelectMenu()) {
+                } else if (interaction.isStringSelectMenu()) {
                     id = Number.parseInt(interaction.values[0]);
                 } else {
                     // wtf
@@ -331,11 +331,11 @@ class TriviaGame {
         if (isCorrect == null)
             embed.setFooter({ text: "You have 30 seconds to answer!" });
 
-        let components: Array<APIActionRowComponent<any>> = [];
+        let components: Array<APIActionRowComponent<APIButtonComponent | APIStringSelectComponent>> = [];
 
         if (isCorrect != null) {
             components = [
-                new ActionRowBuilder().addComponents([
+                new ActionRowBuilder<ButtonBuilder>().addComponents([
                     new ButtonBuilder()
                         .setCustomId("trivia.continue")
                         .setLabel(
@@ -369,7 +369,7 @@ class TriviaGame {
         // check if correct answer is a yes/no question
         if (this.questions[this.turn].type === "boolean") {
             components = [
-                new ActionRowBuilder().addComponents([
+                new ActionRowBuilder<ButtonBuilder>().addComponents([
                     new ButtonBuilder()
                         .setCustomId(`trivia.answer${ids[0]}`)
                         .setLabel("Correct")
@@ -395,8 +395,8 @@ class TriviaGame {
             options = shuffle(options);
 
             components = [
-                new ActionRowBuilder().addComponents([
-                    new SelectMenuBuilder()
+                new ActionRowBuilder<StringSelectMenuBuilder>().addComponents([
+                    new StringSelectMenuBuilder()
                         .setCustomId("trivia.answer")
                         .setOptions(options)
                         .setMaxValues(1)

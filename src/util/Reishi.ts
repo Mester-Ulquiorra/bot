@@ -1,17 +1,18 @@
 import { Client, Message } from "discord.js";
-import config from "../config";
-import PunishmentConfig, { PunishmentType } from "../database/PunishmentConfig";
-import test_mode from "../test_mode";
-import { SnowFlake } from "../Ulquiorra";
-import { GetSpecialChannel } from "./ClientUtils";
-import { GetUserConfig } from "./ConfigHelper";
-import Log from "./Log";
-import ManageRole from "./ManageRole";
-import { CreateModEmbed } from "./ModUtils";
-import CheckFlood from "./Reishi/CheckFlood";
-import CheckLink from "./Reishi/CheckLink";
-import CheckProfanity from "./Reishi/CheckProfanity";
-import CheckProtectedPing from "./Reishi/CheckProtectedPing";
+import config from "../config.js";
+import PunishmentConfig, { PunishmentType } from "../database/PunishmentConfig.js";
+import test_mode from "../test_mode.js";
+import { DBPunishment } from "../types/Database.js";
+import { SnowFlake } from "../Ulquiorra.js";
+import { GetSpecialChannel } from "./ClientUtils.js";
+import { GetUserConfig } from "./ConfigHelper.js";
+import Log from "./Log.js";
+import ManageRole from "./ManageRole.js";
+import { CreateModEmbed } from "./ModUtil.js";
+import CheckFlood from "./Reishi/CheckFlood.js";
+import CheckLink from "./Reishi/CheckLink.js";
+import CheckProfanity from "./Reishi/CheckProfanity.js";
+import CheckProtectedPing from "./Reishi/CheckProtectedPing.js";
 
 const MASS_MENTION_THRESHOLD = 5;
 
@@ -125,7 +126,7 @@ async function PunishMessage(message: Message, type: PunishmentNames, word: stri
 
     // create the punishment
     const punishment = await PunishmentConfig.create({
-        id: punishmentId,
+        punishmentId: punishmentId,
         user: message.author.id,
         mod: client.user.id,
         type: PunishmentType.Mute,
@@ -148,18 +149,20 @@ async function PunishMessage(message: Message, type: PunishmentNames, word: stri
     // log
     Log(`User ${message.author.id} (${message.author.tag}) has been automatically muted for "${GetPunishmentReason(type)}". ID: ${punishmentId}`);
 
+    const punishmentObject = punishment.toObject() as DBPunishment;
+
     // create the embeds
     const userEmbed = CreateModEmbed(
         client.user,
         message.author,
-        punishment,
+        punishmentObject,
         { userEmbed: true }
     );
 
     const modEmbed = CreateModEmbed(
         client.user,
         message.author,
-        punishment,
+        punishmentObject,
         { detail: word }
     );
 

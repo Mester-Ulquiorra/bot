@@ -1,5 +1,5 @@
-import { GetGuild } from "./ClientUtils";
-import Log, { LogType } from "./Log";
+import { GetGuild } from "./ClientUtils.js";
+import Log, { LogType } from "./Log.js";
 
 const MembersChannelId = "811680790370058271";
 const BoostChannelId = "979763624916684862";
@@ -9,7 +9,7 @@ export default async function() {
         const guild = GetGuild();
 
         // get the bots
-        const bots = 1/*await guild.members.fetch().then((members) => {
+        const bots = 1;/*await guild.members.fetch().then((members) => {
             return members.reduce((acc, member) => member.user.bot ? acc + 1 : acc, 0);
         });*/
 

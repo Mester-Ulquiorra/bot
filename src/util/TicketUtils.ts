@@ -1,51 +1,51 @@
-import { ActionRowBuilder, APIActionRowComponent, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildMember, ModalSubmitInteraction, TextChannel, UserContextMenuCommandInteraction } from "discord.js";
-import config from "../config";
-import TicketConfig, { TicketType } from "../database/TicketConfig";
-import { SnowFlake } from "../Ulquiorra";
-import { GetGuild } from "./ClientUtils";
-import { GetUserConfig } from "./ConfigHelper";
-import CreateEmbed, { EmbedColor } from "./CreateEmbed";
-import { ModName, ModNameToId, ModNameToLevel, ModType } from "./ModUtils";
+import { ActionRowBuilder, APIActionRowComponent, APIButtonComponent, ButtonBuilder, ButtonComponent, ButtonStyle, EmbedBuilder, GuildMember, ModalSubmitInteraction, TextChannel, UserContextMenuCommandInteraction } from "discord.js";
+import config from "../config.js";
+import TicketConfig, { TicketType } from "../database/TicketConfig.js";
+import { DBTicket, DBUser } from "../types/Database.js";
+import { SnowFlake } from "../Ulquiorra.js";
+import { GetGuild } from "./ClientUtils.js";
+import { GetUserConfig } from "./ConfigHelper.js";
+import CreateEmbed, { EmbedColor } from "./CreateEmbed.js";
+import { ModName, ModNameToId, ModNameToLevel, ModType } from "./ModUtil.js";
 
-export const CreateTicket = async function(
-	ticketOwner: GuildMember, 
-	reason: string = "no reason provided", 
-	interaction: ModalSubmitInteraction | UserContextMenuCommandInteraction = null,
-	type: TicketType = TicketType.General,
-	usersToAdd: Array<string> = []
+export const CreateTicket = async function (
+    ticketOwner: GuildMember,
+    reason: string = "no reason provided",
+    interaction: ModalSubmitInteraction | UserContextMenuCommandInteraction = null,
+    type: TicketType = TicketType.General,
+    usersToAdd: Array<string> = []
 ) {
-	const ticketId = SnowFlake.getUniqueID().toString();
+    const ticketId = SnowFlake.getUniqueID().toString();
 
-	const channelName = `ticket-${(ticketOwner.user.username + "xxxx").substring(0, 4)}-${ticketId.substring(ticketId.length - 4)}`;
+    const channelName = `ticket-${(ticketOwner.user.username + "xxxx").substring(0, 4)}-${ticketId.substring(ticketId.length - 4)}`;
 
-	const ticketChannel = await GetGuild().channels.create({
-		name: channelName,
-		topic: `Ticket created by ${ticketOwner}: **${reason}**`,
-		parent: config.OpenTicketsCategory,
-		reason: `Ticket created by ${ticketOwner.displayName}: ${reason}`
-	}).catch((error) => { throw error; });
+    const ticketChannel = await GetGuild().channels.create({
+        name: channelName,
+        topic: `Ticket created by ${ticketOwner}: **${reason}**`,
+        parent: config.OpenTicketsCategory,
+        reason: `Ticket created by ${ticketOwner.displayName}: ${reason}`
+    }).catch((error) => { throw error; });
 
-	const ticketConfig = await TicketConfig.create({
-		id: ticketId,
-		channel: ticketChannel.id,
-		creator: ticketOwner.id,
-		type,
-		// if usersToAdd is empty, we used the button and not the user context command
-		mod: usersToAdd.length === 0 ? "-1" : ticketOwner.id,
-		waitingfor: usersToAdd.length === 0 ? WaitingforFromType(type) : 0,
-		modlevel: usersToAdd.length === 0 ? 0 : (await GetUserConfig(ticketOwner.id)).mod
-	});
+    const ticketConfig = await TicketConfig.create({
+        ticketId: ticketId,
+        channel: ticketChannel.id,
+        creator: ticketOwner.id,
+        type,
+        // if usersToAdd is empty, we used the button and not the user context command
+        mod: usersToAdd.length === 0 ? "-1" : ticketOwner.id,
+        waitingfor: usersToAdd.length === 0 ? WaitingforFromType(type) : 0,
+        modlevel: usersToAdd.length === 0 ? 0 : (await GetUserConfig(ticketOwner.id)).mod
+    });
 
-	// add the users to the ticket config
-	const ticketUsers = GetUsersFromTicket(ticketConfig);
-	usersToAdd.forEach((user) => ticketUsers.set(user, "automatic"));
-	await ticketConfig.save();
+    // add the users to the ticket config
+    usersToAdd.forEach((user) => ticketConfig.users.set(user, "automatic"));
+    await ticketConfig.save();
 
-	// reload ticket permissions
-	ReloadTicketPermissions(ticketChannel, ticketConfig);
+    // reload ticket permissions
+    ReloadTicketPermissions(ticketChannel, ticketConfig);
 
-	// create welcome embed
-	const welcomeEmbed = CreateEmbed(
+    // create welcome embed
+    const welcomeEmbed = CreateEmbed(
         `**Ticket __${channelName}__ created by ${ticketOwner}**`,
         {
             color: EmbedColor.Success,
@@ -92,7 +92,7 @@ export const CreateTicket = async function(
     // if userstoadd is empty, create a waitingfor message
     if (usersToAdd.length === 0) {
         const [waitingembed, components] = CreateWaitingforMessage(
-            ticketConfig.waitingfor,
+            ticketConfig.waitingfor as number,
             "new ticket",
             false
         );
@@ -115,20 +115,11 @@ export const CreateTicket = async function(
 }
 
 /**
- * A function to get the manually added users of a ticket.
- * @param ticketConfig The ticket to get the users of.
- * @returns The manually added users of the ticket.
- */
-export const GetUsersFromTicket = function(ticketConfig: any): Map<string, string> {
-    return ticketConfig.users;
-};
-
-/**
  *
  * @param {number} ticketType The type of the ticket to get the name of.
  * @returns A string representing the name of the ticket type.
  */
-export const TicketTypeToName = function(ticketType: TicketType): string {
+export const TicketTypeToName = function (ticketType: TicketType): string {
     switch (ticketType) {
         case TicketType.General:
             return "General help";
@@ -139,7 +130,7 @@ export const TicketTypeToName = function(ticketType: TicketType): string {
         case TicketType.HeadModReport:
             return "Head mod report";
         case TicketType.Private:
-        	return "Private ticket";
+            return "Private ticket";
         default:
             return "No type";
     }
@@ -150,7 +141,7 @@ export const TicketTypeToName = function(ticketType: TicketType): string {
  * @param channel The channel we want to check.
  * @returns Wheter the channel is a ticket channel or not.
  */
-export const ChannelIsTicket = function(channel: TextChannel): boolean {
+export const ChannelIsTicket = function (channel: TextChannel): boolean {
     return /ticket-.+-\d{4}/.test(channel.name)
 };
 
@@ -159,9 +150,9 @@ export const ChannelIsTicket = function(channel: TextChannel): boolean {
  * @param ticketConfig the ticket config
  * @param userConfig the user config
  */
-export const CanManageTicket = function(ticketConfig: any, userConfig: any) {
+export const CanManageTicket = function (ticketConfig: DBTicket, userConfig: DBUser) {
     // if the id of the user is the same as the creator of ticketconfig, return true
-    if (ticketConfig.creator === userConfig.id) return true;
+    if (ticketConfig.creator === userConfig.userId) return true;
 
     // if the user is an admin or higher, return true
     if (userConfig.mod >= ModNameToLevel("Admin")) return true;
@@ -187,16 +178,16 @@ export const CanManageTicket = function(ticketConfig: any, userConfig: any) {
  * @param reason The reason for the waiting.
  * @param showcancel Whether or not to show the cancel button.
  */
-export const CreateWaitingforMessage = function(
+export const CreateWaitingforMessage = function (
     modlevel: number,
     reason: string = "no reason",
     showcancel: boolean = true
-): [EmbedBuilder, APIActionRowComponent<any>] {
+): [EmbedBuilder, APIActionRowComponent<APIButtonComponent>] {
     const returnembed = CreateEmbed(
         `**This ticket is now waiting for a mod with at least ${modlevel} mod level: __${reason}__**`
     );
 
-    const components = new ActionRowBuilder().addComponents([
+    const components = new ActionRowBuilder<ButtonBuilder>().addComponents([
         new ButtonBuilder()
             .setCustomId("ticket.accept")
             .setLabel("Accept ticket")
@@ -221,18 +212,15 @@ export const CreateWaitingforMessage = function(
  * @param channel The ticket channel.
  * @param ticketConfig
  */
-export const ReloadTicketPermissions = async function(channel: TextChannel, ticketConfig: any) {
+export const ReloadTicketPermissions = async function (channel: TextChannel, ticketConfig: DBTicket) {
     // if waitingfor is 0, set modlevel to the modlevel of the ticket, otherwise set it to waitingfor
     const modlevel: number =
         ticketConfig.waitingfor === 0
             ? ticketConfig.modlevel
             : ticketConfig.waitingfor;
 
-    // get users from ticketconfig
-    const ticketUsers = GetUsersFromTicket(ticketConfig);
-
     // give every user access permission (send message if the ticket is not closed)
-    for (const [user, reason] of ticketUsers) {
+    for (const [user, reason] of ticketConfig.users) {
         channel.permissionOverwrites
             .create(
                 user,

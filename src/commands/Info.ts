@@ -1,13 +1,14 @@
-import { ChatInputCommandInteraction, Client } from "discord.js";
-import LanguageDetect = require("languagedetect");
-import SlashCommand from "../types/SlashCommand";
-import { DeeplTranslator } from "../Ulquiorra";
-import { GetUserConfig } from "../util/ConfigHelper";
-import CreateEmbed from "../util/CreateEmbed";
-import GetError from "../util/GetError";
-import PunishmentInfoCommand from "./PunishmentInfo";
-import UserInfoCommand from "./UserInfo";
 import { createHash } from "crypto";
+import { ChatInputCommandInteraction, Client } from "discord.js";
+import SlashCommand from "../types/SlashCommand.js";
+import { DeeplTranslator } from "../Ulquiorra.js";
+import { GetUserConfig } from "../util/ConfigHelper.js";
+import CreateEmbed from "../util/CreateEmbed.js";
+import GetError from "../util/GetError.js";
+import PunishmentInfoCommand from "./PunishmentInfo.js";
+import UserInfoCommand from "./UserInfo.js";
+import LanguageDetect from "languagedetect";
+console.log(LanguageDetect);
 
 const lngDetector = new LanguageDetect();
 

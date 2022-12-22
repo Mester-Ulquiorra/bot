@@ -1,20 +1,23 @@
-import mongoose from "mongoose";
+import mongoose, { Document } from "mongoose";
+import { DBTictactoe } from "../types/Database.js";
 
-const TictactoeConfigSchema = new mongoose.Schema({
+export interface IDBTictactoe extends DBTictactoe, Document { }
+
+const TictactoeConfigSchema = new mongoose.Schema<IDBTictactoe>({
     user: {
         type: mongoose.SchemaTypes.String,
         required: true,
         unique: true,
     },
-    games_played: {
+    gamesPlayed: {
         type: mongoose.SchemaTypes.Number,
         default: 0,
     },
-    games_won: {
+    gamesWon: {
         type: mongoose.SchemaTypes.Number,
         default: 0,
     },
-    games_lost: {
+    gamesLost: {
         type: mongoose.SchemaTypes.Number,
         default: 0,
     },

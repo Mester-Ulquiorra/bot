@@ -1,13 +1,13 @@
 import { ActionRowBuilder, APIActionRowComponent, ButtonBuilder, ButtonStyle, Client, Message, TextChannel } from "discord.js";
-import config from "../config";
-import Event from "../types/Event";
-import { shutdown } from "../Ulquiorra";
-import { GetGuild } from "../util/ClientUtils";
-import CreateEmbed, { EmbedColor } from "../util/CreateEmbed";
-import { GetXPFromMessage } from "../util/LevelUtil";
-import { CreateAppealButton } from "../util/ModUtils";
-import { CheckMessage } from "../util/Reishi";
-import { CreateTicket, TicketTypeToName } from "../util/TicketUtils";
+import config from "../config.js";
+import Event from "../types/Event.js";
+import { shutdown } from "../Ulquiorra.js";
+import { GetGuild } from "../util/ClientUtils.js";
+import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
+import { GetXPFromMessage } from "../util/LevelUtil.js";
+import { CreateAppealButton } from "../util/ModUtil.js";
+import { CheckMessage } from "../util/Reishi.js";
+import { CreateTicket, TicketTypeToName } from "../util/TicketUtils.js";
 
 const HelpMessage =
     "**Our xp system works based on mathematical formulas.** \n\n When you send a message, its length is sent through this formula: \n `clamp(length * (1 + user's_current_level / 140), 0, maximum_xp_of_level)` \n\n The maximum xp of a level (aka. the xp cap) is calculated using the following formula: \n `clamp(2000 * (1 - user's_current_level / xp_cap_multiplier), 200, 2000)` \n\n The xp cap multiplier is `70 / (1 - 200 / 2000)` \n\n The xp it takes to reach a certain level is calculated using this formula: \n `floor(2000 + 5000 * (level - 1) * (1 + (min(1 - 0.005 * (level - 70), 1) * level - 1) / 35))` \n\n Nice, isn't it? \n\n **Special thanks to Finnegan for helping me with some of the math.** \n If you want to get a visual representation of the different formulas, here are the Desmos links: [[Level to XP]](https://www.desmos.com/calculator/966mlsftxg) - [[Length to XP]](https://www.desmos.com/calculator/lshbxdm5sn) - [[XP cap]](https://www.desmos.com/calculator/bdxwovexie)";

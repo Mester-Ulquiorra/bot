@@ -1,10 +1,11 @@
 import { Client } from "discord.js";
 import { readdir } from "fs";
 import { join } from "path";
-import test_mode from "../test_mode"
-import ConsoleCommand from "../types/ConsoleCommand";
-import SlashCommand from "../types/SlashCommand";
-import Log, { LogType } from "../util/Log";
+import { pathToFileURL } from "url";
+import test_mode from "../test_mode.js"
+import ConsoleCommand from "../types/ConsoleCommand.js";
+import SlashCommand from "../types/SlashCommand.js";
+import Log, { LogType } from "../util/Log.js";
 
 const commands = new Map<string, SlashCommand>();
 const consoleCommands = new Map<string, ConsoleCommand>();
@@ -23,12 +24,14 @@ async function Register(commandPath: string, eventPath: string, consoleCommandPa
         const commandFiles = files.filter((file) => file.endsWith(".js"));
 
         for (const commandFile of commandFiles) {
+            const urlPath = pathToFileURL(join(commandPath, commandFile)).toString();
             try {
-                const command = (await import(join(commandPath, commandFile))).default;
-
-                if(test_mode) console.log(command);
-
-                commands.set(command.name, command);
+                import(urlPath).then(module => {
+                    const command = module.default;
+                    if(test_mode) console.log(command);
+    
+                    commands.set(command.name, command);
+                });
             } catch (error) {
                 Log(`Error while trying to load ${commandFile}: ${error.stack}`, LogType.Error);
             }
@@ -41,12 +44,14 @@ async function Register(commandPath: string, eventPath: string, consoleCommandPa
         const consoleCommandFiles = files.filter((file) => file.endsWith(".js"));
 
         for (const consoleCommandFile of consoleCommandFiles) {
+            const urlPath = pathToFileURL(join(consoleCommandPath, consoleCommandFile)).toString();
             try {
-                const consoleCommand = (await import(join(consoleCommandPath, consoleCommandFile))).default;
-
-                if(test_mode) console.log(consoleCommand);
-
-                consoleCommands.set(consoleCommand.name, consoleCommand);
+                import(urlPath).then(module => {
+                    const consoleCommand = module.default;
+                    if(test_mode) console.log(consoleCommand);
+    
+                    consoleCommands.set(consoleCommand.name, consoleCommand);
+                });
             } catch (error) {
                 Log(`Error while trying to load ${consoleCommandFile}: ${error.stack}`, LogType.Error);
             }
@@ -59,13 +64,15 @@ async function Register(commandPath: string, eventPath: string, consoleCommandPa
         const eventFiles = files.filter((file) => file.endsWith(".js"));
 
         for (const eventFile of eventFiles) {
+            const urlPath = pathToFileURL(join(eventPath, eventFile)).toString();
             try {
-                const event = (await import(join(eventPath, eventFile))).default;
-
-                if(test_mode) console.log(event);
-
-                // also add the event to the client as a listener
-                client.on(event.name, event.run.bind(event, client));
+                import(urlPath).then(module => {
+                    const event = module.default;
+                    if(test_mode) console.log(event);
+    
+                    // also add the event to the client as a listener
+                    client.on(event.name, event.run.bind(event, client));
+                });
             } catch (error) {
                 Log(`Error while trying to load ${eventFile}: ${error.stack}`, LogType.Error);
             }

@@ -1,6 +1,6 @@
-import TicketConfig from "../database/TicketConfig";
-import { GetGuild } from "./ClientUtils";
-import Log, { LogType } from "./Log";
+import TicketConfig from "../database/TicketConfig.js";
+import { GetGuild } from "./ClientUtils.js";
+import Log, { LogType } from "./Log.js";
 
 const TicketExpirationTime = 60 * 60 * 24; // 1 day
 
@@ -16,7 +16,7 @@ export default async function() {
 
         // check if the ticket is expired
         if (
-            Math.floor(Date.now() / 1000) - ticket.closedat <
+            Math.floor(Date.now() / 1000) - (ticket.closedat as number) <
             TicketExpirationTime
         )
             continue;
@@ -24,7 +24,7 @@ export default async function() {
         try {
             // delete the channel using this handy one liner
             GetGuild().channels
-                .fetch(ticket.channel)
+                .fetch(ticket.channel as string)
                 .then((channel) => {
                     channel.delete(`Ticket deleted - passed expiration time`);
                 });

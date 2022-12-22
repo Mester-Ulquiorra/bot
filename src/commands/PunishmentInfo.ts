@@ -1,8 +1,9 @@
-import { ActionRowBuilder, APIActionRowComponent, ButtonInteraction, ChatInputCommandInteraction, SelectMenuBuilder, SelectMenuComponentOptionData, SelectMenuInteraction, User } from "discord.js";
-import PunishmentConfig, { PunishmentTypeToName } from "../database/PunishmentConfig";
-import SlashCommand from "../types/SlashCommand";
-import CreateEmbed from "../util/CreateEmbed";
-import { CalculateMaxPage } from "../util/MathUtils";
+import { ActionRowBuilder, ButtonInteraction, ChatInputCommandInteraction, SelectMenuComponentOptionData, SelectMenuInteraction, StringSelectMenuBuilder, User } from "discord.js";
+import PunishmentConfig, { PunishmentTypeToName } from "../database/PunishmentConfig.js";
+import { DBPunishment } from "../types/Database.js";
+import SlashCommand from "../types/SlashCommand.js";
+import CreateEmbed from "../util/CreateEmbed.js";
+import { CalculateMaxPage } from "../util/MathUtils.js";
 
 const PageSize = 10;
 
@@ -68,7 +69,7 @@ const PunishmentInfoCommand: SlashCommand = {
             // run the showpunishment command on the punishment
             return showPunishmentById(
                 interaction,
-                punishment.id
+                punishment.punishmentId
             );
         }
 
@@ -100,7 +101,7 @@ const PunishmentInfoCommand: SlashCommand = {
  */
 async function showPunishmentById(interaction: ChatInputCommandInteraction | ButtonInteraction, id: string) {
     // get the punishment from config
-    const punishment = await PunishmentConfig.findOne({ id });
+    const punishment = await PunishmentConfig.findOne({ punishmentId: id });
 
     // check if punishment exists
     if (!punishment)
@@ -108,7 +109,7 @@ async function showPunishmentById(interaction: ChatInputCommandInteraction | But
 
     // create the embed
     const embed = CreateEmbed(
-        `**Information about punishment ${punishment.id}**`
+        `**Information about punishment ${punishment.punishmentId}**`
     ).addFields([
         {
             name: `Punished member`,
@@ -199,12 +200,12 @@ async function showPunishmentsOfMember(interaction: ChatInputCommandInteraction 
         });
     };
 
-    const component = new ActionRowBuilder().addComponents([
-        new SelectMenuBuilder()
+    const components = [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents([
+        new StringSelectMenuBuilder()
             .setCustomId("punishmentinfo.pageselector")
             .setMaxValues(1)
             .setOptions(options),
-    ]).toJSON();
+    ]).toJSON()];
 
     // --------------------------------------------------------------------
 
@@ -213,12 +214,12 @@ async function showPunishmentsOfMember(interaction: ChatInputCommandInteraction 
     if (!(interaction instanceof ChatInputCommandInteraction) && refresh)
         interaction.update({
             embeds: [embed],
-            components: [component as APIActionRowComponent<any>],
+            components,
         });
     else
         interaction.reply({
             embeds: [embed],
-            components: [component as APIActionRowComponent<any>],
+            components,
             ephemeral: true,
         });
 }
@@ -230,7 +231,7 @@ async function showPunishmentsOfMember(interaction: ChatInputCommandInteraction 
  * @param page The page to display.
  * @param max_page The maximum page available.
  */
-async function createPunishmentsEmbed(userid: string, punishments: Array<any>, page: number, max_page: number) {
+async function createPunishmentsEmbed(userid: string, punishments: Array<DBPunishment>, page: number, max_page: number) {
     // create the embed
     let returnembed = CreateEmbed(`**Punishments of <@${userid}> (page ${page} / ${max_page})**`)
         .setFooter({ text: `User ID: ${userid}` });
@@ -244,7 +245,7 @@ async function createPunishmentsEmbed(userid: string, punishments: Array<any>, p
         returnembed.addFields([
             {
                 // This shows: type, member, moderator, punished at, punished until, active, reason
-                name: `**__Punishment ${punishment.id}__**`,
+                name: `**__Punishment ${punishment.punishmentId}__**`,
                 value:
                     `**Type:** ${PunishmentTypeToName(punishment.type)}\n` +
                     `**Member:** <@${punishment.user}>. **Moderator:** <@${punishment.mod}>\n` +

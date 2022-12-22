@@ -1,17 +1,21 @@
 import { createCanvas, Image, registerFont } from "canvas";
 import { EmbedBuilder, GuildMember } from "discord.js";
+import { readFileSync } from "fs";
 import * as path from "path";
-import * as sharp from "sharp";
-import SlashCommand from "../types/SlashCommand";
-import CreateEmbed from "../util/CreateEmbed";
-import { GetLevelConfig, LevelToXP, XPToLevelUp } from "../util/LevelUtil";
+import { fileURLToPath, URL } from "url";
+import { DBLevel } from "../types/Database.js";
+import SlashCommand from "../types/SlashCommand.js";
+import CreateEmbed from "../util/CreateEmbed.js";
+import { GetLevelConfig, LevelToXP, XPToLevelUp } from "../util/LevelUtil.js";
+
+const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 const CardWidth = 1500;
 const CardHeight = 300;
 
-const CardBackground = path.join(path.dirname(require.main.filename), "res", "rank", "background.png");
-let Background: Buffer = null;
-registerFont(path.join(path.dirname(require.main.filename), "res", "rank", "Merriweather.ttf"), { family: "Merriweather" });
+const BackgroundFile = path.join(__dirname, "..", "res", "rank", "background-blur.png");
+let Background: Buffer | string = null;
+registerFont(path.join(__dirname, "..", "res", "rank", "Merriweather.ttf"), { family: "Merriweather" });
 
 const RankCommand: SlashCommand = {
     name: "rank",
@@ -25,7 +29,7 @@ const RankCommand: SlashCommand = {
 
         if (interaction.options.getBoolean("textmode")) {
             // create the embed
-            const embed = CreateEmbed(`Level rank of <@${levelConfig.id}>`, {
+            const embed = CreateEmbed(`Level rank of <@${levelConfig.userId}>`, {
                 author: member,
             });
 
@@ -36,7 +40,7 @@ const RankCommand: SlashCommand = {
             return;
         }
 
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ ephemeral: false });
 
         // now let's create the image
         let canvas = createCanvas(CardWidth, CardHeight);
@@ -46,12 +50,10 @@ const RankCommand: SlashCommand = {
         const backgroundBuffer = await getBackground();
         const background = await loadImage(backgroundBuffer)
         ctx.drawImage(background, 0, 0, CardWidth, CardHeight);
-        delete background.onload; delete background.src;
 
         // draw the avatar and username
         const avatar = await loadImage(member.displayAvatarURL({ size: 256, extension: "png" }));
         ctx.drawImage(avatar, (CardHeight - 256) / 2, (CardHeight - 256) / 2, 256, 256);
-        delete avatar.onload; delete avatar.src;
 
         const meterStartX = 256 + (CardHeight - 256) / 2 + 50;
         const meterStartY = CardHeight - (CardHeight - 256) / 2 - 80;
@@ -81,8 +83,8 @@ const RankCommand: SlashCommand = {
         ctx.font = "25px 'Merriweather' bold";
         ctx.textAlign = "start";
         ctx.fillStyle = "#000000";
-        let text = `Current XP: ${levelConfig.xp} (${(levelupPercent * 100).toFixed(2)}%)`;
-        ctx.fillText(text, meterStartX + 10, meterStartY + 25);
+        let text = `Current XP: ${relativexp} (${(levelupPercent * 100).toFixed(2)}%)`;
+        ctx.fillText(text, meterStartX, meterStartY + 25);
 
         // outline
         meterEndX = CardWidth - 50;
@@ -100,11 +102,9 @@ const RankCommand: SlashCommand = {
         ctx.font = "30px 'Merriweather' bold";
         text = `Level ${levelConfig.level}`;
         ctx.fillText(text, meterStartX, meterStartY + 60);
-        ctx.fillText(`(${LevelToXP(levelConfig.level)} XP)`, meterStartX, meterStartY + 95);
         ctx.textAlign = "end";
-        text = `Level ${levelConfig.level + 1}`;
+        text = `Level ${levelConfig.level + 1} (${XPToLevelUp(levelConfig.level)} XP)`;
         ctx.fillText(text, meterEndX, meterStartY + 60);
-        ctx.fillText(`(${LevelToXP(levelConfig.level + 1)} XP)`, meterEndX, meterStartY + 95);
 
         // total xp
         ctx.font = "50px 'Merriweather' bold";
@@ -126,9 +126,9 @@ const RankCommand: SlashCommand = {
 async function getBackground() {
     if (Background != null) return Background;
 
-    Background = await sharp(CardBackground)
-        .blur(9)
-        .toBuffer();
+    const data = readFileSync(BackgroundFile);
+
+    Background = data;
 
     return Background;
 }
@@ -149,7 +149,7 @@ function loadImage(source: string | Buffer) {
  * @param embed The embed to add the fields to.
  * @param levelConfig The level config to get the information from.
  */
-export function AddRankFieldEmbeds(embed: EmbedBuilder, levelConfig: any) {
+export function AddRankFieldEmbeds(embed: EmbedBuilder, levelConfig: DBLevel) {
     /**
      * The xp relative to the user's level.
      */

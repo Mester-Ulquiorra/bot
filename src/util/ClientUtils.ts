@@ -1,6 +1,6 @@
 import { GuildTextBasedChannel, TextChannel } from "discord.js";
-import config from "../config";
-import Ulquiorra from "../Ulquiorra";
+import config from "../config.js";
+import Ulquiorra from "../Ulquiorra.js";
 
 type SpecialChannelName = "ModLog" | "MessageLog" | "Welcome" | "LevelUp" | "TestMode" | "Appeal" | "MiscLog";
 

@@ -1,13 +1,13 @@
 import { GuildMember } from "discord.js";
-import PunishmentConfig, { PunishmentType } from "../database/PunishmentConfig";
-import SlashCommand from "../types/SlashCommand";
-import { SnowFlake } from "../Ulquiorra";
-import { GetSpecialChannel } from "../util/ClientUtils";
-import { GetUserConfig } from "../util/ConfigHelper";
-import CreateEmbed from "../util/CreateEmbed";
-import GetError from "../util/GetError";
-import Log from "../util/Log";
-import { CanManageUser, CreateModEmbed } from "../util/ModUtils";
+import PunishmentConfig, { PunishmentType } from "../database/PunishmentConfig.js";
+import SlashCommand from "../types/SlashCommand.js";
+import { SnowFlake } from "../Ulquiorra.js";
+import { GetSpecialChannel } from "../util/ClientUtils.js";
+import { GetUserConfig } from "../util/ConfigHelper.js";
+import CreateEmbed from "../util/CreateEmbed.js";
+import GetError from "../util/GetError.js";
+import Log from "../util/Log.js";
+import { CanManageUser, CreateModEmbed } from "../util/ModUtil.js";
 
 const KickCommand: SlashCommand = {
     name: "kick",
@@ -26,7 +26,7 @@ const KickCommand: SlashCommand = {
 
         // create the punishment
         const punishment = await PunishmentConfig.create({
-            id: punishmentId,
+            punishmentId: punishmentId,
             user: target.id,
             mod: interaction.user.id,
             type: PunishmentType.Kick,

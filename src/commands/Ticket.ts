@@ -1,24 +1,25 @@
 import { ActionRowBuilder, APIActionRowComponent, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, Client, GuildMember, ModalBuilder, TextChannel, TextInputBuilder, TextInputStyle, UserContextMenuCommandInteraction } from "discord.js";
-import TicketConfig, { TicketType } from "../database/TicketConfig";
-import SlashCommand from "../types/SlashCommand";
-import { GetUserConfig } from "../util/ConfigHelper";
-import { CanManageTicket, ChannelIsTicket, CreateTicket, CreateWaitingforMessage, GetUsersFromTicket, ReloadTicketPermissions, TicketTypeToName } from "../util/TicketUtils";
 import { v4 as uuidv4 } from "uuid";
-import { CanManageUser, ModNameToLevel } from "../util/ModUtils";
-import GetError from "../util/GetError";
-import CreateEmbed, { EmbedColor } from "../util/CreateEmbed";
-import config from "../config";
+import config from "../config.js";
+import TicketConfig, { TicketType } from "../database/TicketConfig.js";
+import { DBUser } from "../types/Database.js";
+import SlashCommand from "../types/SlashCommand.js";
+import { GetUserConfig } from "../util/ConfigHelper.js";
+import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
+import GetError from "../util/GetError.js";
+import { CanManageUser, ModNameToLevel } from "../util/ModUtil.js";
+import { CanManageTicket, ChannelIsTicket, CreateTicket, CreateWaitingforMessage, ReloadTicketPermissions, TicketTypeToName } from "../util/TicketUtils.js";
 
 const TicketCreateRegex = /^ticket\.create[0-3]$/;
 
 const TicketCommand: SlashCommand = {
-	name: "ticket",
-	userContextCommandNames: ["Create Ticket"],
+    name: "ticket",
+    userContextCommandNames: ["Create Ticket"],
 
-	async run(interaction: ChatInputCommandInteraction, _client: Client) {
-		const userConfig = await GetUserConfig(interaction.user.id);
+    async run(interaction: ChatInputCommandInteraction, _client: Client) {
+        const userConfig = await GetUserConfig(interaction.user.id);
 
-		// check if user's mod is 0 (if it is, return)
+        // check if user's mod is 0 (if it is, return)
         if (userConfig.mod === 0) return GetError("Permission");
 
         // check if we're in a ticket
@@ -48,44 +49,42 @@ const TicketCommand: SlashCommand = {
         if (subcommand === "close") return close(interaction, userConfig);
         if (subcommand === "delete") return deleteTicket(interaction, userConfig);
         if (subcommand === "sendto") return sendto(interaction, userConfig);
-	},
+    },
 
-	async runButton(interaction: ButtonInteraction, _client: Client) {
-		const userConfig = await GetUserConfig(interaction.user.id);
+    async runButton(interaction: ButtonInteraction, _client: Client) {
+        const userConfig = await GetUserConfig(interaction.user.id);
 
-		if (interaction.customId === "ticket.reopen")
+        if (interaction.customId === "ticket.reopen")
             return reopen(interaction, userConfig);
         if (interaction.customId === "ticket.delete")
             return deleteTicket(interaction, userConfig);
         if (interaction.customId === "ticket.accept")
             return accept(interaction, userConfig);
         if (interaction.customId === "ticket.cancelsendto")
-            return cancelsendto(interaction, userConfig);
+            return cancelSendTo(interaction, userConfig);
 
-		if(interaction.customId.match(TicketCreateRegex)) {
-			// check if the user already has an open ticket (mods bypass this)
-			if(userConfig.mod === 0 && (await TicketConfig.findOne({ creator: interaction.user.id, closed: false })))
-				return "You already have an opened ticket";
+        if (interaction.customId.match(TicketCreateRegex)) {
+            // check if the user already has an open ticket (mods bypass this)
+            if (userConfig.mod === 0 && (await TicketConfig.findOne({ creator: interaction.user.id, closed: false })))
+                return "You already have an opened ticket";
 
-			const ticketType = Number.parseInt(interaction.customId[interaction.customId.length - 1]);
+            const ticketType = Number.parseInt(interaction.customId[interaction.customId.length - 1]);
 
-			const modal = new ModalBuilder()
-				.setTitle(`Create ticket: ${TicketTypeToName(ticketType)}`)
-				.addComponents(
-					new ActionRowBuilder<TextInputBuilder>().addComponents([
-						new TextInputBuilder()
-							.setCustomId("reason")
+            const modal = new ModalBuilder()
+                .setTitle(`Create ticket: ${TicketTypeToName(ticketType)}`)
+                .addComponents(
+                    new ActionRowBuilder<TextInputBuilder>().addComponents([
+                        new TextInputBuilder()
+                            .setCustomId("reason")
                             .setLabel("Reason (NOT the full problem)")
                             .setStyle(TextInputStyle.Short)
-                            .setPlaceholder(
-                                "Tell us why you opened this ticket in a short sentence."
-                            )
+                            .setPlaceholder("Tell us why you opened this ticket in a short sentence.")
                             .setMaxLength(100)
                             .setRequired(true),
-					])
-				);
+                    ])
+                );
 
-			// set the correct customid
+            // set the correct customid
             // !!! to prevent multiple modals from being sent, an uuid is added to the start
             const uuid = uuidv4();
             switch (ticketType) {
@@ -94,15 +93,15 @@ const TicketCommand: SlashCommand = {
                     break;
 
                 case TicketType.MemberReport:
-                    modal.setCustomId(`ticket.open.${uuid}0`);
+                    modal.setCustomId(`ticket.open.${uuid}1`);
                     break;
 
                 case TicketType.ModReport:
-                    modal.setCustomId(`ticket.open.${uuid}0`);
+                    modal.setCustomId(`ticket.open.${uuid}2`);
                     break;
 
                 case TicketType.HeadModReport:
-                    modal.setCustomId(`ticket.open.${uuid}0`);
+                    modal.setCustomId(`ticket.open.${uuid}3`);
             }
 
             // send the modal and wait for it to return
@@ -127,20 +126,20 @@ const TicketCommand: SlashCommand = {
                     ephemeral: true,
                 });
             })
-		}
-	},
+        }
+    },
 
-	async runUserContextCommand(interaction: UserContextMenuCommandInteraction, _client: Client) {
-		if(interaction.commandName === "Create Ticket") {
-			CreateTicket(
-				interaction.member as GuildMember,
-				`added ${interaction.targetUser} from context menu`,
-				interaction,
-				TicketType.Private,
-				[ interaction.targetId ]
-			)
-		}
-	}
+    async runUserContextCommand(interaction, client) {
+        if (interaction.commandName === "Create Ticket") {
+            CreateTicket(
+                interaction.member as GuildMember,
+                `added ${interaction.targetUser} from context menu`,
+                interaction,
+                TicketType.Private,
+                [interaction.targetId]
+            )
+        }
+    }
 }
 
 /**
@@ -151,7 +150,7 @@ const TicketCommand: SlashCommand = {
  * @param type Either to add or remove the member
  * @param reason The reason for the action
  */
-async function manageUser(interaction: ChatInputCommandInteraction, target: GuildMember, userConfig: any, type: "ADD" | "REMOVE", reason: string) {
+async function manageUser(interaction: ChatInputCommandInteraction, target: GuildMember, userConfig: DBUser, type: "ADD" | "REMOVE", reason: string) {
     // get member config
     const targetConfig = await GetUserConfig(target.id);
 
@@ -174,7 +173,7 @@ async function manageUser(interaction: ChatInputCommandInteraction, target: Guil
     const ticketChannel = interaction.channel as TextChannel;
 
     // get the users
-    const ticketUsers = GetUsersFromTicket(ticketConfig);
+    const ticketUsers = ticketConfig.users;
 
     // if type is REMOVE
     if (type === "REMOVE") {
@@ -240,7 +239,7 @@ async function manageUser(interaction: ChatInputCommandInteraction, target: Guil
  * @param interaction The command interaction that invoked the command
  * @param userConfig The user's config
  */
-async function close(interaction: ChatInputCommandInteraction, userConfig: any) {
+async function close(interaction: ChatInputCommandInteraction, userConfig: DBUser) {
     // get the reason
     const reason = interaction.options.getString("reason") ?? "no reason provided";
 
@@ -303,7 +302,7 @@ async function close(interaction: ChatInputCommandInteraction, userConfig: any) 
  * @param interaction The command interaction that invoked the command
  * @param userConfig The user's config
  */
-async function deleteTicket(interaction: ChatInputCommandInteraction | ButtonInteraction, userConfig: any) {
+async function deleteTicket(interaction: ChatInputCommandInteraction | ButtonInteraction, userConfig: DBUser) {
     // get ticket config
     const ticketConfig = await TicketConfig.findOne({
         channel: interaction.channelId,
@@ -336,7 +335,7 @@ async function deleteTicket(interaction: ChatInputCommandInteraction | ButtonInt
  * @param interaction The command interaction that invoked the command
  * @param userConfig The user's config
  */
-async function sendto(interaction: ChatInputCommandInteraction, userConfig: any) {
+async function sendto(interaction: ChatInputCommandInteraction, userConfig: DBUser) {
     // get ticket config
     const ticketConfig = await TicketConfig.findOne({
         channel: interaction.channelId,
@@ -383,7 +382,7 @@ async function sendto(interaction: ChatInputCommandInteraction, userConfig: any)
     interaction.reply({ embeds: [embed], components: [components] });
 };
 
-async function reopen(interaction: ButtonInteraction, userConfig: any) {
+async function reopen(interaction: ButtonInteraction, userConfig: DBUser) {
     // get ticket config
     const ticketConfig = await TicketConfig.findOne({
         channel: interaction.channelId,
@@ -425,7 +424,7 @@ async function reopen(interaction: ButtonInteraction, userConfig: any) {
     ReloadTicketPermissions(ticketChannel, ticketConfig);
 };
 
-async function accept(interaction: ButtonInteraction, userConfig: any) {
+async function accept(interaction: ButtonInteraction, userConfig: DBUser) {
     // get ticket config
     const ticketConfig = await TicketConfig.findOne({
         channel: interaction.channelId,
@@ -461,7 +460,7 @@ async function accept(interaction: ButtonInteraction, userConfig: any) {
     ReloadTicketPermissions(interaction.channel as TextChannel, ticketConfig);
 };
 
-async function cancelsendto(interaction: ButtonInteraction, userConfig: any) {
+async function cancelSendTo(interaction: ButtonInteraction, userConfig: DBUser) {
     // get ticket config
     const ticketConfig = await TicketConfig.findOne({
         channel: interaction.channelId,

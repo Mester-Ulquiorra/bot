@@ -1,5 +1,5 @@
-import UserConfig from "../database/UserConfig";
-import ConsoleCommand from "../types/ConsoleCommand";
+import UserConfig from "../database/UserConfig.js";
+import ConsoleCommand from "../types/ConsoleCommand.js";
 
 const SetModConsoleCommand: ConsoleCommand = {
     name: "setmod",

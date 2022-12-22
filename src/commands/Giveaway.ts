@@ -1,14 +1,13 @@
 import { ChatInputCommandInteraction, EmbedBuilder, GuildMember, PermissionsBitField, TextChannel, User } from "discord.js";
-import config from "../config";
-import GiveawayConfig from "../database/GiveawayConfig";
-import test_mode from "../test_mode";
-import SlashCommand from "../types/SlashCommand";
-import { SnowFlake } from "../Ulquiorra";
-import { GetGuild } from "../util/ClientUtils";
-import ConvertDuration from "../util/ConvertDuration";
-import CreateEmbed, { EmbedColor } from "../util/CreateEmbed";
-import GetError from "../util/GetError";
-import Log from "../util/Log";
+import config from "../config.js";
+import GiveawayConfig, { IDBGiveaway } from "../database/GiveawayConfig.js";
+import SlashCommand from "../types/SlashCommand.js";
+import { SnowFlake } from "../Ulquiorra.js";
+import { GetGuild } from "../util/ClientUtils.js";
+import ConvertDuration from "../util/ConvertDuration.js";
+import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
+import GetError from "../util/GetError.js";
+import Log from "../util/Log.js";
 
 const GiveawayEmoji = "✅";
 
@@ -20,7 +19,7 @@ const GiveawayCommand: SlashCommand = {
             case "start":
                 return startGiveaway(interaction)
             case "end":
-                const giveaway = await GiveawayConfig.findOne({ id: interaction.options.getString("giveaway") });
+                const giveaway = await GiveawayConfig.findOne({ giveawayId: interaction.options.getString("giveaway") });
                 if (!giveaway)
                     return GetError("Database");
 
@@ -80,7 +79,7 @@ async function startGiveaway(interaction: ChatInputCommandInteraction) {
         channel: message.channelId,
         name,
         host: interaction.user.id,
-        start: Math.floor(Date.now() / 1000),
+        start: Date.now(),
         end,
         winners,
     });
@@ -88,11 +87,9 @@ async function startGiveaway(interaction: ChatInputCommandInteraction) {
     Log(`${interaction.user.tag} (${interaction.user.id}) has created a new giveaway. ID: ${giveaway.id}`)
 }
 
-async function endGiveaway(giveaway: any) {
+async function endGiveaway(giveaway: IDBGiveaway) {
     // get giveaway message
-    const message = await (GetGuild()
-        .channels.cache.get(giveaway.channel) as TextChannel)
-        .messages.fetch(giveaway.message)
+    const message = await (GetGuild().channels.cache.get(giveaway.channel) as TextChannel).messages.fetch(giveaway.message)
         .then((message) => { return message; })
         .catch(() => { return; })
 
@@ -118,6 +115,10 @@ async function endGiveaway(giveaway: any) {
             })
             .setColor([237, 56, 36]);
 
+        // remove the "Ends" and "Winners" fields
+        embed.data.fields.shift();
+        embed.data.fields.shift();
+
         message.edit({ embeds: [embed] });
         message.reactions.removeAll();
 
@@ -127,18 +128,24 @@ async function endGiveaway(giveaway: any) {
 
     const winners = getWinners(users, giveaway.winners);
     const lastWinner = winners[winners.length - 1].toString();
-    const winnerString = winners
+    const winnerString = winners.length > 1 ? winners
+        // convert users into pingable string
         .map(user => user.toString())
+        // get all winners except last
         .slice(0, -1)
-        .join(", ") + ` and ${lastWinner}`;
+        .join(", ") + ` and ${lastWinner}` : winners[0].toString();
 
     const embed = EmbedBuilder.from(message.embeds[0])
         .addFields({
-            name: "Winners",
+            name: `Winners (${winners.length})`,
             value: winnerString,
             inline: false
         })
         .setColor([22, 137, 101]);
+
+    // remove the "Ends" and "Winners" fields
+    embed.data.fields.shift();
+    embed.data.fields.shift();
 
     message.edit({ embeds: [embed] });
     message.reply(`**Congratulations to ${winnerString} for winning the giveaway!**`);
@@ -173,10 +180,9 @@ function getWinners(users: Array<User>, winners: number): Array<User> {
 
 // set up an interval to automatically end giveaways
 setInterval(async () => {
-    const giveaways = await GiveawayConfig.find({ ended: false }).sort({ start: 1 });
+    const giveaways = await GiveawayConfig.find({ ended: false, end: { $lte: Date.now() } }).sort({ start: 1 });
 
     for (const giveaway of giveaways) {
-        if (Math.floor(Date.now() / 1000) < giveaway.end) break;
         endGiveaway(giveaway);
     }
 }, 1000 * 60) // 1 minute

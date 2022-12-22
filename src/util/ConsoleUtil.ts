@@ -1,18 +1,18 @@
 import { Client } from "discord.js";
-import { consoleCommands } from "./Register";
+import { consoleCommands } from "./Register.js";
 
 /**
  * The main function for console commands.
  * @param {string} line The line to process.
  * @param {Client} client The bot client.
  */
- export const HandleConsoleCommand = function (line: string, client: Client) {
+export const HandleConsoleCommand = function (line: string, client: Client) {
     // get the command name by getting the first words from the command
     // then get the argument by splitting the command by spaces
     const args = line.trim().split(" ");
     const commandName = args.shift();
 
-    if(commandName.length === 0) return;
+    if (commandName.length === 0) return;
 
     // check if commandName is help
     if (commandName === "help") {

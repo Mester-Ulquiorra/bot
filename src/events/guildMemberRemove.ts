@@ -1,9 +1,9 @@
 import { GuildMember } from "discord.js";
-import config from "../config";
-import Event from "../types/Event";
-import { GetSpecialChannel } from "../util/ClientUtils";
-import { GetUserConfig } from "../util/ConfigHelper";
-import CreateEmbed from "../util/CreateEmbed";
+import config from "../config.js";
+import Event from "../types/Event.js";
+import { GetSpecialChannel } from "../util/ClientUtils.js";
+import { GetUserConfig } from "../util/ConfigHelper.js";
+import CreateEmbed from "../util/CreateEmbed.js";
 
 const GuildMemberRemoveEvent: Event = {
     name: "guildMemberRemove",

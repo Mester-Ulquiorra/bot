@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import * as clc from "cli-color";
+import clc from "cli-color";
 
 const dateFormat = "yyyy-MM-dd HH:mm:ss.SSS";
 

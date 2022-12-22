@@ -1,11 +1,12 @@
+
 import { ChatInputCommandInteraction, TextChannel } from "discord.js";
-import SlashCommand from "../types/SlashCommand";
-import { GetGuild } from "../util/ClientUtils";
-import { GetUserConfig } from "../util/ConfigHelper";
-import CreateEmbed, { EmbedColor } from "../util/CreateEmbed";
-import GetError from "../util/GetError";
-import Log from "../util/Log";
-import { ModNameToLevel } from "../util/ModUtils";
+import SlashCommand from "../types/SlashCommand.js";
+import { GetGuild } from "../util/ClientUtils.js";
+import { GetUserConfig } from "../util/ConfigHelper.js";
+import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
+import GetError from "../util/GetError.js";
+import Log from "../util/Log.js";
+import { ModNameToLevel } from "../util/ModUtil.js";
 
 const EveryoneRoleId = "775789526781263912";
 
@@ -24,10 +25,8 @@ const LockCommand: SlashCommand = {
         // check if the user is trying to (un)lock all channels
         // also fix the reason not being correct
         const lock_all = reason.startsWith("*");
-        if (lock_all) {
-            reason = reason.substring(1);
-            if (reason.length === 0) reason = "no reason provided";
-        }
+        if (lock_all)
+            reason = reason.substring(1) || "no reason provided";
 
         const unlock = interaction.options.getSubcommand() === "unlock";
 

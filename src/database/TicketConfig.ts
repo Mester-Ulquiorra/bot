@@ -1,15 +1,18 @@
-import mongoose from "mongoose";
+import mongoose, { Document } from "mongoose";
+import { DBTicket } from "../types/Database.js";
 
 export enum TicketType {
-	Private = -1,
-	General = 0,
-	MemberReport = 1,
-	ModReport = 2,
-	HeadModReport = 3
+    Private = -1,
+    General = 0,
+    MemberReport = 1,
+    ModReport = 2,
+    HeadModReport = 3
 }
 
-const TicketConfigSchema = new mongoose.Schema({
-    id: {
+export interface IDBTicket extends DBTicket, Document { };
+
+const TicketConfigSchema = new mongoose.Schema<IDBTicket>({
+    ticketId: {
         type: mongoose.SchemaTypes.String,
         unique: true,
         required: true,
@@ -41,6 +44,7 @@ const TicketConfigSchema = new mongoose.Schema({
     },
     users: {
         type: mongoose.SchemaTypes.Map,
+        of: mongoose.SchemaTypes.String,
         default: new Map<string, string>(),
     },
     closed: {

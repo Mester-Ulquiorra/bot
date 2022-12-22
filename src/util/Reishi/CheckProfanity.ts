@@ -33,20 +33,17 @@ export function DetectProfanity(string: string): string {
         if (backCheck.length > 5) backCheck.shift();
 
         // check for exact word (without leet speak reverse)
-        const wordResult = CheckWord(word);
-        if (wordResult) return wordResult;
+        let wordResult: string = null;
+        if (wordResult = CheckWord(word)) return wordResult;
 
         // reverse the word from leet speak, then check if we have a match
-        const revleetWordResult = CheckWord(ReverseLeetSpeak(word));
-        if (revleetWordResult) return revleetWordResult;
+        if (wordResult = CheckWord(ReverseLeetSpeak(word))) return wordResult;
 
         // for back_check we don't want to check everything at once, but in descending groups
         for (let j = 0; j < backCheck.length; j++) {
-            const backCheckResult = CheckWord(backCheck.slice(j).join(""));
-            if (backCheckResult) return backCheckResult;
+            if (wordResult = CheckWord(backCheck.slice(j).join(""))) return wordResult;
 
-            const revleetBackCheckResult = CheckWord(ReverseLeetSpeak(backCheck.slice(j).join("")));
-            if (revleetBackCheckResult) return revleetBackCheckResult;
+            if (wordResult = CheckWord(ReverseLeetSpeak(backCheck.slice(j).join("")))) return wordResult;
         }
     }
 

@@ -1,8 +1,8 @@
 {
     "compilerOptions": {
         "skipLibCheck": true,
-        "module": "CommonJS",
-        "moduleResolution": "Node",
+        "module": "ES2022",
+        "moduleResolution": "Node16",
         "target": "ES2022",
         "lib": [
             "ES2022",
@@ -19,6 +19,7 @@
         "emitDecoratorMetadata": true,
         "outDir": "./dist",
         "removeComments": true,
+        "allowSyntheticDefaultImports": true
     },
     "include": [
         "./src/",

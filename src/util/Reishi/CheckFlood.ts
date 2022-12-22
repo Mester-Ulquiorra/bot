@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { ReverseLeetSpeak } from "../MessageUtils";
+import { ReverseLeetSpeak } from "../MessageUtils.js";
 
 const WordLengthThreshold = 4; // how long does a word have to be to actually be checked
 const WordCountThresholdPercent = 75; // how many times can a word appear before it's considered a repeated word

@@ -1,5 +1,5 @@
-import UserConfig from "../database/UserConfig";
-import ConsoleCommand from "../types/ConsoleCommand";
+import UserConfig from "../database/UserConfig.js";
+import ConsoleCommand from "../types/ConsoleCommand.js";
 
 const ShowModsConsoleCommand: ConsoleCommand = {
     name: "showmods",
@@ -18,9 +18,7 @@ const ShowModsConsoleCommand: ConsoleCommand = {
                 .fetch(mod.id)
                 .then((user) => {
                     // format: <user's tag> - (<user's id>) - <mod level>
-                    console.log(
-                        `[Mod] ${user.tag ?? "Unknown"} - (${mod.id}) - ${mod.mod}`
-                    );
+                    console.log(`[Mod] ${user.tag ?? "Unknown"} - (${mod.id}) - ${mod.mod}`);
                 })
                 .catch(() => { console.log(`[Mod] Couldn't fetch ${mod.id}`) });
         }

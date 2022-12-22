@@ -1,12 +1,12 @@
-import { ActionRowBuilder, APIActionRowComponent, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, Client, ComponentType, EmbedBuilder, GuildMember, Message, SelectMenuBuilder, User } from "discord.js";
-import TictactoeConfig from "../database/TictactoeConfig";
-import SlashCommand from "../types/SlashCommand";
-import { SnowFlake } from "../Ulquiorra";
-import { GetGuild } from "../util/ClientUtils";
-import CreateEmbed, { EmbedColor } from "../util/CreateEmbed";
-import GetError from "../util/GetError";
-import Log, { LogType } from "../util/Log";
-import { CalculateMaxPage } from "../util/MathUtils";
+import { ActionRowBuilder, APIActionRowComponent, APIButtonComponent, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, Client, ComponentType, EmbedBuilder, GuildMember, Message, StringSelectMenuBuilder, User } from "discord.js";
+import TictactoeConfig from "../database/TictactoeConfig.js";
+import { DBTictactoe } from "../types/Database.js";
+import SlashCommand from "../types/SlashCommand.js";
+import { SnowFlake } from "../Ulquiorra.js";
+import { GetGuild } from "../util/ClientUtils.js";
+import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
+import GetError from "../util/GetError.js";
+import { CalculateMaxPage } from "../util/MathUtils.js";
 
 const ActiveGames = new Map<string, TicTacToeGame>();
 
@@ -69,7 +69,7 @@ const TictactoeCommand: SlashCommand = {
 
 async function play(interaction: ChatInputCommandInteraction) {
     const member = interaction.options.getMember("member") as GuildMember;
-    if(!member) return GetError("MemberUnavailable");
+    if (!member) return GetError("MemberUnavailable");
 
 
     if (member.id === interaction.user.id)
@@ -110,10 +110,11 @@ async function play(interaction: ChatInputCommandInteraction) {
         });
 
     reply
-        .awaitMessageComponent({ 
-            filter: (x) => x.customId === "tictactoe.acceptgame" && x.user.id === member.id, 
-            time: 15_000, 
-            componentType: ComponentType.Button })
+        .awaitMessageComponent({
+            filter: (x) => x.customId === "tictactoe.acceptgame" && x.user.id === member.id,
+            time: 15_000,
+            componentType: ComponentType.Button
+        })
         .then((button) => {
             // create a new game
             const game = new TicTacToeGame(
@@ -168,11 +169,10 @@ async function stats(interaction: ChatInputCommandInteraction) {
             ? await getTictactoeStat(interaction.user.id)
             : await getTictactoeStat(member.id);
 
-    const drawn_games =
-        stats.games_played - stats.games_won - stats.games_lost;
+    const drawn_games = stats.gamesPlayed - stats.gamesWon - stats.gamesLost;
 
     let win_percentage =
-        (stats.games_won * 100) / (stats.games_played - drawn_games);
+        (stats.gamesWon * 100) / (stats.gamesPlayed - drawn_games);
     if (isNaN(win_percentage)) win_percentage = 0;
 
     const embed = CreateEmbed(
@@ -181,17 +181,17 @@ async function stats(interaction: ChatInputCommandInteraction) {
     ).addFields([
         {
             name: "Games played",
-            value: stats.games_played.toString(),
+            value: stats.gamesPlayed.toString(),
             inline: true,
         },
         {
             name: "Games won",
-            value: stats.games_won.toString(),
+            value: stats.gamesWon.toString(),
             inline: true,
         },
         {
             name: "Games lost",
-            value: stats.games_lost.toString(),
+            value: stats.gamesLost.toString(),
             inline: true,
         },
         {
@@ -242,7 +242,7 @@ async function leaderboard(interaction: ChatInputCommandInteraction, client: Cli
     // show embed
     interaction.editReply({
         embeds: [embed],
-        components: [GetPageSelector(maxPage).toJSON() as APIActionRowComponent<any>],
+        components: [GetPageSelector(maxPage)],
     });
 }
 
@@ -319,12 +319,12 @@ class TicTacToeGame {
         // increase both player's games played (sorry for the messy code)
         getTictactoeStat(player1.id).then(async (stats1) => {
             this.stats[0] = stats1;
-            stats1.games_played++;
+            stats1.gamesPlayed++;
             await stats1.save();
 
             getTictactoeStat(player2.id).then(async (stats2) => {
                 this.stats[1] = stats2;
-                stats2.games_played++;
+                stats2.gamesPlayed++;
                 await stats2.save();
 
                 // perform the first turn
@@ -340,21 +340,20 @@ class TicTacToeGame {
         // create a filter for the buttons
         const filter = (button: ButtonInteraction) =>
             button.customId.match(/tictactoe.board[1-9]/) &&
-            button.user.id ===
-            (this.turn === 1 ? this.player1.id : this.player2.id);
+            button.user.id === (this.turn === 1 ? this.player1.id : this.player2.id);
 
         // wait for a button to be pressed
         this.message
-            .awaitMessageComponent({ filter, time: 60_000 })
-            .then((button: ButtonInteraction) => {
-                button.deferUpdate();
+            .awaitMessageComponent({ filter, time: 60_000, componentType: ComponentType.Button })
+            .then((interaction) => {
+                interaction.deferUpdate();
 
                 // check if game is still in progress
                 if (!ActiveGames.has(this.id)) return;
 
                 // get the number the button corresponds to
                 const number = parseInt(
-                    button.customId[button.customId.length - 1]
+                    interaction.customId[interaction.customId.length - 1]
                 );
 
                 // get x and y coordinates
@@ -479,7 +478,7 @@ class TicTacToeGame {
      * A function used for turning the game board into a message with components
      * @returns An array with the embed and components
      */
-    generateGameBoard(): [EmbedBuilder, Array<APIActionRowComponent<any>>] {
+    generateGameBoard(): [EmbedBuilder, Array<APIActionRowComponent<APIButtonComponent>>] {
         // the description should contain whose turn it is
         const turnString =
             this.turn === 1
@@ -490,16 +489,16 @@ class TicTacToeGame {
             title: `**${this.player1.username} vs. ${this.player2.username}**`,
         });
 
-        const components: Array<APIActionRowComponent<any>> = [];
+        const components: Array<APIActionRowComponent<APIButtonComponent>> = [];
 
         // iterate over the board
 
         for (let y = 0; y < 3; y++) {
-            const row = new ActionRowBuilder();
+            const row = new ActionRowBuilder<ButtonBuilder>();
             for (let x = 0; x < 3; x++) {
                 row.addComponents(this.generateGameBoardButton(x, y));
             }
-            components.push(row.toJSON() as APIActionRowComponent<any>);
+            components.push(row.toJSON());
         }
 
         return [embed, components];
@@ -587,9 +586,9 @@ setInterval(() => {
     }
 }, 60 * 1000);
 
-const getElo = (stats: any) => {
+const getElo = (stats: DBTictactoe) => {
     // calculate ELO, 1000 is the default ELO, 1 win = +2, 1 loss = -3, min ELO is 0
-    return Math.max(0, 1000 + stats.games_won * 2 - stats.games_lost * 3);
+    return Math.max(0, 1000 + stats.gamesWon * 2 - stats.gamesLost * 3);
 };
 
 /* ------- Leaderboard stuff ------- */
@@ -602,7 +601,7 @@ const CACHE = new Map<number, PageCache[]>();
 
 interface PageCache {
     name: string,
-    stats: any,
+    stat: DBTictactoe,
 };
 
 /**
@@ -652,11 +651,11 @@ async function ReadPage(page: number, maxPage: number): Promise<EmbedBuilder | s
     for (let i = 0; i < PAGE_SIZE; i++) {
         if (!cachepage[i]) break; // we have reached the end of the page
 
-        const stats = cachepage[i].stats;
+        const stats = cachepage[i].stat;
 
         const ELO = getElo(stats);
 
-        let win_percentage = (stats.games_won * 100) / stats.games_played;
+        let win_percentage = (stats.gamesWon * 100) / stats.gamesPlayed;
         if (isNaN(win_percentage)) win_percentage = 0;
 
         embed.addFields([
@@ -665,7 +664,7 @@ async function ReadPage(page: number, maxPage: number): Promise<EmbedBuilder | s
                 name: `${((page - 1) * PAGE_SIZE + i + 1).toString()}. ${cachepage[i].name
                     }`,
 
-                value: `Games played: ${stats.games_played} | Games won: ${stats.games_won} | Games lost: ${stats.games_lost}\nWin percentage: ${win_percentage.toFixed(2) + "%"} | ELO: ${ELO}`,
+                value: `Games played: ${stats.gamesPlayed} | Games won: ${stats.gamesWon} | Games lost: ${stats.gamesLost}\nWin percentage: ${win_percentage.toFixed(2) + "%"} | ELO: ${ELO}`,
 
                 inline: false,
             },
@@ -702,21 +701,21 @@ function GetPageSelector(maxPage: number) {
         });
     }
 
-    return new ActionRowBuilder().addComponents([
-        new SelectMenuBuilder()
+    return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents([
+        new StringSelectMenuBuilder()
             .setCustomId("tictactoe.lbpageselector")
             .setMaxValues(1)
             .setOptions(options),
-    ]);
+    ]).toJSON();
 }
 
 /**
  * A function for caching a page.
- * @param {any} stats The stats to cache.
- * @param {number} page The page to cache.
- * @param {Client} client The bot client.
+ * @param stats The stats to cache.
+ * @param page The page to cache.
+ * @param client The bot client.
  */
-async function CachePage(stats: any[], page: number, client: Client) {
+async function CachePage(stats: DBTictactoe[], page: number, client: Client) {
     // create a buffer to later write into cache
     const buffer = new Array<PageCache>(PAGE_SIZE);
 
@@ -733,16 +732,16 @@ async function CachePage(stats: any[], page: number, client: Client) {
         const stat = stats[j];
 
         // try to get name
-        const user = await client.users
-            .fetch(stat.user)
-            .catch(() =>  Log(`Couldn't fetch user, perhaps they left?`, LogType.Warn));
+        const user = await client.users.fetch(stat.user)
+            .then(user => { return user; })
+            .catch(() => { return null; });
 
         // get the name (user might be null, then we should use Unknown)
         const name = user ? user.tag : "Unknown";
 
         // write to buffer
         buffer[j - start_index] = {
-            name, stats: stat,
+            name, stat: stat,
         };
     }
 

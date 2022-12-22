@@ -1,17 +1,17 @@
 import { GuildMember } from "discord.js";
-import config from "../config";
-import PunishmentConfig, { PunishmentType } from "../database/PunishmentConfig";
-import UserConfig from "../database/UserConfig";
-import Ulquiorra from "../Ulquiorra";
-import { GetGuild, GetSpecialChannel } from "./ClientUtils";
-import Log, { LogType } from "./Log";
-import ManageRole from "./ManageRole";
-import { CreateModEmbed } from "./ModUtils";
+import config from "../config.js";
+import PunishmentConfig, { PunishmentType } from "../database/PunishmentConfig.js";
+import UserConfig from "../database/UserConfig.js";
+import Ulquiorra from "../Ulquiorra.js";
+import { GetGuild, GetSpecialChannel } from "./ClientUtils.js";
+import Log, { LogType } from "./Log.js";
+import ManageRole from "./ManageRole.js";
+import { CreateModEmbed } from "./ModUtil.js";
 
 /**
  * A function for invalidating every punishment that is not valid anymore.
  */
-export default async function() {
+export default async function () {
     // get the list of all active punishments in a oldest to newest order
     const punishments = await PunishmentConfig.find({ active: true }).sort({
         at: 1,
@@ -27,12 +27,12 @@ export default async function() {
 
             // get the user config for the user that was punished
             const userConfig = await UserConfig.findOne({
-                id: punishment.user,
+                userId: punishment.user,
             });
 
             // if userConfig is null, log a warning and skip
             if (userConfig == null) {
-                Log(`User config for user ${punishment.user} not found, skipping punishment ${punishment.id}`, LogType.Warn);
+                Log(`User config for user ${punishment.user} not found, skipping punishment ${punishment.punishmentId}`, LogType.Warn);
                 return;
             }
 

@@ -1,7 +1,10 @@
-import mongoose from "mongoose";
+import mongoose, { Document } from "mongoose";
+import { DBUser } from "../types/Database.js";
 
-const UserConfigSchema = new mongoose.Schema({
-    id: {
+export interface IDBUser extends DBUser, Document { };
+
+const UserConfigSchema = new mongoose.Schema<IDBUser>({
+    userId: {
         type: mongoose.SchemaTypes.String,
         unique: true,
         required: true,

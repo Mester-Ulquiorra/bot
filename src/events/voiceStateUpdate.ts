@@ -1,8 +1,8 @@
 import { VoiceState } from "discord.js";
-import { kill } from "../commands/Music";
-import Event from "../types/Event";
-import { GetGuild, GetSpecialChannel } from "../util/ClientUtils";
-import CreateEmbed from "../util/CreateEmbed";
+import { kill } from "../commands/Music.js";
+import Event from "../types/Event.js";
+import { GetGuild, GetSpecialChannel } from "../util/ClientUtils.js";
+import CreateEmbed from "../util/CreateEmbed.js";
 
 const VoiceStateUpdateEvent: Event = {
     name: "voiceStateUpdate",

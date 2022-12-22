@@ -1,7 +1,8 @@
 //@ts-nocheck
-
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
+import { fileURLToPath, URL } from "url";
+const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 let accepted_chars = "abcdefghijklmnopqrstuvwxyz ";
 
@@ -122,7 +123,7 @@ function train() {
     return true;
 }
 
-function averageTransitionProbability(line: string, log_prob_matrix) {
+function averageTransitionProbability(line: string, log_prob_matrix: number[][]) {
     //Return the average transition prob from line through log_prob_mat.
     let log_prob = 1.0;
     let transition_ct = 0;
@@ -141,13 +142,11 @@ function averageTransitionProbability(line: string, log_prob_matrix) {
     return Math.exp(log_prob / (transition_ct || 1));
 }
 
-let model_data = {};
+let model_data: { matrix: number[][], threshold: number } = {};
 
 try {
     if (!existsSync(join(__dirname, modelFile))) train();
-    model_data = JSON.parse(
-        readFileSync(join(__dirname, modelFile)).toString("utf8")
-    );
+    model_data = JSON.parse(readFileSync(join(__dirname, modelFile)).toString("utf8"));
 } catch (e) {
     console.log(e);
 }

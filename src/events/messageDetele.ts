@@ -1,8 +1,8 @@
 import { ChannelType, Message, PermissionsBitField } from "discord.js";
-import test_mode from "../test_mode";
-import Event from "../types/Event";
-import { GetSpecialChannel } from "../util/ClientUtils";
-import CreateEmbed from "../util/CreateEmbed";
+import test_mode from "../test_mode.js";
+import Event from "../types/Event.js";
+import { GetSpecialChannel } from "../util/ClientUtils.js";
+import CreateEmbed from "../util/CreateEmbed.js";
 
 const MAX_CONTENT_LENGTH = 1021;
 
@@ -61,8 +61,7 @@ const MessageDeleteEvent: Event = {
 			});
 
 		// create the field for attachments
-		// message.attachments is a collection, so we need to convert it to an array
-		const attachments = message.attachments.map((attachment) => attachment.url);
+		const attachments = message.attachments.map((attachment) => attachment.url || "#error#");
 
 		// if there are attachments, add the field
 		if (attachments.length > 0)

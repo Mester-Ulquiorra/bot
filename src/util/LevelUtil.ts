@@ -1,12 +1,13 @@
-import { ActionRowBuilder, APIActionRowComponent, ButtonBuilder, ButtonStyle, GuildMember, Message, spoiler } from "discord.js";
-import config from "../config";
-import LevelConfig from "../database/LevelConfig";
-import test_mode from "../test_mode";
-import { GetGuild, GetSpecialChannel } from "./ClientUtils";
-import CreateEmbed, { EmbedColor } from "./CreateEmbed";
-import Log, { LogType } from "./Log";
-import { ClampNumber } from "./MathUtils";
-import gib_detect from "./GibberishDetector/gib_detect"
+import { GuildMember, Message, spoiler } from "discord.js";
+import config from "../config.js";
+import LevelConfig, { IDBLevel } from "../database/LevelConfig.js";
+import test_mode from "../test_mode.js";
+import { DBLevel } from "../types/Database.js";
+import { GetGuild, GetSpecialChannel } from "./ClientUtils.js";
+import CreateEmbed, { EmbedColor } from "./CreateEmbed.js";
+import gib_detect from "./GibberishDetector/gib_detect.js";
+import Log, { LogType } from "./Log.js";
+import { ClampNumber } from "./MathUtils.js";
 
 /**
  * A map to hold all the level roles.
@@ -181,16 +182,16 @@ function LengthToXP(length: number, level: number): number {
 
 /**
  * A function for adding xp to the user (and automatically leveling them up if they've reached the new level).
- * @param levelconfig The level config of the user.
+ * @param levelConfig The level config of the user.
  * @param xp The xp to add.
  * @param message The message that was sent.
  */
-async function AddXPToUser(levelconfig: any, xp: number, message: Message) {
-    levelconfig.xp += xp;
-    if (LevelToXP(levelconfig.level + 1) <= levelconfig.xp) {
+async function AddXPToUser(levelConfig: IDBLevel, xp: number, message: Message) {
+    levelConfig.xp += xp;
+    if (LevelToXP(levelConfig.level + 1) <= levelConfig.xp) {
         // we leveled up!
-        levelconfig.level = XPToLevel(levelconfig.xp);
-        const newRole = ManageLevelRole(message.member, levelconfig.level);
+        levelConfig.level = XPToLevel(levelConfig.xp);
+        const newRole = ManageLevelRole(message.member, levelConfig.level);
 
         GetGuild()
             .members
@@ -199,7 +200,7 @@ async function AddXPToUser(levelconfig: any, xp: number, message: Message) {
                 // we got the member!
                 AlertMember(
                     member,
-                    levelconfig.level,
+                    levelConfig.level,
                     message,
                     newRole
                 );
@@ -208,7 +209,7 @@ async function AddXPToUser(levelconfig: any, xp: number, message: Message) {
                 Log(`Couldn't find user, perhaps they left?`, LogType.Warn)
             );
     }
-    await levelconfig.save();
+    await levelConfig.save();
 }
 
 /**
@@ -252,10 +253,10 @@ function ManageLevelRole(member: GuildMember, memberLevel: number): string | und
  * @returns The level config object of the user.
  */
 async function GetLevelConfig(userid: string) {
-    let levelConfig = await LevelConfig.findOne({ id: userid });
+    let levelConfig = await LevelConfig.findOne({ userId: userid });
     if (!levelConfig)
         levelConfig = await LevelConfig.create({
-            id: userid,
+            userId: userid,
         });
     return levelConfig;
 }
@@ -306,3 +307,4 @@ export {
     XPToLevel,
     GetLevelConfig,
 };
+
