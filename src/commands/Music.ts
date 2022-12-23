@@ -1,4 +1,4 @@
-import { AudioPlayer, AudioPlayerStatus, AudioResource, createAudioPlayer, createAudioResource, entersState, getVoiceConnection, joinVoiceChannel, VoiceConnection, VoiceConnectionStatus } from "@discordjs/voice";
+import { AudioPlayer, AudioPlayerStatus, AudioResource, createAudioPlayer, createAudioResource, entersState, joinVoiceChannel, VoiceConnection, VoiceConnectionStatus } from "@discordjs/voice";
 import { ChatInputCommandInteraction, GuildMember } from "discord.js";
 import pldl from "play-dl";
 import SlashCommand from "../types/SlashCommand.js";
@@ -11,6 +11,10 @@ enum LoopType {
     LoopAll
 }
 
+/**
+ * The voice connection object
+ */
+let connection: VoiceConnection = null;
 /**
  * The player object (automatically deleted if we don't have a subscriber)
  */
@@ -65,14 +69,6 @@ const MusicCommmand: SlashCommand = {
 }
 
 async function play(interaction: ChatInputCommandInteraction) {
-    // first check if our bot is already in a voice channel
-    let connection = getVoiceConnection(interaction.guild.id);
-
-    if (connection == undefined) {
-        // we need to join the voice channel
-        connection = await join(interaction);
-    }
-
     const videoLink = interaction.options.getString("link");
 
     // validate link
@@ -107,7 +103,7 @@ async function stop(interaction: ChatInputCommandInteraction) {
     const embed = CreateEmbed(`Succesfully stopped playing!`, { color: EmbedColor.Success });
     interaction.reply({ embeds: [embed] });
 
-    kill(interaction.guildId);
+    killMusic();
 }
 
 async function loop(interaction: ChatInputCommandInteraction) {
@@ -222,15 +218,13 @@ async function join(interaction: ChatInputCommandInteraction) {
  * It expects the queue to have songs
  */
 async function startPlaying(interaction: ChatInputCommandInteraction) {
-    if (!getVoiceConnection(interaction.guildId)) kill(interaction.guildId);
-
     if (loopType !== LoopType.LoopOne) playIndex++;
 
-    if (queue.length === 0) return kill(interaction.guildId);
+    if (queue.length === 0) return killMusic();
 
     if (playIndex >= queue.length) {
         // the index has overflown, so we either have to kill the player or reset playindex
-        if (loopType !== LoopType.LoopAll) return kill(interaction.guildId);
+        if (loopType !== LoopType.LoopAll) return killMusic();
 
         playIndex = 0;
     }
@@ -246,7 +240,7 @@ async function startPlaying(interaction: ChatInputCommandInteraction) {
     const embed = CreateEmbed(`**${song.title}** has started playing!`);
     interaction.channel.send({ embeds: [embed] });
 
-    if (player == null) initPlayer(getVoiceConnection(interaction.guildId));
+    if (player == null) await initPlayer(interaction);
 
     // start playing the song
     player.play(resource);
@@ -261,15 +255,15 @@ async function startPlaying(interaction: ChatInputCommandInteraction) {
 /**
  * A function for completely stopping the music player
  */
-export function kill(guildId: string) {
+export function killMusic() {
     // stop the player
     playIndex = -1;
 
     player?.stop(true);
     player = null;
 
-    // destroy the connection
-    getVoiceConnection(guildId)?.destroy();
+    connection?.destroy();
+    connection = null;
 
     queue = [];
     playing = null;
@@ -342,8 +336,12 @@ async function addSong(interaction: ChatInputCommandInteraction, link: string) {
     return false;
 }
 
-function initPlayer(connection: VoiceConnection) {
+async function initPlayer(interaction: ChatInputCommandInteraction) {
     player = createAudioPlayer();
+
+    if (!connection) {
+        connection = await join(interaction)
+    }
 
     // subscribe to our player (the player should automatically be deleted when there are no songs left in the queue)
     connection.subscribe(player);
