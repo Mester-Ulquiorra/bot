@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
 import { ReverseLeetSpeak } from "../MessageUtils.js";
 
-const WordLengthThreshold = 4; // how long does a word have to be to actually be checked
+const WordLengthThreshold = 3; // how long does a word have to be to actually be checked
 const WordCountThresholdPercent = 75; // how many times can a word appear before it's considered a repeated word
 const WordCountThreshold = 15; // what's the absolute count of words where it's considered a repeated word
 const WordCountLengthThreshold = 7; // how long does a word have to be to be checked for letter count
@@ -52,16 +52,16 @@ function CheckRepeatedText(string: string): string {
     }
 
     // check if there is a word that exceeds the count threshold
-    for (const [key, value] of wordMap) {
+    for (const [word, count] of wordMap) {
         if (
             // this weird part is calculating the percentage of the word count
-            (((value * 100) / words.length > WordCountThresholdPercent && words.length > 5) ||
+            (((count * 100) / words.length > WordCountThresholdPercent && words.length > 5) ||
                 /*only do the percentage calculation if there are more than 5 words */
                 // this part is checking if the word is repeated more than the threshold
-                (key.length >= WordCountLengthThreshold && value >= WordCountThreshold)) &&
+                (word.length >= WordCountLengthThreshold && count >= WordCountThreshold)) &&
             words.length != 1
         )
-            return `repeated word ${key}`;
+            return `repeated word ${word}`;
     }
     return null;
 }

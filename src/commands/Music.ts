@@ -18,7 +18,7 @@ let player: AudioPlayer = null;
 /**
  * Which Song object we're currently playing
  */
-let playing: boolean | Song = false;
+let playing: Song = null;
 /**
  * An array holding Song objects to serve as a queue
  */
@@ -272,7 +272,7 @@ export function kill(guildId: string) {
     getVoiceConnection(guildId)?.destroy();
 
     queue = [];
-    playing = false;
+    playing = null;
 }
 
 /**
@@ -328,11 +328,11 @@ async function addSong(interaction: ChatInputCommandInteraction, link: string) {
         return CreateEmbed(`Successfully added **${videos.length}** videos to the queue!`, {
             color: EmbedColor.Success
         })
-            .setThumbnail(playlist.thumbnail?.url)
+            .setThumbnail(videos[0]?.thumbnails?.slice(-1)[0].url ?? undefined)
             .addFields([
                 {
-                    name: "Uploaded by",
-                    value: playlist.channel.name,
+                    name: "Playlist title",
+                    value: playlist.title,
                     inline: true
                 }
             ]);
@@ -398,7 +398,7 @@ class Song {
  * @param array The array to shuffle
  * @returns The shuffled array
  */
-function shuffle(array: Array<any>) {
+function shuffle<T>(array: T[]): T[] {
     let currentIndex = array.length,
         randomIndex: number;
 
