@@ -1,4 +1,4 @@
-import { ActionRowBuilder, APIActionRowComponent, bold, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildMember, ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
+import { ActionRowBuilder, bold, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildMember, ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
 import config from "../config.js";
 import PunishmentConfig, { PunishmentType, PunishmentTypeToName } from "../database/PunishmentConfig.js";
 import SlashCommand from "../types/SlashCommand.js";
@@ -269,17 +269,16 @@ const AppealCommand: SlashCommand = {
                     )
 
             const components = [
-                new ActionRowBuilder()
-                    .addComponents(
-                        new ButtonBuilder()
-                            .setLabel("Accept appeal")
-                            .setStyle(ButtonStyle.Success)
-                            .setCustomId("appeal.accept"),
-                        new ButtonBuilder()
-                            .setLabel("Decline appeal")
-                            .setStyle(ButtonStyle.Danger)
-                            .setCustomId("appeal.decline")
-                    ).toJSON() as APIActionRowComponent<any>
+                new ActionRowBuilder<ButtonBuilder>().addComponents(
+                    new ButtonBuilder()
+                        .setLabel("Accept appeal")
+                        .setStyle(ButtonStyle.Success)
+                        .setCustomId("appeal.accept"),
+                    new ButtonBuilder()
+                        .setLabel("Decline appeal")
+                        .setStyle(ButtonStyle.Danger)
+                        .setCustomId("appeal.decline")
+                ).toJSON()
             ]
 
             GetSpecialChannel("Appeal").send({ embeds: [embed], components });

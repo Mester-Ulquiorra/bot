@@ -34,13 +34,13 @@ const ChessCommand: SlashCommand = {
 
         // create the accept button
         const components = [
-            new ActionRowBuilder().addComponents([
+            new ActionRowBuilder<ButtonBuilder>().addComponents([
                 new ButtonBuilder()
                     .setCustomId("chess.acceptgame")
                     .setEmoji("✅")
                     .setLabel("Accept game")
                     .setStyle(ButtonStyle.Success),
-            ]).toJSON() as APIActionRowComponent<any>,
+            ]).toJSON(),
         ];
 
         const message = await interaction.reply({ embeds: [waitEmbed], components, fetchReply: true });
@@ -187,7 +187,7 @@ class ChessGame {
                         { color: EmbedColor.Warning, });
 
                     const drawcomponents = [
-                        new ActionRowBuilder().addComponents([
+                        new ActionRowBuilder<ButtonBuilder>().addComponents([
                             new ButtonBuilder()
                                 .setCustomId("chess.acceptdraw")
                                 .setLabel("Accept draw")
@@ -196,7 +196,7 @@ class ChessGame {
                                 .setCustomId("chess.declinedraw")
                                 .setLabel("Decline draw")
                                 .setStyle(ButtonStyle.Secondary),
-                        ]).toJSON() as APIActionRowComponent<any>,
+                        ]).toJSON(),
                     ];
 
                     const drawmessage = await this.message.channel.send({
@@ -319,7 +319,7 @@ class ChessGame {
                     const pieceToHit = this.chessGame.get(move.to as chess.Square);
                     const emoji = pieceToHit ? await GetGuild().emojis.fetch(ChessGame.getPieceEmoji(pieceToHit)) : undefined;
 
-                    if (move.flags.includes("c") || move.flags.includes("e")) thisMoveString += ` (Capture ${emoji})`;
+                    if (move.flags.includes("c") || move.flags.includes("e")) thisMoveString += ` (Capture)`;
                     if (move.flags.includes("k") || move.flags.includes("q")) thisMoveString += ` (Castle)`;
 
                     movesOption.push({
@@ -330,7 +330,7 @@ class ChessGame {
                             name: emoji.name,
                             id: emoji.id
                         } : undefined,
-                        description: `Move your piece to ${move.to.toUpperCase()}`
+                        description: `Move your piece to ${move.to}`
                     });
                 };
 
@@ -544,10 +544,10 @@ class ChessGame {
      */
     generateMessage() {
         const embed = CreateEmbed(null, { title: `${this.player1.displayName} (white) vs. ${this.player2.displayName} (black)` })
-            .setFooter({ text: "The game expires after 5 minutes of no activity." });
+            .setFooter({ text: `The game will automatically expire at <t:${this.expires}>` });
 
         const components = [
-            new ActionRowBuilder().addComponents([
+            new ActionRowBuilder<ButtonBuilder>().addComponents([
                 new ButtonBuilder()
                     .setCustomId("chess.forfeit")
                     .setLabel("Forfeit game")
@@ -556,7 +556,7 @@ class ChessGame {
                     .setCustomId("chess.requestdraw")
                     .setLabel("Request draw")
                     .setStyle(ButtonStyle.Secondary),
-            ]).toJSON() as APIActionRowComponent<any>,
+            ]).toJSON(),
         ];
 
         const board = this.generateGameBoard();

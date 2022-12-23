@@ -106,12 +106,12 @@ class TriviaGame {
                         this.message.edit({
                             embeds: [embed],
                             components: [
-                                new ActionRowBuilder().addComponents([
+                                new ActionRowBuilder<ButtonBuilder>().addComponents([
                                     new ButtonBuilder()
                                         .setCustomId("trivia.history")
                                         .setStyle(ButtonStyle.Secondary)
                                         .setLabel("Show questions"),
-                                ]).toJSON() as APIActionRowComponent<any>,
+                                ]).toJSON(),
                             ],
                         });
 

@@ -1,4 +1,4 @@
-import { ActionRowBuilder, APIActionRowComponent, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, Client, GuildMember, ModalBuilder, TextChannel, TextInputBuilder, TextInputStyle, UserContextMenuCommandInteraction } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, Client, GuildMember, ModalBuilder, TextChannel, TextInputBuilder, TextInputStyle } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 import config from "../config.js";
 import TicketConfig, { TicketType } from "../database/TicketConfig.js";
@@ -278,7 +278,7 @@ async function close(interaction: ChatInputCommandInteraction, userConfig: DBUse
     ).setFooter({ text: "The ticket is going to be deleted in a day." });
 
     // add the "Reopen ticket" and "Delete ticket" buttons
-    const components = new ActionRowBuilder().addComponents([
+    const components = [new ActionRowBuilder<ButtonBuilder>().addComponents([
         new ButtonBuilder()
             .setCustomId("ticket.reopen")
             .setLabel("Reopen ticket")
@@ -289,9 +289,9 @@ async function close(interaction: ChatInputCommandInteraction, userConfig: DBUse
             .setLabel("Delete ticket")
             .setEmoji("🗑️")
             .setStyle(ButtonStyle.Danger),
-    ]);
+    ]).toJSON()];
 
-    interaction.reply({ embeds: [embed], components: [components.toJSON() as APIActionRowComponent<any>] });
+    interaction.reply({ embeds: [embed], components });
 
     // reload ticket permissions
     ReloadTicketPermissions(ticketChannel, ticketConfig);

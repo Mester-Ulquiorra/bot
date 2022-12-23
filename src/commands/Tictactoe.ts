@@ -90,13 +90,13 @@ async function play(interaction: ChatInputCommandInteraction) {
 
     // create the accept button
     const components = [
-        new ActionRowBuilder().addComponents([
+        new ActionRowBuilder<ButtonBuilder>().addComponents([
             new ButtonBuilder()
                 .setCustomId("tictactoe.acceptgame")
                 .setEmoji("✅")
                 .setLabel("Accept game")
                 .setStyle(ButtonStyle.Success),
-        ]).toJSON() as APIActionRowComponent<any>,
+        ]).toJSON(),
     ];
 
     // send the embed and also fetch the reply

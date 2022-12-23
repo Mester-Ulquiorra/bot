@@ -222,6 +222,8 @@ async function join(interaction: ChatInputCommandInteraction) {
  * It expects the queue to have songs
  */
 async function startPlaying(interaction: ChatInputCommandInteraction) {
+    if (!getVoiceConnection(interaction.guildId)) kill(interaction.guildId);
+
     if (loopType !== LoopType.LoopOne) playIndex++;
 
     if (queue.length === 0) return kill(interaction.guildId);
@@ -326,7 +328,7 @@ async function addSong(interaction: ChatInputCommandInteraction, link: string) {
         return CreateEmbed(`Successfully added **${videos.length}** videos to the queue!`, {
             color: EmbedColor.Success
         })
-            .setThumbnail(playlist.thumbnail.url)
+            .setThumbnail(playlist.thumbnail?.url)
             .addFields([
                 {
                     name: "Uploaded by",

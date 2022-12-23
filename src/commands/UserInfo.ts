@@ -63,11 +63,11 @@ const UserInfoCommand: SlashCommand = {
                 value: latestPunishment == null ? `No` : `Yes (${latestPunishment.punishmentId})`,
                 inline: true
             }
-        ]).setFooter({ text: `User ID: ${target.id} ` });
+        ]).setFooter({ text: `User ID: ${target.id}` });
 
         // create components
         const components = [
-            new ActionRowBuilder().addComponents(
+            new ActionRowBuilder<ButtonBuilder>().addComponents(
                 new ButtonBuilder()
                     .setCustomId("punishmentinfo.showactivep")
                     .setLabel("View active punishment")
@@ -87,7 +87,7 @@ const UserInfoCommand: SlashCommand = {
         // send the embed
         interaction.reply({
             embeds: [embed],
-            components: components as Array<APIActionRowComponent<any>>,
+            components,
             ephemeral: true,
         });
     }

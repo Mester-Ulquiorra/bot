@@ -193,17 +193,17 @@ export const CreateModEmbed = function (mod: User, target: User | string, punish
 
 export const CreateAppealButton = function (isBan = false) {
     return !isBan ?
-        new ActionRowBuilder().addComponents(
+        new ActionRowBuilder<ButtonBuilder>().addComponents(
             new ButtonBuilder()
                 .setCustomId("appeal.appeal")
                 .setLabel("Appeal your punishment")
                 .setStyle(ButtonStyle.Primary)
-        ).toJSON() as APIActionRowComponent<any>
+        ).toJSON()
         :
-        new ActionRowBuilder().addComponents(
+        new ActionRowBuilder<ButtonBuilder>().addComponents(
             new ButtonBuilder()
                 .setLabel("Join Mester's Prison to get access to the appeal button")
                 .setStyle(ButtonStyle.Link)
                 .setURL(config.PrisonInvite)
-        ).toJSON() as APIActionRowComponent<any>
+        ).toJSON()
 }

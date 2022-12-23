@@ -29,7 +29,7 @@ const MessageCreateEvent: Event = {
                 ],
             });
         }
-            
+
         // only continue to xp if the message is not blocked by Reishi
         if (!(await CheckMessage(message, client))) return;
 
@@ -59,15 +59,17 @@ async function handleSuperuserCommand(client: Client, message: Message) {
     }
 
     if (command === "ticket-send") {
-        let components = new ActionRowBuilder();
+        const rawComponent = new ActionRowBuilder<ButtonBuilder>();
 
         for (let i = 0; i < 4; i++) {
             const component = new ButtonBuilder()
                 .setCustomId(`ticket.create${i}`)
                 .setStyle(ButtonStyle.Secondary)
                 .setLabel(`Create ticket: ${TicketTypeToName(i)}`);
-            components.addComponents([component]);
+            rawComponent.addComponents([component]);
         }
+
+        const components = [rawComponent.toJSON()]
 
         const embed = CreateEmbed(
             `**To open a new ticket, simply select a button that works best for you!\nAfter clicking a button, you have 2 minutes to fill out the details.**`,
@@ -75,18 +77,18 @@ async function handleSuperuserCommand(client: Client, message: Message) {
         ).setFooter({ text: "Remember: abusing this system can lead to punishments" })
 
         GetGuild().channels.fetch("812699682391457812").then((channel: TextChannel) => {
-            channel.send({ embeds: [embed], components: [components.toJSON() as APIActionRowComponent<any>] });
+            channel.send({ embeds: [embed], components });
         });
     }
 
     if (command === "verify-send") {
         const components = [
-            new ActionRowBuilder().addComponents([
+            new ActionRowBuilder<ButtonBuilder>().addComponents([
                 new ButtonBuilder()
                     .setCustomId("verify")
                     .setLabel("Verify!")
                     .setStyle(ButtonStyle.Primary),
-            ]).toJSON() as APIActionRowComponent<any>
+            ]).toJSON()
         ];
 
         const embed = CreateEmbed(
@@ -102,7 +104,7 @@ async function handleSuperuserCommand(client: Client, message: Message) {
         verifyChannel.send({ embeds: [embed], components });
     }
 
-    if(command === "appeal-send") {
+    if (command === "appeal-send") {
         (GetGuild(true).channels.cache.get("1014272383932186656") as TextChannel)
             .send({
                 embeds: [

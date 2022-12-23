@@ -8,7 +8,6 @@ import GetError from "../util/GetError.js";
 import PunishmentInfoCommand from "./PunishmentInfo.js";
 import UserInfoCommand from "./UserInfo.js";
 import LanguageDetect from "languagedetect";
-console.log(LanguageDetect);
 
 const lngDetector = new LanguageDetect();
 
