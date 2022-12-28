@@ -59,7 +59,7 @@ async function SetModRole(member: GuildMember, modLevel: number) {
     if (modLevel !== ModNameToLevel("Test")) ManageRole(member, ModNameToId(ModType.Test), "Remove");
     if (modLevel <= 0 || modLevel >= ModNameToLevel("Head")) ManageRole(member, ModNameToId(ModType.Base), "Remove");
 
-    // go through basemodenames and remove all roles
+    // go through basemod names and remove all roles
     for (const modName of [1, 2, 3]) {
         if (modLevel !== modName) await ManageRole(member, ModNameToId(modName), "Remove");
     }

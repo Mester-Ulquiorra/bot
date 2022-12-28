@@ -215,12 +215,12 @@ async function join(interaction: ChatInputCommandInteraction) {
 
 /**
  * This function plays a song from the queue
- * It expects the queue to have songs
+ * It automatically terminates if the queue is empty
  */
 async function startPlaying(interaction: ChatInputCommandInteraction) {
-    if (loopType !== LoopType.LoopOne) playIndex++;
-
     if (queue.length === 0) return killMusic();
+
+    if (loopType !== LoopType.LoopOne) playIndex++;
 
     if (playIndex >= queue.length) {
         // the index has overflown, so we either have to kill the player or reset playindex
@@ -259,14 +259,14 @@ export function killMusic() {
     // stop the player
     playIndex = -1;
 
+    queue = [];
+    playing = null;
+
     player?.stop(true);
     player = null;
 
     connection?.destroy();
     connection = null;
-
-    queue = [];
-    playing = null;
 }
 
 /**

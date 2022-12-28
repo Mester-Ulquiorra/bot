@@ -8,6 +8,7 @@ import { Snowflake } from "nodejs-snowflake";
 import { join } from "path";
 import { createInterface } from "readline";
 import { fileURLToPath, URL } from "url";
+import { browser } from "./commands/Rank.js";
 import config from "./config.js";
 import test_mode from "./test_mode.js";
 import AutoUnpunish from "./util/AutoUnpunish.js";
@@ -28,6 +29,10 @@ dotconfig({
 process.on("uncaughtException", (error) => {
     Log(`An uncaught exception has occured, ignoring, but may cause issues... ${error.stack}`, LogType.Warn);
 });
+
+process.on("exit", () => {
+    browser.close();
+})
 
 console.time("Boot");
 Log("And thus, an Espada was born...");

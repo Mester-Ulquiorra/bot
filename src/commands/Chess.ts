@@ -1,7 +1,7 @@
 import { createCanvas, Image } from "canvas";
 import * as chess from "chess.js";
 import { format } from "date-fns";
-import { ActionRowBuilder, APIActionRowComponent, APISelectMenuOption, ButtonBuilder, ButtonInteraction, ButtonStyle, ComponentType, GuildMember, InteractionCollector, Message, StringSelectMenuBuilder } from "discord.js";
+import { ActionRowBuilder, APISelectMenuOption, ButtonBuilder, ButtonInteraction, ButtonStyle, ComponentType, GuildMember, InteractionCollector, Message, StringSelectMenuBuilder } from "discord.js";
 import * as path from "path";
 import { fileURLToPath } from "url";
 import SlashCommand from "../types/SlashCommand.js";
@@ -130,9 +130,7 @@ class ChessGame {
 
         // randomly swap the players
         if (Math.random() > 0.5) {
-            const temp = this.player1;
-            this.player1 = this.player2;
-            this.player2 = temp;
+            [this.player1, this.player2] = [this.player2, this.player1];
         }
 
         this.winner = null;
@@ -199,7 +197,7 @@ class ChessGame {
                         ]).toJSON(),
                     ];
 
-                    const drawmessage = await this.message.channel.send({
+                    const drawMessage = await this.message.channel.send({
                         embeds: [drawembed],
                         components: drawcomponents,
                         reply: {
@@ -208,7 +206,7 @@ class ChessGame {
                         },
                     });
 
-                    drawmessage
+                    drawMessage
                         .awaitMessageComponent({
                             filter: (x: ButtonInteraction) =>
                                 x.user.id ===
@@ -219,15 +217,13 @@ class ChessGame {
                             componentType: ComponentType.Button,
                         })
                         .then(async (drawbutton: ButtonInteraction) => {
-                            drawmessage.delete();
-
                             if (drawbutton.customId === "chess.acceptdraw") {
                                 this.end(`${drawbutton.user} has accepted the draw`, true);
                             }
                         })
-                        .catch(() => {
-                            drawmessage.delete();
-                        });
+                        .finally(() => {
+                            drawMessage.delete();
+                        })
                 }
             });
 
@@ -238,8 +234,6 @@ class ChessGame {
      * Perform a single turn of the game
      */
     async performTurn() {
-        await this.inputMessage?.delete();
-        this.inputMessage = null;
         if (this.ended) return;
 
         this.turnPlayer = this.chessGame.turn() === chess.WHITE ? this.player1 : this.player2;
@@ -282,21 +276,28 @@ class ChessGame {
         ]
 
         // create the input message and ask for the piece to move
-        const inputMessage = await this.message.reply({
-            content: `${this.turnPlayer}, please select the piece you want to move`,
-            components
-        });
+        if (!this.inputMessage) {
+            const inputMessage = await this.message.reply({
+                content: `${this.turnPlayer}, please select the piece you want to move`,
+                components
+            });
 
-        this.inputMessage = inputMessage;
+            this.inputMessage = inputMessage;
+        } else {
+            await this.inputMessage.edit({
+                content: `${this.turnPlayer}, please select the piece you want to move`,
+                components
+            });
+        }
 
         this.message.channel
             .awaitMessageComponent({
                 componentType: ComponentType.StringSelect,
-                filter: (i) => i.message.id === inputMessage.id && i.user.id === this.turnPlayer.id && i.customId === "chess.piecetomove"
+                filter: (i) => i.message.id === this.inputMessage.id && i.user.id === this.turnPlayer.id && i.customId === "chess.piecetomove"
             })
             .then(async (interaction1) => {
                 await interaction1.deferUpdate();
-                if (this.ended) return inputMessage.delete();
+                if (this.ended) return;
 
                 const selection = interaction1.values[0];
 
@@ -348,14 +349,14 @@ class ChessGame {
 
                 const pieceEmoji = await GetGuild().emojis.fetch(ChessGame.getPieceEmoji(pieceToMove));
 
-                await inputMessage.edit({
+                await this.inputMessage.edit({
                     content: `Great, now please choose where you want to move your ${pieceEmoji}`,
                     components
                 });
 
                 this.message.channel.awaitMessageComponent({
                     componentType: ComponentType.StringSelect,
-                    filter: (i) => i.message.id === inputMessage.id && i.user.id === this.turnPlayer.id && i.customId === "chess.movedest",
+                    filter: (i) => i.message.id === this.inputMessage.id && i.user.id === this.turnPlayer.id && i.customId === "chess.movedest",
                 }).then(async (interaction2) => {
                     await interaction2.deferUpdate();
                     if (this.ended) return;
@@ -543,8 +544,7 @@ class ChessGame {
      * A function for generating the game message.
      */
     generateMessage() {
-        const embed = CreateEmbed(null, { title: `${this.player1.displayName} (white) vs. ${this.player2.displayName} (black)` })
-            .setFooter({ text: `The game will automatically expire at <t:${this.expires}>` });
+        const embed = CreateEmbed(`**${this.player1} (white) vs. ${this.player2} (black)**\n\nThe game will automatically expire at <t:${this.expires}>`);
 
         const components = [
             new ActionRowBuilder<ButtonBuilder>().addComponents([

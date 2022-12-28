@@ -6,6 +6,7 @@
         "target": "ES2022",
         "lib": [
             "ES2022",
+            "DOM"
         ],
         "types": [
             // add node as an option

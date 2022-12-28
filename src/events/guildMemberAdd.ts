@@ -1,4 +1,4 @@
-import { GuildMember } from "discord.js";
+import { GuildMember, spoiler } from "discord.js";
 import config from "../config.js";
 import PunishmentConfig, { PunishmentType } from "../database/PunishmentConfig.js";
 import Event from "../types/Event.js";
@@ -76,7 +76,7 @@ const GuildMemberAddEvent: Event = {
             .setFooter({ text: `ID: ${member.id}` });
 
         // get the welcome channel and send the embed
-        GetSpecialChannel("Welcome").send({ embeds: [embed] });
+        GetSpecialChannel("Welcome").send({ content: spoiler(member.user.toString()), embeds: [embed] });
     }
 }
 
