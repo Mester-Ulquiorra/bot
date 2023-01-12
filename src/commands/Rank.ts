@@ -21,7 +21,7 @@ const RankCommand: SlashCommand = {
     name: "rank",
 
     async run(interaction, _client) {
-        const user = interaction.options.getUser("member") ?? interaction.user;
+        const user = interaction.options.getUser("member") || interaction.user;
 
         // get level config
         const levelConfig = await GetLevelConfig(user.id);
@@ -52,8 +52,8 @@ const RankCommand: SlashCommand = {
         destination.searchParams.append("progressPercent", (levelupPercent * 100).toString());
         destination.searchParams.append("username", user.tag);
         destination.searchParams.append("totalXp", `Total XP: ${levelConfig.xp}`);
-        destination.searchParams.append("currLevel", `Level ${levelConfig.xp}`);
-        destination.searchParams.append("nextLevel", `Level ${levelConfig.xp + 1} (${XPToLevelUp(levelConfig.level) - relativexp} XP)`);
+        destination.searchParams.append("currLevel", `Level ${levelConfig.level}`);
+        destination.searchParams.append("nextLevel", `Level ${levelConfig.level + 1} (${XPToLevelUp(levelConfig.level) - relativexp} XP left)`);
 
         await page.goto(destination.toString(), { waitUntil: "networkidle0" });
         await page.setViewport({ width: 1500, height: 300 });
