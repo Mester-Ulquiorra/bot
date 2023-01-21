@@ -23,7 +23,7 @@ const TicketCommand: SlashCommand = {
         if (userConfig.mod === 0) return GetError("Permission");
 
         // check if we're in a ticket
-        if (!ChannelIsTicket(interaction.channel as TextChannel))
+        if (!ChannelIsTicket(interaction.channel.name))
             return "You can only use this comand in a ticket.";
 
         const subcommand = interaction.options.getSubcommand();

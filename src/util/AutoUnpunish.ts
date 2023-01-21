@@ -13,18 +13,10 @@ import { CreateModEmbed } from "./ModUtil.js";
  */
 export default async function () {
     // get the list of all active punishments in a oldest to newest order
-    const punishments = await PunishmentConfig.find({ active: true }).sort({
-        at: 1,
-    });
+    const punishments = await PunishmentConfig.find({ active: true, until: { $gt: -1, $lte: Math.floor(Date.now() / 1000) } });
 
     Promise.all(
         punishments.map(async (punishment) => {
-            // if the punishment's until value is -1 (permanent), skip it
-            if (punishment.until == -1) return;
-
-            // check if the punishment's until value is higher than the current time (if it is, skip it)
-            if (punishment.until > Math.floor(Date.now() / 1000)) return;
-
             // get the user config for the user that was punished
             const userConfig = await UserConfig.findOne({
                 userId: punishment.user,
@@ -49,7 +41,7 @@ export default async function () {
                 });
 
             switch (punishment.type) {
-                case PunishmentType.Mute:
+                case PunishmentType.Mute: {
                     // if the member is null, continue
                     if (member == null) break;
 
@@ -76,9 +68,11 @@ export default async function () {
                     member.send({ embeds: [modembed] }).catch(() => {
                         return null;
                     });
-                    break;
 
-                case PunishmentType.Ban:
+                    break;
+                }
+
+                case PunishmentType.Ban: {
                     // unban the member
                     GetGuild().members
                         .unban(punishment.user, "automatic unban")
@@ -92,10 +86,13 @@ export default async function () {
                         .catch(() => {
                             return null;
                         }) // the user is not banned, so ignore this error
-                    break;
 
-                default:
                     break;
+                }
+
+                default: {
+                    break;
+                }
             }
 
             // create modembed

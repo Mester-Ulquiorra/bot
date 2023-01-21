@@ -146,7 +146,7 @@ export const CreateModEmbed = function (mod: User, target: User | string, punish
     // first get a string representation of the action
     const modActionName = getModActionName(punishment?.type ?? options?.backupType, options?.anti);
 
-    const targetString = target.toString();
+    const targetString = typeof target === "string" ? `<@${target}` : target.toString();
 
     const embed = CreateEmbed(
         // if it's a user embed, replace the member with "you"

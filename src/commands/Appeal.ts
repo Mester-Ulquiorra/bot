@@ -1,4 +1,4 @@
-import { ActionRowBuilder, bold, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildMember, ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
+import { ActionRowBuilder, bold, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildMember, MessageMentions, ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
 import config from "../config.js";
 import PunishmentConfig, { PunishmentType, PunishmentTypeToName } from "../database/PunishmentConfig.js";
 import SlashCommand from "../types/SlashCommand.js";
@@ -30,8 +30,7 @@ const AppealCommand: SlashCommand = {
                     .setTitle(`Appeal punishment ${punishment.punishmentId}`)
                     .setCustomId("appeal.appealmodal")
                     .setComponents(
-                        //@ts-expect-error
-                        new ActionRowBuilder().addComponents(
+                        new ActionRowBuilder<TextInputBuilder>().addComponents(
                             new TextInputBuilder()
                                 .setCustomId("reason")
                                 .setLabel("Why should your punishment be appealed?")
@@ -40,7 +39,7 @@ const AppealCommand: SlashCommand = {
                                 .setMinLength(50)
                                 .setMaxLength(1024)
                         ),
-                        new ActionRowBuilder().addComponents(
+                        new ActionRowBuilder<TextInputBuilder>().addComponents(
                             new TextInputBuilder()
                                 .setCustomId("extra")
                                 .setLabel("Anything else you'd like to add?")
@@ -48,7 +47,7 @@ const AppealCommand: SlashCommand = {
                                 .setRequired(false)
                                 .setMaxLength(1024)
                         ),
-                        new ActionRowBuilder().addComponents(
+                        new ActionRowBuilder<TextInputBuilder>().addComponents(
                             new TextInputBuilder()
                                 .setCustomId("punishment")
                                 .setLabel("Punishment ID (don't change)")
@@ -127,7 +126,7 @@ const AppealCommand: SlashCommand = {
                     const embed = EmbedBuilder.from(interaction.message.embeds[0])
                         .addFields(
                             {
-                                name: `Accepted by ${(interaction.member as GuildMember).displayName}`,
+                                name: `Accepted by ${(interaction.member as GuildMember).displayName} (${interaction.user.id})`,
                                 value: reason,
                                 inline: false
                             }
@@ -171,29 +170,35 @@ const AppealCommand: SlashCommand = {
                 fetchReply: true
             });
 
-            reasonMessage.channel.awaitMessages({
+            return reasonMessage.channel.awaitMessages({
                 filter: m => m.author.id === interaction.user.id && m.reference?.messageId === reasonMessage.id,
                 max: 1,
                 time: 60_000
             })
                 .then(async (collected) => {
-                    let reason = collected.first().content;
-                    if (reason.length > 1024) reason = reason.substring(0, 1024);
-
                     collected.first().delete().then(() => { reasonMessage.delete() });
+
+                    let reason = collected.first().content;
+                    if (reason.length > 1024) {
+                        interaction.reply({
+                            content: "Sorry, that's too long!"
+                        });
+
+                        return;
+                    }
 
                     // add an extra field to the embed
                     const embed = EmbedBuilder.from(interaction.message.embeds[0])
                         .addFields(
                             {
-                                name: `Declined by ${(interaction.member as GuildMember).displayName}`,
+                                name: `Declined by ${(interaction.member as GuildMember).displayName} (${interaction.user.id})`,
                                 value: reason,
                                 inline: false
                             }
                         )
                         .setColor([237, 56, 36]);
 
-                    const user = await client.users.fetch(interaction.message.embeds[0].description.match(/<@(\d+)>/)[1])
+                    const user = await client.users.fetch(interaction.message.embeds[0].description.match(MessageMentions.UsersPattern)[1])
                         .then((user) => { return user; })
                         .catch(() => { return; });
 
@@ -208,11 +213,7 @@ const AppealCommand: SlashCommand = {
                                 })
                         ]
                     })
-                        .catch(() => { return; })
-                        .finally(() => {
-                            // kick the member from the prison
-                            GetGuild(true).members.kick(user, "appealed punishment").catch(() => { return; });
-                        })
+                        .catch(() => { return; });
 
                     interaction.message.edit({ embeds: [embed], components: [] });
 
@@ -221,7 +222,7 @@ const AppealCommand: SlashCommand = {
                 })
                 .catch(() => {
                     reasonMessage.delete();
-                    return "You've run out of time"
+                    return "You've run out of time";
                 })
         }
     },

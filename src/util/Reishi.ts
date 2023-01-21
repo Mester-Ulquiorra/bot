@@ -1,7 +1,7 @@
 import { Client, Message } from "discord.js";
 import config from "../config.js";
 import PunishmentConfig, { PunishmentType } from "../database/PunishmentConfig.js";
-import test_mode from "../test_mode.js";
+import test_mode from "../testMode.js";
 import { DBPunishment } from "../types/Database.js";
 import { SnowFlake } from "../Ulquiorra.js";
 import { GetSpecialChannel } from "./ClientUtils.js";
@@ -13,13 +13,14 @@ import CheckFlood from "./Reishi/CheckFlood.js";
 import CheckLink from "./Reishi/CheckLink.js";
 import CheckProfanity from "./Reishi/CheckProfanity.js";
 import CheckProtectedPing from "./Reishi/CheckProtectedPing.js";
+import { ChannelIsTicket } from "./TicketUtils.js";
 
-const MASS_MENTION_THRESHOLD = 5;
+const MassMentionThreshold = 5;
 
 /**
  * Array containing channel ids where link detection should be absolutely excluded.
  */
-const ABSOLUTE_NO_SEARCH = [
+const AbsoluteNoSearch = [
     "992888358789459998", // level 100 chat
 ];
 
@@ -34,12 +35,12 @@ export const CheckMessage = async function (message: Message, client: Client): P
     if (message.author.bot) return true;
 
     // check if the message's channel is an absolute no search channel
-    if (ABSOLUTE_NO_SEARCH.includes(message.channel.id)) return true;
+    if (AbsoluteNoSearch.includes(message.channel.id)) return true;
 
     if (message.channel.isDMBased()) return true;
 
     // check if we're in a ticket
-    if (message.channel.name.startsWith("ticket-")) return true;
+    if (ChannelIsTicket(message.channel.name)) return true;
 
     let result: string;
     if (result = CheckProfanity(message)) return PunishMessage(message, "BlacklistedWord", result, client);
@@ -48,7 +49,7 @@ export const CheckMessage = async function (message: Message, client: Client): P
 
     if (result = CheckLink(message)) return PunishMessage(message, "Link", result, client);
 
-    if (message.mentions.members?.size >= MASS_MENTION_THRESHOLD)
+    if (message.mentions.members?.size >= MassMentionThreshold)
         return PunishMessage(message, "MassMention", null, client);
 
     if (result = await CheckProtectedPing(message)) return PunishMessage(message, "ProtectedPing", result, client);

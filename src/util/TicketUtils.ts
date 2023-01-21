@@ -1,4 +1,4 @@
-import { ActionRowBuilder, APIActionRowComponent, APIButtonComponent, ButtonBuilder, ButtonComponent, ButtonStyle, EmbedBuilder, GuildMember, ModalSubmitInteraction, TextChannel, UserContextMenuCommandInteraction } from "discord.js";
+import { ActionRowBuilder, APIActionRowComponent, APIButtonComponent, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildMember, ModalSubmitInteraction, TextChannel, UserContextMenuCommandInteraction } from "discord.js";
 import config from "../config.js";
 import TicketConfig, { TicketType } from "../database/TicketConfig.js";
 import { DBTicket, DBUser } from "../types/Database.js";
@@ -138,11 +138,11 @@ export const TicketTypeToName = function (ticketType: TicketType): string {
 
 /**
  * A function for checking if the channel is a ticket
- * @param channel The channel we want to check.
+ * @param channelName The channel name we want to check.
  * @returns Wheter the channel is a ticket channel or not.
  */
-export const ChannelIsTicket = function (channel: TextChannel): boolean {
-    return /ticket-.+-\d{4}/.test(channel.name)
+export const ChannelIsTicket = function (channelName: string): boolean {
+    return /ticket-.+-\d{4}/.test(channelName);
 };
 
 /**

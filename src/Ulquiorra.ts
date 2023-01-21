@@ -10,7 +10,7 @@ import { createInterface } from "readline";
 import { fileURLToPath, URL } from "url";
 import { browser } from "./commands/Rank.js";
 import config from "./config.js";
-import test_mode from "./test_mode.js";
+import test_mode from "./testMode.js";
 import AutoUnpunish from "./util/AutoUnpunish.js";
 import CleanTickets from "./util/CleanTickets.js";
 import { HandleConsoleCommand } from "./util/ConsoleUtil.js";

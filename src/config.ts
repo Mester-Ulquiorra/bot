@@ -1,4 +1,4 @@
-import test_mode from "./test_mode.js";
+import test_mode from "./testMode.js";
 
 const base = {
     MutedRole: "951893872668213288",
@@ -23,7 +23,7 @@ const base = {
     PrisonId: "1014272380534804581",
     PrisonInvite: "https://discord.gg/SNVtdQHpxm",
 
-    Version: "4.2.1",
+    Version: "4.2.1-rank",
 
     SuperUsers: [
         "730775136881475645",

@@ -2,7 +2,7 @@ import { Client } from "discord.js";
 import { readdir } from "fs";
 import { join } from "path";
 import { pathToFileURL } from "url";
-import test_mode from "../test_mode.js"
+import test_mode from "../testMode.js";
 import ConsoleCommand from "../types/ConsoleCommand.js";
 import SlashCommand from "../types/SlashCommand.js";
 import Log, { LogType } from "../util/Log.js";
@@ -19,7 +19,7 @@ const consoleCommands = new Map<string, ConsoleCommand>();
  */
 async function Register(commandPath: string, eventPath: string, consoleCommandPath: string, client: Client) {
     readdir(commandPath, async (err, files) => {
-        if(err) throw err;
+        if (err) throw err;
 
         const commandFiles = files.filter((file) => file.endsWith(".js"));
 
@@ -28,8 +28,8 @@ async function Register(commandPath: string, eventPath: string, consoleCommandPa
             try {
                 import(urlPath).then(module => {
                     const command = module.default;
-                    if(test_mode) console.log(command);
-    
+                    if (test_mode) console.log(command);
+
                     commands.set(command.name, command);
                 });
             } catch (error) {
@@ -39,7 +39,7 @@ async function Register(commandPath: string, eventPath: string, consoleCommandPa
     });
 
     readdir(consoleCommandPath, async (err, files) => {
-        if(err) throw err;
+        if (err) throw err;
 
         const consoleCommandFiles = files.filter((file) => file.endsWith(".js"));
 
@@ -48,8 +48,8 @@ async function Register(commandPath: string, eventPath: string, consoleCommandPa
             try {
                 import(urlPath).then(module => {
                     const consoleCommand = module.default;
-                    if(test_mode) console.log(consoleCommand);
-    
+                    if (test_mode) console.log(consoleCommand);
+
                     consoleCommands.set(consoleCommand.name, consoleCommand);
                 });
             } catch (error) {
@@ -59,7 +59,7 @@ async function Register(commandPath: string, eventPath: string, consoleCommandPa
     });
 
     readdir(eventPath, async (err, files) => {
-        if(err) throw err;
+        if (err) throw err;
 
         const eventFiles = files.filter((file) => file.endsWith(".js"));
 
@@ -68,8 +68,8 @@ async function Register(commandPath: string, eventPath: string, consoleCommandPa
             try {
                 import(urlPath).then(module => {
                     const event = module.default;
-                    if(test_mode) console.log(event);
-    
+                    if (test_mode) console.log(event);
+
                     // also add the event to the client as a listener
                     client.on(event.name, event.run.bind(event, client));
                 });
@@ -85,3 +85,4 @@ export {
     consoleCommands,
     Register,
 };
+

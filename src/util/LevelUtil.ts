@@ -1,8 +1,7 @@
 import { GuildMember, Message, spoiler } from "discord.js";
 import config from "../config.js";
 import LevelConfig, { IDBLevel } from "../database/LevelConfig.js";
-import test_mode from "../test_mode.js";
-import { DBLevel } from "../types/Database.js";
+import test_mode from "../testMode.js";
 import { GetGuild, GetSpecialChannel } from "./ClientUtils.js";
 import CreateEmbed, { EmbedColor } from "./CreateEmbed.js";
 import gib_detect from "./GibberishDetector/gib_detect.js";
@@ -249,14 +248,14 @@ function ManageLevelRole(member: GuildMember, memberLevel: number): string | und
 
 /**
  * Get the level config of a user
- * @param userid The user id.
+ * @param userId The user id.
  * @returns The level config object of the user.
  */
-async function GetLevelConfig(userid: string) {
-    let levelConfig = await LevelConfig.findOne({ userId: userid });
+async function GetLevelConfig(userId: string) {
+    let levelConfig = await LevelConfig.findOne({ userId });
     if (!levelConfig)
         levelConfig = await LevelConfig.create({
-            userId: userid,
+            userId,
         });
     return levelConfig;
 }
