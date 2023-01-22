@@ -34,4 +34,4 @@ export default async function() {
             Log(`Couldn't automatically delete ticket: ${error.stack}`, LogType.Warn);
         }
     }
-};
+}

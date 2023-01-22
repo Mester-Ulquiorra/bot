@@ -1,7 +1,7 @@
 import mongoose, { Document, SchemaTypes } from "mongoose";
 import { DBGiveaway } from "../types/Database.js";
 
-export interface IDBGiveaway extends DBGiveaway, Document { };
+export interface IDBGiveaway extends DBGiveaway, Document { }
 
 const GiveawayConfigSchema = new mongoose.Schema<IDBGiveaway>({
     giveawayId: {
@@ -42,6 +42,6 @@ const GiveawayConfigSchema = new mongoose.Schema<IDBGiveaway>({
         type: SchemaTypes.Number,
         default: 1
     }
-})
+});
 
 export default mongoose.model("giveaway", GiveawayConfigSchema);

@@ -21,7 +21,7 @@ export default function (message: Message): string {
         return "too many newlines in a row";
 
     return CheckRepeatedText(message.content.replaceAll(/\n/g, ""));
-};
+}
 
 /**
  *

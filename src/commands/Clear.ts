@@ -1,4 +1,3 @@
-import { Message } from "discord.js";
 import SlashCommand from "../types/SlashCommand.js";
 import { GetSpecialChannel } from "../util/ClientUtils.js";
 import { GetUserConfig } from "../util/ConfigHelper.js";
@@ -37,6 +36,6 @@ const ClearCommmand: SlashCommand = {
         interaction.editReply({ embeds: [embed] });
         GetSpecialChannel("MessageLog").send({ embeds: [logEmbed] });
     }
-}
+};
 
 export default ClearCommmand;

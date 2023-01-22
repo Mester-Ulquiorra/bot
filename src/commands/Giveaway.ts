@@ -17,8 +17,8 @@ const GiveawayCommand: SlashCommand = {
     async run(interaction, _client) {
         switch (interaction.options.getSubcommand()) {
             case "start":
-                return startGiveaway(interaction)
-            case "end":
+                return startGiveaway(interaction);
+            case "end": {
                 const giveaway = await GiveawayConfig.findOne({ giveawayId: interaction.options.getString("giveaway") });
                 if (!giveaway)
                     return GetError("Database");
@@ -28,9 +28,10 @@ const GiveawayCommand: SlashCommand = {
 
                 endGiveaway(giveaway);
                 interaction.deferReply().then(() => { interaction.deleteReply(); });
+            }
         }
     }
-}
+};
 
 async function startGiveaway(interaction: ChatInputCommandInteraction) {
     // check if member has Giveaway role
@@ -84,14 +85,14 @@ async function startGiveaway(interaction: ChatInputCommandInteraction) {
         winners,
     });
 
-    Log(`${interaction.user.tag} (${interaction.user.id}) has created a new giveaway. ID: ${giveaway.id}`)
+    Log(`${interaction.user.tag} (${interaction.user.id}) has created a new giveaway. ID: ${giveaway.id}`);
 }
 
 async function endGiveaway(giveaway: IDBGiveaway) {
     // get giveaway message
     const message = await (GetGuild().channels.cache.get(giveaway.channel) as TextChannel).messages.fetch(giveaway.message)
         .then((message) => { return message; })
-        .catch(() => { return; })
+        .catch(() => { return; });
 
     if (!message) {
         // this is weird
@@ -159,14 +160,14 @@ function getWinners(users: Array<User>, winners: number): Array<User> {
     // split up the users into groups
     const groupSize = Math.floor(users.length / winners);
 
-    let groups: User[][] = [];
+    const groups: User[][] = [];
 
     for (let i = 0; i < winners; i++) {
         if (i + 1 === winners) {
             groups.push(users);
             continue;
         }
-        groups.push(users.slice(0, groupSize))
+        groups.push(users.slice(0, groupSize));
     }
 
     const groupWinners: User[] = [];
@@ -185,6 +186,6 @@ setInterval(async () => {
     for (const giveaway of giveaways) {
         endGiveaway(giveaway);
     }
-}, 1000 * 60) // 1 minute
+}, 1000 * 60); // 1 minute
 
 export default GiveawayCommand;

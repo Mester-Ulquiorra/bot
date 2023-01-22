@@ -118,7 +118,7 @@ const InfoCommand: SlashCommand = {
                 
             const translation = await DeeplTranslator.translateText(interaction.targetMessage.cleanContent, null, "en-US")
                 .then(result => { return result; })
-                .catch(() => { return "An unexpected error has occured while trying to translate the message"});
+                .catch(() => { return "An unexpected error has occured while trying to translate the message"; });
                 
             if(typeof translation === "string")
                 return translation;
@@ -145,7 +145,7 @@ const InfoCommand: SlashCommand = {
                 ephemeral: true
             });
         }
-    },
-}
+    }
+};
 
 export default InfoCommand;

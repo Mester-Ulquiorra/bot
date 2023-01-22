@@ -45,7 +45,7 @@ const MusicCommmand: SlashCommand = {
         // check if the user is in the same voice channel
         if (interaction.guild.members.me.voice.channelId !== (interaction.member as GuildMember).voice.channelId
             && interaction.guild.members.me.voice.channelId)
-            return "You are not in the same voice channel with the bot."
+            return "You are not in the same voice channel with the bot.";
 
         switch (interaction.options.getSubcommand()) {
             case "play":
@@ -66,7 +66,7 @@ const MusicCommmand: SlashCommand = {
                 return continueMusic(interaction);
         }
     }
-}
+};
 
 async function play(interaction: ChatInputCommandInteraction) {
     const videoLink = interaction.options.getString("link");
@@ -107,7 +107,7 @@ async function stop(interaction: ChatInputCommandInteraction) {
 }
 
 async function loop(interaction: ChatInputCommandInteraction) {
-    if (!playing) return "There is nothing to loop right now."
+    if (!playing) return "There is nothing to loop right now.";
 
     let embedDescription = "";
 
@@ -119,11 +119,11 @@ async function loop(interaction: ChatInputCommandInteraction) {
             break;
         case "LOOP_ONE":
             loopType = LoopType.LoopOne;
-            embedDescription = "Started looping one song!"
+            embedDescription = "Started looping one song!";
             break;
         case "NO_LOOP":
             loopType = LoopType.NoLoop;
-            embedDescription = "Stopped looping!"
+            embedDescription = "Stopped looping!";
             break;
     }
 
@@ -137,7 +137,7 @@ async function viewqueue(interaction: ChatInputCommandInteraction) {
 
     const page = interaction.options.getInteger("page") ?? 1;
 
-    const maxPage = CalculateMaxPage(queue.length, 10)
+    const maxPage = CalculateMaxPage(queue.length, 10);
 
     // check if that page is allowed
     if (page > maxPage) return "That page does not exist!";
@@ -158,7 +158,7 @@ async function viewqueue(interaction: ChatInputCommandInteraction) {
     interaction.reply({
         embeds: [embed],
         ephemeral: true
-    })
+    });
 }
 
 async function remove(interaction: ChatInputCommandInteraction) {
@@ -173,7 +173,7 @@ async function remove(interaction: ChatInputCommandInteraction) {
 
     // decrement playindex when needed
     if (playIndex >= removeIndex) {
-        let playAgain = removeIndex === playIndex;
+        const playAgain = removeIndex === playIndex;
         playIndex--;
 
         // if we've removed the currently playing song, start playing
@@ -235,7 +235,7 @@ async function startPlaying(interaction: ChatInputCommandInteraction) {
 
     // initialize song resource
     const resource = await song.init()
-        .then((songData) => { return songData.resource });
+        .then((songData) => { return songData.resource; });
 
     const embed = CreateEmbed(`**${song.title}** has started playing!`);
     interaction.channel.send({ embeds: [embed] });
@@ -249,7 +249,7 @@ async function startPlaying(interaction: ChatInputCommandInteraction) {
     player.once(AudioPlayerStatus.Idle, () => {
         // the automatic stop will be handled, so no worries
         startPlaying(interaction);
-    })
+    });
 }
 
 /**
@@ -283,7 +283,7 @@ async function addSong(interaction: ChatInputCommandInteraction, link: string) {
 
     if (songType === "yt_video") {
         // get the metadata from the video
-        const videoInfo = await pldl.video_basic_info(link).then((info) => { return info.video_details });
+        const videoInfo = await pldl.video_basic_info(link).then((info) => { return info.video_details; });
 
         const song = new Song(link, songType, videoInfo.title);
         queue.push(song);
@@ -340,14 +340,14 @@ async function initPlayer(interaction: ChatInputCommandInteraction) {
     player = createAudioPlayer();
 
     if (!connection) {
-        connection = await join(interaction)
+        connection = await join(interaction);
     }
 
     // subscribe to our player (the player should automatically be deleted when there are no songs left in the queue)
     connection.subscribe(player);
 }
 
-type SongType = 'so_playlist' | 'so_track' | 'sp_track' | 'sp_album' | 'sp_playlist' | 'dz_track' | 'dz_playlist' | 'dz_album' | 'yt_video' | 'yt_playlist' | 'search';
+type SongType = "so_playlist" | "so_track" | "sp_track" | "sp_album" | "sp_playlist" | "dz_track" | "dz_playlist" | "dz_album" | "yt_video" | "yt_playlist" | "search";
 
 class Song {
     /**

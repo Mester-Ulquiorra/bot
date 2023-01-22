@@ -1,4 +1,3 @@
-
 import { ChatInputCommandInteraction, TextChannel } from "discord.js";
 import SlashCommand from "../types/SlashCommand.js";
 import { GetGuild } from "../util/ClientUtils.js";
@@ -76,7 +75,7 @@ const LockCommand: SlashCommand = {
         // delete the interaction
         interaction.deferReply().then(() => interaction.deleteReply());
     }
-}
+};
 
 /**
  * A function for doing every neccessary stuff (locking, sending embed etc.) for a single channel
@@ -96,7 +95,7 @@ async function lockOne(channel: TextChannel, lock: boolean, reason: string, inte
     channel.send({ embeds: [embed] });
 }
 
-async function lockSingleChannel(channel: TextChannel, lock: boolean = true, interaction: ChatInputCommandInteraction) {
+async function lockSingleChannel(channel: TextChannel, lock = true, interaction: ChatInputCommandInteraction) {
     return channel.permissionOverwrites.edit(EveryoneRoleId, {
         SendMessages: lock ? false : null,
         SendMessagesInThreads: lock ? false : null,

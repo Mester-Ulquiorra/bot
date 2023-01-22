@@ -141,7 +141,7 @@ class ChessGame {
             "Site", "Mester's Hub, Discord USA",
             "Date", format(new Date(), "yyyy.MM.dd"),
             "Time", format(new Date(), "HH.mm.ss"),
-            "Round", "1")
+            "Round", "1");
 
         this.expires = Math.floor(Date.now() / 1000) + 5 * 60;
         this.ended = false;
@@ -223,7 +223,7 @@ class ChessGame {
                         })
                         .finally(() => {
                             drawMessage.delete();
-                        })
+                        });
                 }
             });
 
@@ -273,7 +273,7 @@ class ChessGame {
                     .setMinValues(1)
                     .setPlaceholder("Select your piece to move")
             ]).toJSON()
-        ]
+        ];
 
         // create the input message and ask for the piece to move
         if (!this.inputMessage) {
@@ -333,7 +333,7 @@ class ChessGame {
                         } : undefined,
                         description: `Move your piece to ${move.to}`
                     });
-                };
+                }
 
                 // create a new message that will serve as the move selector
                 const components = [
@@ -345,7 +345,7 @@ class ChessGame {
                             .setMinValues(1)
                             .setPlaceholder("Select the destination of your piece!")
                     ])
-                ]
+                ];
 
                 const pieceEmoji = await GetGuild().emojis.fetch(ChessGame.getPieceEmoji(pieceToMove));
 
@@ -425,7 +425,7 @@ class ChessGame {
 
         for (let x = 0; x < 8; x++) {
             for (let y = 0; y < 8; y++) {
-                let isWhite = x % 2 === y % 2;
+                const isWhite = x % 2 === y % 2;
 
                 ctx.fillStyle = isWhite ? "#f2f2f2" : "#f29090";
                 ctx.fillRect(
@@ -620,7 +620,7 @@ class ChessGame {
     static getGameByPlayer(id: string) {
         if (ChessGame.ActiveGames.size === 0) return null;
 
-        for (let [_key, game] of ChessGame.ActiveGames) {
+        for (const [_key, game] of ChessGame.ActiveGames) {
             if (game.player1.id === id || game.player2.id === id) {
                 return [game, game.player1.id === id ? 1 : 2];
             }

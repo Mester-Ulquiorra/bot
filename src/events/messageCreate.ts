@@ -1,4 +1,4 @@
-import { ActionRowBuilder, APIActionRowComponent, ButtonBuilder, ButtonStyle, Client, Message, TextChannel } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, Message, TextChannel } from "discord.js";
 import config from "../config.js";
 import Event from "../types/Event.js";
 import { shutdown } from "../Ulquiorra.js";
@@ -35,7 +35,7 @@ const MessageCreateEvent: Event = {
 
         GetXPFromMessage(message);
     }
-}
+};
 
 async function handleSuperuserCommand(client: Client, message: Message) {
     if (!message.content.startsWith(client.user.toString() + " ")) return;
@@ -69,12 +69,12 @@ async function handleSuperuserCommand(client: Client, message: Message) {
             rawComponent.addComponents([component]);
         }
 
-        const components = [rawComponent.toJSON()]
+        const components = [rawComponent.toJSON()];
 
         const embed = CreateEmbed(
             `**To open a new ticket, simply select a button that works best for you!\nAfter clicking a button, you have 2 minutes to fill out the details.**`,
             { color: EmbedColor.Success },
-        ).setFooter({ text: "Remember: abusing this system can lead to punishments" })
+        ).setFooter({ text: "Remember: abusing this system can lead to punishments" });
 
         GetGuild().channels.fetch("812699682391457812").then((channel: TextChannel) => {
             channel.send({ embeds: [embed], components });
@@ -114,8 +114,8 @@ async function handleSuperuserCommand(client: Client, message: Message) {
                 components: [
                     CreateAppealButton()
                 ]
-            })
+            });
     }
-};
+}
 
 export default MessageCreateEvent;

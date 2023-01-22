@@ -85,6 +85,6 @@ const UnmuteCommand: SlashCommand = {
 
         interaction.reply({ embeds: [modEmbed], ephemeral: true });
     }
-}
+};
 
 export default UnmuteCommand;

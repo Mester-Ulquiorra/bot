@@ -13,24 +13,32 @@
         "sourceType": "module"
     },
     "plugins": [
-        "@typescript-eslint"
+        "@typescript-eslint",
+        "unused-imports"
     ],
     "rules": {
         "indent": [
             "error",
-            "space"
+            4,
+            {
+                "SwitchCase": 1
+            }
         ],
         "linebreak-style": [
             "error",
-            "windows"
+            "unix"
         ],
         "quotes": [
             "error",
-            "double"
+            "double",
+            { "allowTemplateLiterals": true }
         ],
         "semi": [
             "error",
             "always"
-        ]
+        ],
+        "no-cond-assign": "off",
+        "@typescript-eslint/no-unused-vars": "off",
+        "unused-imports/no-unused-imports": "error"
     }
 }

@@ -17,7 +17,7 @@ import { HandleConsoleCommand } from "./util/ConsoleUtil.js";
 import Log, { LogType } from "./util/Log.js";
 import { Register } from "./util/Register.js";
 import ServerStats from "./util/ServerStats.js";
-console.log(generateDependencyReport())
+console.log(generateDependencyReport());
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
@@ -32,7 +32,7 @@ process.on("uncaughtException", (error) => {
 
 process.on("exit", () => {
     browser.close();
-})
+});
 
 console.time("Boot");
 Log("And thus, an Espada was born...");
@@ -48,18 +48,21 @@ const Ulquiorra = new Client({
         "GuildMessageReactions",
         "DirectMessages",
         "MessageContent"
-    ]
+    ],
+    allowedMentions: {
+        parse: ["roles", "users"]
+    }
 });
 
 Mongoose.connect(`mongodb+srv://discordbot:${process.env.DB_PASS}@${process.env.DB_URL}/discord-database?retryWrites=true&w=majority`).catch((err) => {
     Log("An error has happened while trying to connect to the database, which is a fatal issue. Terminating...", LogType.Fatal);
-    Log(err, LogType.Fatal)
+    Log(err, LogType.Fatal);
     shutdown("MongoDB connection error");
 });
 // ------------------------------------------
 
 const SnowFlake = new Snowflake({ custom_epoch: config.SnowflakeEpoch });
-const DeeplTranslator = new deepl.Translator(process.env.DEEPL_KEY)
+const DeeplTranslator = new deepl.Translator(process.env.DEEPL_KEY);
 
 function shutdown(reason: string) {
     Log(`Shutting down client: ${reason}`, LogType.Fatal);

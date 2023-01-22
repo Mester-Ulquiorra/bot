@@ -85,7 +85,7 @@ export default async function () {
                         })
                         .catch(() => {
                             return null;
-                        }) // the user is not banned, so ignore this error
+                        }); // the user is not banned, so ignore this error
 
                     break;
                 }
@@ -111,4 +111,4 @@ export default async function () {
     ).catch((error) => {
         Log(`Something has went wrong while invalidating punishments: ${error.stack}`, LogType.Warn);
     });
-};
+}

@@ -29,4 +29,4 @@ export default function (message: Message) {
 
     // try to find a link and return it (either null or the link)
     return message.content.match(UrlRegexp)?.[0];
-};
+}

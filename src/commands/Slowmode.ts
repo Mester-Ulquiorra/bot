@@ -29,6 +29,6 @@ const SlowmodeCommand: SlashCommand = {
         const embed = CreateEmbed(`${interaction.user} has set the slowmode to **${duration} seconds**`, { color: EmbedColor.Success });
         interaction.reply({ embeds: [embed] });
     }
-}
+};
 
 export default SlowmodeCommand;

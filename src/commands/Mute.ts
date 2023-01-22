@@ -64,6 +64,6 @@ const MuteCommand: SlashCommand = {
 
         interaction.reply({ embeds: [modEmbed], ephemeral: true });
     }
-}
+};
 
 export default MuteCommand;

@@ -10,7 +10,7 @@ import { ModName, ModNameToId, ModNameToLevel, ModType } from "./ModUtil.js";
 
 export const CreateTicket = async function (
     ticketOwner: GuildMember,
-    reason: string = "no reason provided",
+    reason = "no reason provided",
     interaction: ModalSubmitInteraction | UserContextMenuCommandInteraction = null,
     type: TicketType = TicketType.General,
     usersToAdd: Array<string> = []
@@ -112,7 +112,7 @@ export const CreateTicket = async function (
     );
 
     interaction.reply({ embeds: [embed], ephemeral: true });
-}
+};
 
 /**
  *
@@ -180,8 +180,8 @@ export const CanManageTicket = function (ticketConfig: DBTicket, userConfig: DBU
  */
 export const CreateWaitingforMessage = function (
     modlevel: number,
-    reason: string = "no reason",
-    showcancel: boolean = true
+    reason = "no reason",
+    showcancel = true
 ): [EmbedBuilder, APIActionRowComponent<APIButtonComponent>] {
     const returnembed = CreateEmbed(
         `**This ticket is now waiting for a mod with at least ${modlevel} mod level: __${reason}__**`

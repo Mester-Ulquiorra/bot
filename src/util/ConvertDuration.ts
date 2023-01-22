@@ -9,7 +9,7 @@ const DURATION_REGEX = /([1-9]\d{0,2})(s|mo|m|hr?|d|yr?)/g;
  */
 export default function ConvertDuration(stringDuration: string): number {
     // if string_duration is null or empty, return -1
-    if (stringDuration == null || stringDuration == "") 
+    if (stringDuration == null || stringDuration == "")
         return -1;
 
     let duration = 0;
@@ -18,11 +18,11 @@ export default function ConvertDuration(stringDuration: string): number {
     const matches = stringDuration.matchAll(DURATION_REGEX);
     DURATION_REGEX.lastIndex = 0;
 
-    for(const match of matches) {
+    for (const match of matches) {
         const number = Number.parseInt(match[1]);
         const type = match[2];
 
-        switch(type) {
+        switch (type) {
             case "s":
                 duration += number;
                 break;
@@ -46,6 +46,6 @@ export default function ConvertDuration(stringDuration: string): number {
         }
     }
 
-    if(duration === 0) return NaN;
+    if (duration === 0) return NaN;
     else return Math.min(duration, config.MaxDuration);
 }

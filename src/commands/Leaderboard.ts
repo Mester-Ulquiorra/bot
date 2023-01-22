@@ -1,4 +1,4 @@
-import { ActionRowBuilder, Client, EmbedBuilder, StringSelectMenuBuilder } from "discord.js";
+import { ActionRowBuilder, APISelectMenuOption, Client, EmbedBuilder, StringSelectMenuBuilder } from "discord.js";
 import LevelConfig from "../database/LevelConfig.js";
 import { DBLevel } from "../types/Database.js";
 import SlashCommand from "../types/SlashCommand.js";
@@ -83,7 +83,7 @@ interface PageCache {
      * The level config of the user.
      */
     level: DBLevel,
-};
+}
 
 /**
  * A function for checking if a page is in cache.
@@ -99,7 +99,7 @@ function PageInCache(page: number) {
  * @param force If set to true, it will CREATE that page.
  * @param values Only works if force is true, basically the values to add to cache.
  */
-function GetPageFromCache(page: number, force: boolean = false, values: Array<PageCache> = null) {
+function GetPageFromCache(page: number, force = false, values: Array<PageCache> = null) {
     if (force) return Cache.set(page, values);
 
     return PageInCache(page) ? Cache.get(page) : null;
@@ -180,7 +180,7 @@ async function GetMaxPage(): Promise<number> {
  * @returns The pageselector component.
  */
 function GetPageSelector(maxPage: number) {
-    let options = new Array();
+    const options = new Array<APISelectMenuOption>();
 
     for (let i = 1; i <= maxPage; i++) {
         options.push({
@@ -195,7 +195,7 @@ function GetPageSelector(maxPage: number) {
             .setCustomId("leaderboard.pageselector")
             .setMaxValues(1)
             .setOptions(options),
-    ]).toJSON()
+    ]).toJSON();
 }
 
 /**

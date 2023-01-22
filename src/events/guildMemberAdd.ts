@@ -40,7 +40,7 @@ const GuildMemberAddEvent: Event = {
             member
                 .send({ embeds: [userEmbed] })
                 .catch(() => { return; })
-                .finally(() => { member.kick("inappropriate username") });
+                .finally(() => { member.kick("inappropriate username"); });
 
             Log(`${member.user.tag} (${member.id}) has been automatically kicked: ${punishment.reason}. Punishment ID: ${punishment.punishmentId}`);
 
@@ -78,6 +78,6 @@ const GuildMemberAddEvent: Event = {
         // get the welcome channel and send the embed
         GetSpecialChannel("Welcome").send({ content: spoiler(member.user.toString()), embeds: [embed] });
     }
-}
+};
 
-export default GuildMemberAddEvent
+export default GuildMemberAddEvent;

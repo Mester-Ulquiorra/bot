@@ -1,5 +1,5 @@
-import { ActionRowBuilder, APIActionRowComponent, APIButtonComponent, APISelectMenuOption, APIStringSelectComponent, ButtonBuilder, ButtonInteraction, ButtonStyle, ComponentType, EmbedBuilder, GuildMember, Interaction, InteractionCollector, Message, SelectMenuBuilder, SelectMenuInteraction, StringSelectMenuBuilder } from "discord.js";
-import { Question, getQuestions } from "open-trivia-db";
+import { ActionRowBuilder, APIActionRowComponent, APIButtonComponent, APISelectMenuOption, APIStringSelectComponent, ButtonBuilder, ButtonInteraction, ButtonStyle, ComponentType, EmbedBuilder, GuildMember, Interaction, InteractionCollector, Message, StringSelectMenuBuilder } from "discord.js";
+import { getQuestions, Question } from "open-trivia-db";
 import SlashCommand from "../types/SlashCommand.js";
 import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
 import Log, { LogType } from "../util/Log.js";
@@ -26,7 +26,7 @@ const TriviaCommmand: SlashCommand = {
             interaction.options.getInteger("rounds") ?? 5
         );
     }
-}
+};
 
 class TriviaGame {
     player: GuildMember;
@@ -52,7 +52,7 @@ class TriviaGame {
         player: GuildMember,
         category: number,
         difficulty: "easy" | "medium" | "hard" | "mixed" = "medium",
-        amount: number = 5
+        amount = 5
     ) {
         this.player = player;
         this.category = category;
@@ -200,13 +200,13 @@ class TriviaGame {
                 });
 
             // combine and shuffle the arrays
-            this.questions = shuffle(easy.concat(medium, hard));
+            this.questions = shuffle<Question>(easy.concat(medium, hard));
         } else {
             this.questions = await getQuestions({
                 difficulty: this.difficulty,
                 amount,
                 category: this.category,
-            }) as unknown as TriviaQuestion[];
+            });
         }
 
         this.performTurn();
@@ -220,10 +220,10 @@ class TriviaGame {
         // wait for a response
         this.message
             .awaitMessageComponent({
-                filter: (_: Interaction) => _.user.id === this.player.id,
+                filter: (i: Interaction) => i.user.id === this.player.id && (i.isStringSelectMenu() || i.isButton()),
                 time: 30_000,
             })
-            .then(async (interaction: ButtonInteraction | SelectMenuInteraction) => {
+            .then(async (interaction) => {
                 interaction.deferUpdate();
 
                 // get the id
@@ -363,8 +363,8 @@ class TriviaGame {
 
         // set the mapped answers
         this.questions[this.turn].mappedAnswers = new Map<number, string>(
-            allAnswers.map((x, i) => { return [ids[i], x] })
-        )
+            allAnswers.map((x, i) => { return [ids[i], x]; })
+        );
 
         // check if correct answer is a yes/no question
         if (this.questions[this.turn].type === "boolean") {
@@ -388,7 +388,7 @@ class TriviaGame {
                 options.push({
                     label: answer,
                     value: ids[i].toString()
-                })
+                });
             }
 
             // shuffle options
@@ -410,10 +410,10 @@ class TriviaGame {
 
     /**
      *
-     * @param {boolean} didQuit If the player quit the game (false if it's actually the end of the game)
-     * @param {string} reason Optional reason for the end
+     * @param didQuit If the player quit the game (false if it's actually the end of the game)
+     * @param reason Optional reason for the end
      */
-    end(didQuit: boolean = true, reason: string = null) {
+    end(didQuit = true, reason = null) {
         this.componentCollector.stop("The game has ended!");
         if (didQuit) {
             const embed = CreateEmbed(reason ? reason : "You quit the game!", {
@@ -426,8 +426,8 @@ class TriviaGame {
 }
 
 interface TriviaQuestion extends Question {
-    userAnswer: string,
-    mappedAnswers: Map<number, string>
+    userAnswer?: string,
+    mappedAnswers?: Map<number, string>
 }
 
 /**
@@ -435,7 +435,7 @@ interface TriviaQuestion extends Question {
  * @param array The array to shuffle
  * @returns The shuffled array
  */
-function shuffle(array: Array<any>) {
+function shuffle<T>(array: Array<T>) {
     let currentIndex = array.length,
         randomIndex: number;
 

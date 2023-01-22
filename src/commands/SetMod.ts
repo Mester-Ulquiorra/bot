@@ -46,7 +46,7 @@ const SetModCommand: SlashCommand = {
         interaction.reply({ embeds: [returnEmbed], ephemeral: true });
         target.send({ embeds: [userEmbed] }).catch(() => { return; });
     }
-}
+};
 
 /**
  *

@@ -6,7 +6,7 @@ export enum PunishmentType {
     Mute = 1,
     Kick = 2,
     Ban = 3,
-};
+}
 
 /**
  * A function to convert punishment types into strings.
@@ -26,7 +26,7 @@ export function PunishmentTypeToName(type: PunishmentType) {
     }
 }
 
-export interface IDBPunishment extends DBPunishment, Document { };
+export interface IDBPunishment extends DBPunishment, Document { }
 
 const PunishmentConfigSchema = new mongoose.Schema<IDBPunishment>({
     punishmentId: {

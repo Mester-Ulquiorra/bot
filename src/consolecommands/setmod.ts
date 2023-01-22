@@ -22,7 +22,7 @@ const SetModConsoleCommand: ConsoleCommand = {
         const userid = args[0];
 
         // set modlevel to second argument (if it doesn't exist, set it to 0)
-        const modlevel = args[1] ?? 0;
+        const modlevel = args[1] as number ?? 0;
 
         // try to get the user config
         const userconfig = await UserConfig.findOne({ id: userid });
@@ -39,6 +39,6 @@ const SetModConsoleCommand: ConsoleCommand = {
 
         console.log(`[Setmod] Mod level of ${userid} set to ${modlevel}`);
     }
-}
+};
 
 export default SetModConsoleCommand;

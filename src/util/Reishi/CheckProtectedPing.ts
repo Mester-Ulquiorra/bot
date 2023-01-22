@@ -29,7 +29,7 @@ export default async function (message: Message): Promise<string> {
         message.mentions.members
             .map(member => member)
             .filter(member => member.roles.cache.has(config.ProtectedRole))
-    )]
+    )];
 
     if (protectedPings.length === 0) return null;
     // if there are more than 1 protected users pinged, just mute
@@ -99,5 +99,5 @@ export default async function (message: Message): Promise<string> {
         return `Pinged the following protected member: ${user}`;
     }).finally(() => {
         inputMessage.delete();
-    })
+    });
 }

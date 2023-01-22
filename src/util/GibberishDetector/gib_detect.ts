@@ -1,26 +1,25 @@
-//@ts-nocheck
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import { fileURLToPath, URL } from "url";
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
-let accepted_chars = "abcdefghijklmnopqrstuvwxyz ";
+const accepted_chars = "abcdefghijklmnopqrstuvwxyz ";
 
-let k = accepted_chars.length;
+const k = accepted_chars.length;
 
-let pos = {};
+const pos = {};
 
 for (let i = 0; i < k; i++) {
     pos[accepted_chars[i]] = i;
 }
 
-let trainFile = "big.txt";
-let goodFile = "good.txt";
-let badFile = "bad.txt";
-let modelFile = "gib_model.json";
+const trainFile = "big.txt";
+const goodFile = "good.txt";
+const badFile = "bad.txt";
+const modelFile = "gib_model.json";
 
 function normalize(line: string) {
-    let arr = line.toLowerCase().split("");
+    const arr = line.toLowerCase().split("");
     return arr.filter(function (item) {
         return accepted_chars.indexOf(item) > -1;
     });
@@ -31,10 +30,10 @@ function train() {
     //prior or smoothing factor.  This way, if we see a character transition
     //live that we've never observed in the past, we won't assume the entire
     //string has 0 probability.
-    let log_prob_matrix = Array();
+    const log_prob_matrix = [];
 
     for (let i = 0; i < k; i++) {
-        let temp = Array();
+        const temp = [];
         for (let j = 0; j < k; j++) {
             temp.push(10);
         }
@@ -43,16 +42,16 @@ function train() {
 
     //Count transitions from big text file, taken
     //from http://norvig.com/spell-correct.html
-    let lines =
+    const lines =
         readFileSync(join(__dirname, trainFile))
             .toString("utf8")
             .split("\n");
     //
-    for (let key in lines) {
+    for (const key in lines) {
         //Return all n grams from l after normalizing
-        let filtered_line = normalize(lines[key]);
-        let a = false;
-        for (let b in filtered_line) {
+        const filtered_line = normalize(lines[key]);
+        let a: boolean | string = false;
+        for (const b in filtered_line) {
             if (a !== false) {
                 log_prob_matrix[pos[a]][pos[filtered_line[b]]] += 1;
             }
@@ -65,48 +64,48 @@ function train() {
     //numeric underflow issues with long texts.
     //This contains a justification:
     //http://squarecog.wordpress.com/2009/01/10/dealing-with-underflow-in-joint-probability-calculations/
-    for (let i in log_prob_matrix) {
-        let s = log_prob_matrix[i].reduce(function (a, b) {
+    for (const i in log_prob_matrix) {
+        const s = log_prob_matrix[i].reduce(function (a, b) {
             return a + b;
         });
-        for (let j in log_prob_matrix[i]) {
+        for (const j in log_prob_matrix[i]) {
             log_prob_matrix[i][j] = Math.log(log_prob_matrix[i][j] / s);
         }
     }
 
     //Find the probability of generating a few arbitrarily choosen good and
     //bad phrases.
-    let good_lines = 
+    const good_lines =
         readFileSync(join(__dirname, goodFile))
             .toString("utf8")
             .split("\n");
-    let good_probs = Array();
-    for (let key in good_lines) {
+    const good_probs = [];
+    for (const key in good_lines) {
         good_probs.push(
             averageTransitionProbability(good_lines[key], log_prob_matrix)
         );
     }
 
-    let bad_lines =
+    const bad_lines =
         readFileSync(join(__dirname, badFile))
             .toString("utf8")
             .split("\n");
-    let bad_probs = Array();
-    for (let key in bad_lines) {
+    const bad_probs = [];
+    for (const key in bad_lines) {
         bad_probs.push(
             averageTransitionProbability(bad_lines[key], log_prob_matrix)
         );
     }
 
     //Assert that we actually are capable of detecting the junk.
-    let min_good_probs = Math.min.apply(null, good_probs);
-    let max_bad_probs = Math.max.apply(null, bad_probs);
+    const min_good_probs = Math.min.apply(null, good_probs);
+    const max_bad_probs = Math.max.apply(null, bad_probs);
     if (min_good_probs <= max_bad_probs) {
         return false;
     }
 
     //And pick a threshold halfway between the worst good and best bad inputs.
-    let threshold = (min_good_probs + max_bad_probs) / 2;
+    const threshold = (min_good_probs + max_bad_probs) / 2;
 
     console.log("good", good_probs);
     console.log("bad", bad_probs);
@@ -129,9 +128,9 @@ function averageTransitionProbability(line: string, log_prob_matrix: number[][])
     let transition_ct = 0;
 
     const filtered_line = normalize(line);
-    let a = false;
+    let a: boolean | string = false;
 
-    for (let b in filtered_line) {
+    for (const b in filtered_line) {
         if (a !== false) {
             log_prob += log_prob_matrix[pos[a]][pos[filtered_line[b]]];
             transition_ct += 1;
@@ -142,7 +141,7 @@ function averageTransitionProbability(line: string, log_prob_matrix: number[][])
     return Math.exp(log_prob / (transition_ct || 1));
 }
 
-let model_data: { matrix: number[][], threshold: number } = {};
+let model_data: { matrix?: number[][], threshold?: number } = {};
 
 try {
     if (!existsSync(join(__dirname, modelFile))) train();
@@ -151,7 +150,7 @@ try {
     console.log(e);
 }
 
-export default function(line: string) {
+export default function (line: string) {
     return (
         averageTransitionProbability(line, model_data.matrix) >
         model_data.threshold

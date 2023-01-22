@@ -1,4 +1,4 @@
-import { ActionRowBuilder, APIActionRowComponent, APIButtonComponent, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, Client, ComponentType, EmbedBuilder, GuildMember, Message, StringSelectMenuBuilder, User } from "discord.js";
+import { ActionRowBuilder, APIActionRowComponent, APIButtonComponent, APISelectMenuOption, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, Client, ComponentType, EmbedBuilder, GuildMember, Message, StringSelectMenuBuilder, User } from "discord.js";
 import TictactoeConfig from "../database/TictactoeConfig.js";
 import { DBTictactoe } from "../types/Database.js";
 import SlashCommand from "../types/SlashCommand.js";
@@ -566,7 +566,7 @@ class TicTacToeGame {
     static getGameByPlayer(id: string): [TicTacToeGame, number] {
         if (ActiveGames.size === 0) return null;
 
-        for (let [_key, game] of ActiveGames) {
+        for (const [_key, game] of ActiveGames) {
             if (game.player1.id === id || game.player2.id === id) {
                 return [game, game.player1.id === id ? 1 : 2];
             }
@@ -579,7 +579,7 @@ class TicTacToeGame {
 setInterval(() => {
     const currentTime = Math.floor(Date.now() / 1000);
 
-    for (let [_key, game] of ActiveGames) {
+    for (const [_key, game] of ActiveGames) {
         if (game.expires < currentTime && game.expires !== -1) {
             game.end(`The game has expired.`);
         }
@@ -602,7 +602,7 @@ const CACHE = new Map<number, PageCache[]>();
 interface PageCache {
     name: string,
     stat: DBTictactoe,
-};
+}
 
 /**
  * A function for checking if a page is in cache.
@@ -620,7 +620,7 @@ function PageInCache(page: number) {
  * @param values Only works if force is true, basically the values to add to cache.
  * @returns
  */
-function GetPageFromCache(page: number, force: boolean = false, values?: PageCache[]) {
+function GetPageFromCache(page: number, force = false, values?: PageCache[]) {
     if (force) return CACHE.set(page, values);
 
     return PageInCache(page) ? CACHE.get(page) : null;
@@ -661,8 +661,7 @@ async function ReadPage(page: number, maxPage: number): Promise<EmbedBuilder | s
         embed.addFields([
             {
                 // this part figures out the position of the rank in the leaderboard
-                name: `${((page - 1) * PAGE_SIZE + i + 1).toString()}. ${cachepage[i].name
-                    }`,
+                name: `${((page - 1) * PAGE_SIZE + i + 1).toString()}. ${cachepage[i].name}`,
 
                 value: `Games played: ${stats.gamesPlayed} | Games won: ${stats.gamesWon} | Games lost: ${stats.gamesLost}\nWin percentage: ${win_percentage.toFixed(2) + "%"} | ELO: ${ELO}`,
 
@@ -691,7 +690,7 @@ async function GetMaxPage() {
  * @returns The pageselector component.
  */
 function GetPageSelector(maxPage: number) {
-    let options = new Array();
+    const options = new Array<APISelectMenuOption>();
 
     for (let i = 1; i <= maxPage; i++) {
         options.push({

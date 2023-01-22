@@ -9,7 +9,7 @@ export enum TicketType {
     HeadModReport = 3
 }
 
-export interface IDBTicket extends DBTicket, Document { };
+export interface IDBTicket extends DBTicket, Document { }
 
 const TicketConfigSchema = new mongoose.Schema<IDBTicket>({
     ticketId: {

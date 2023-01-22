@@ -55,7 +55,7 @@ const GuildMemberRemoveEvent: Event = {
             )
             .setThumbnail(member.displayAvatarURL());
 
-        GetSpecialChannel("MiscLog").send({ embeds: [logEmbed] })
+        GetSpecialChannel("MiscLog").send({ embeds: [logEmbed] });
         GetSpecialChannel("Welcome").send({ embeds: [embed] });
     }
 };

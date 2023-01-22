@@ -1,4 +1,4 @@
-import { ActionRowBuilder, APIActionRowComponent, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, Client, codeBlock, GuildMember, User } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, Client, codeBlock, GuildMember, User } from "discord.js";
 import PunishmentConfig from "../database/PunishmentConfig.js";
 import SlashCommand from "../types/SlashCommand.js";
 import { GetUserConfig } from "../util/ConfigHelper.js";
@@ -91,6 +91,6 @@ const UserInfoCommand: SlashCommand = {
             ephemeral: true,
         });
     }
-}
+};
 
 export default UserInfoCommand;

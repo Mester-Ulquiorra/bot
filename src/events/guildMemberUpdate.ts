@@ -17,7 +17,7 @@ const GuildMemberUpdateEvent: Event = {
         if (oldMember.nickname !== newMember.nickname)
             nicknameChange(oldMember, newMember);
     }
-}
+};
 
 async function roleChange(oldMember: GuildMember, newMember: GuildMember) {
     // our goal is to find the change, which is surprisingly easy
@@ -100,7 +100,7 @@ async function nicknameChange(oldMember: GuildMember, newMember: GuildMember) {
         newMember
             .send({ embeds: [userEmbed] })
             .catch(() => { return; })
-            .finally(() => { newMember.kick("inappropriate nickname") });
+            .finally(() => { newMember.kick("inappropriate nickname"); });
 
         Log(`${newMember.user.tag} (${newMember.id}) has been automatically kicked: ${punishment.reason}. Punishment ID: ${punishment.punishmentId}`);
 
@@ -109,4 +109,4 @@ async function nicknameChange(oldMember: GuildMember, newMember: GuildMember) {
     }
 }
 
-export default GuildMemberUpdateEvent
+export default GuildMemberUpdateEvent;

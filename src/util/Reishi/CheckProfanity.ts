@@ -10,7 +10,7 @@ import blacklist from "./blacklist.js";
 export default function (message: Message): string {
     // run the function with new lines removed
     return DetectProfanity(message.content.replaceAll(/\n/g, " "));
-};
+}
 
 /**
  * The internal function that detects profanity.

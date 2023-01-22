@@ -69,7 +69,7 @@ const AppealCommand: SlashCommand = {
         if (interaction.customId === "appeal.accept") {
             //if (interaction.message.embeds[0].fields.length !== 2) return "That appeal has already been declined/accepted.";
 
-            const punishment = await PunishmentConfig.findOne({ punishmentId: interaction.message.embeds[0].footer.text.match(/\d+/)?.[0] })
+            const punishment = await PunishmentConfig.findOne({ punishmentId: interaction.message.embeds[0].footer.text.match(/\d+/)?.[0] });
             if (!punishment) return GetError("Database");
 
             // get the reason for the action
@@ -87,7 +87,7 @@ const AppealCommand: SlashCommand = {
                     let reason = collected.first().content;
                     if (reason.length > 1024) reason = reason.substring(0, 1024);
 
-                    collected.first().delete().then(() => { reasonMessage.delete() });
+                    collected.first().delete().then(() => { reasonMessage.delete(); });
 
                     const user = await Ulquiorra.users
                         .fetch(interaction.message.embeds[0].description.match(/<@(\d+)>/)[1])
@@ -99,7 +99,7 @@ const AppealCommand: SlashCommand = {
                     const userConfig = await GetUserConfig(user.id);
 
                     switch (punishment.type) {
-                        case PunishmentType.Mute:
+                        case PunishmentType.Mute: {
                             userConfig.muted = false;
                             await userConfig.save();
 
@@ -111,11 +111,16 @@ const AppealCommand: SlashCommand = {
                             if (!member) return GetError("MemberUnavailable");
 
                             ManageRole(member, config.MutedRole, "Remove", `appeal accepted by ${interaction.user.tag}`);
-                        case PunishmentType.Ban:
+                            break;
+                        }
+
+                        case PunishmentType.Ban: {
                             userConfig.banned = false;
                             await userConfig.save();
 
                             GetGuild().members.unban(user, `appeal accepted by ${interaction.user.tag}`).catch(() => { return; });
+                            break;
+                        }
                     }
                     punishment.active = false;
                     await punishment.save();
@@ -148,20 +153,20 @@ const AppealCommand: SlashCommand = {
                         .finally(() => {
                             // kick the member from the prison
                             GetGuild(true).members.kick(user, "appealed punishment").catch(() => { return; });
-                        })
+                        });
                     GetSpecialChannel("ModLog").send({ embeds: [modEmbed] });
                     interaction.message.edit({ embeds: [embed], components: [] });
                 })
                 .catch(() => {
                     reasonMessage.delete();
-                    return "You've run out of time"
-                })
+                    return "You've run out of time";
+                });
         }
 
         if (interaction.customId === "appeal.decline") {
             //if (interaction.message.embeds[0].fields.length !== 2) return "That appeal has already been declined/accepted.";
 
-            const punishment = await PunishmentConfig.findOne({ punishmentId: interaction.message.embeds[0].footer.text.match(/\d+/)?.[0] })
+            const punishment = await PunishmentConfig.findOne({ punishmentId: interaction.message.embeds[0].footer.text.match(/\d+/)?.[0] });
             if (!punishment) return GetError("Database");
 
             // get the reason for the action
@@ -176,9 +181,9 @@ const AppealCommand: SlashCommand = {
                 time: 60_000
             })
                 .then(async (collected) => {
-                    collected.first().delete().then(() => { reasonMessage.delete() });
+                    collected.first().delete().then(() => { reasonMessage.delete(); });
 
-                    let reason = collected.first().content;
+                    const reason = collected.first().content;
                     if (reason.length > 1024) {
                         interaction.reply({
                             content: "Sorry, that's too long!"
@@ -223,7 +228,7 @@ const AppealCommand: SlashCommand = {
                 .catch(() => {
                     reasonMessage.delete();
                     return "You've run out of time";
-                })
+                });
         }
     },
 
@@ -267,7 +272,7 @@ const AppealCommand: SlashCommand = {
                             value: modal.fields.getTextInputValue("extra"),
                             inline: false
                         }
-                    )
+                    );
 
             const components = [
                 new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -280,7 +285,7 @@ const AppealCommand: SlashCommand = {
                         .setStyle(ButtonStyle.Danger)
                         .setCustomId("appeal.decline")
                 ).toJSON()
-            ]
+            ];
 
             GetSpecialChannel("Appeal").send({ embeds: [embed], components });
 
@@ -293,6 +298,6 @@ const AppealCommand: SlashCommand = {
             });
         }
     }
-}
+};
 
 export default AppealCommand;

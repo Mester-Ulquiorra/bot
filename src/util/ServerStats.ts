@@ -23,6 +23,6 @@ export default async function() {
             channel.edit({ name: `Boosts: ${guild.premiumSubscriptionCount}` });
         });
     } catch(error) {
-        Log(`Couldn't refresh server stats: ${error.stack}`, LogType.Warn)
+        Log(`Couldn't refresh server stats: ${error.stack}`, LogType.Warn);
     }
-};
+}

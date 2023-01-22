@@ -10,6 +10,6 @@ const ShutdownConsoleCommand: ConsoleCommand = {
         
         shutdown("Shutdown inititated by Console");
     }
-}
+};
 
 export default ShutdownConsoleCommand;

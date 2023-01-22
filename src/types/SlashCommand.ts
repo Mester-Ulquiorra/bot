@@ -1,6 +1,6 @@
-import { ButtonInteraction, ChatInputCommandInteraction, Client, MessageContextMenuCommandInteraction, ModalSubmitInteraction, SelectMenuInteraction, UserContextMenuCommandInteraction } from "discord.js";
+import { ButtonInteraction, ChatInputCommandInteraction, Client, MessageContextMenuCommandInteraction, ModalSubmitInteraction, StringSelectMenuInteraction, UserContextMenuCommandInteraction } from "discord.js";
 
-export default interface SlashCommand {
+interface SlashCommand {
     /**
      * The name of the command.
      */
@@ -21,7 +21,7 @@ export default interface SlashCommand {
     /**
      * The main function that executes when a normal slash command is run
      */
-    run?: (_interaction: ChatInputCommandInteraction, _client: Client, ..._args: Array<any>) => Promise<string | void>,
+    run?: (_interaction: ChatInputCommandInteraction, _client: Client, ..._args: Array<object>) => Promise<string | void>,
 
     /**
      * The function that executes when a modal is submitted
@@ -46,5 +46,7 @@ export default interface SlashCommand {
     /**
      * The function that executes when a select menu is clicked
      */
-    runSelectMenu?: (_interaction: SelectMenuInteraction, _client: Client) => Promise<string | void>
-};
+    runSelectMenu?: (_interaction: StringSelectMenuInteraction, _client: Client) => Promise<string | void>
+}
+
+export default SlashCommand;

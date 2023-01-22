@@ -25,4 +25,4 @@ export default {
         "prnhub", "boobies", "tard", "tards", "bigass", "faggots", "nazi", "sped", "thot", "slutty", "bish",  "arse", "milf", "eechi", "incest", "nigaz", "handjob", "retards", "mfs", "boner", "masturbation", 
         "mf", "comg", "pussylips", "fu0k", "beitch"
     ]
-}
+};

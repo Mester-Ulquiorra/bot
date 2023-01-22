@@ -89,6 +89,6 @@ const MessageUpdateEvent: Event = {
 
         CheckMessage(newMessage, client);
     }
-}
+};
 
 export default MessageUpdateEvent;

@@ -13,6 +13,6 @@ const GuildBanRemoveEvent: Event = {
         userConfig.banned = false;
         await userConfig.save();
     },
-}
+};
 
 export default GuildBanRemoveEvent;

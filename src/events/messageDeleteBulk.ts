@@ -33,6 +33,6 @@ const MessageDeleteBulkEvent: Event = {
             ]
         });
     }
-}
+};
 
 export default MessageDeleteBulkEvent;

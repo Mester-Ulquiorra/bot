@@ -19,9 +19,9 @@ const MessageDeleteEvent: Event = {
             return;
 
         // check if the message is a reply and if that's true, store the replied message in replied_message
-        let repliedMessage: Message = message.reference?.messageId
+        const repliedMessage: Message = message.reference?.messageId
             ? await message.channel.messages.fetch(message.reference.messageId)
-                .then((m: Message) => { return m; })
+                .then((m) => { return m; })
                 .catch(() => { return null; })
             : null;
 
@@ -52,12 +52,13 @@ const MessageDeleteEvent: Event = {
                 },
             ])
             .setFooter({
-                text: `Member ID: ${message.author.id} | Message ID: ${message.id} ${
-                    // this part adds extra information about the replied message if it exists
-                    repliedMessage != null
+                text:
+                    `Member ID: ${message.author.id} | Message ID: ${message.id} `
+                        +
+                        // this part adds extra information about the replied message if it exists
+                        repliedMessage != null
                         ? `| Replied user ID: ${repliedMessage.author.id} | Replied message ID: ${repliedMessage.id}`
                         : ""
-                    }`,
             });
 
         // create the field for attachments
@@ -76,6 +77,6 @@ const MessageDeleteEvent: Event = {
         // finally, get the message log channel and send the embed
         GetSpecialChannel("MessageLog").send({ embeds: [embed] });
     }
-}
+};
 
 export default MessageDeleteEvent;

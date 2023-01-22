@@ -20,11 +20,11 @@ const ShowModsConsoleCommand: ConsoleCommand = {
                     // format: <user's tag> - (<user's id>) - <mod level>
                     console.log(`[Mod] ${user.tag ?? "Unknown"} - (${mod.id}) - ${mod.mod}`);
                 })
-                .catch(() => { console.log(`[Mod] Couldn't fetch ${mod.id}`) });
+                .catch(() => { console.log(`[Mod] Couldn't fetch ${mod.id}`); });
         }
 
         console.log("----------------------------------------------------");
     }
-}
+};
 
 export default ShowModsConsoleCommand;

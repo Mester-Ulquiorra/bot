@@ -45,17 +45,17 @@ const KickCommand: SlashCommand = {
             .send({ embeds: [userEmbed] })
             .catch(() => { return; })
             .finally(() => {
-                target.kick(`Kicked by ${interaction.user.tag}: ${reason}`).catch(() => { return "Couldn't kick member" });
+                target.kick(`Kicked by ${interaction.user.tag}: ${reason}`).catch(() => { return "Couldn't kick member"; });
             });
 
         interaction.channel.sendTyping().then(() => {
             interaction.channel.send({ embeds: [channelEmbed] });
-        })
+        });
 
         GetSpecialChannel("ModLog").send({ embeds: [modEmbed] });
 
-        interaction.reply({ embeds: [modEmbed], ephemeral: true })
+        interaction.reply({ embeds: [modEmbed], ephemeral: true });
     }
-}
+};
 
 export default KickCommand;

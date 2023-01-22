@@ -272,13 +272,12 @@ async function AlertMember(member: GuildMember, newlevel: number, message: Messa
 
     // if new_role is not null, get the role name
     if (newRole) {
-        let role_name = await GetGuild().roles
-            .fetch(newRole)
+        const roleName = await GetGuild().roles.fetch(newRole)
             .then((role) => {
                 return role.name;
             });
 
-        embedDescription += `\nAs a reward of your hard work, you've been given the **${role_name}** role!`;
+        embedDescription += `\nAs a reward of your hard work, you've been given the **${roleName}** role!`;
     }
 
     // create embed

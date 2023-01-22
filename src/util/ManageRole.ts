@@ -11,7 +11,7 @@ export default async function(
     member: GuildMember,
     role: Role | string,
     mode: "Add" | "Remove" | "Check" = "Check",
-    reason: string = ""
+    reason = ""
 ): Promise<void | boolean> {
     switch (mode) {
         case "Add":
@@ -25,4 +25,4 @@ export default async function(
                 typeof role === "string" ? role : role.id
             );
     }
-};
+}

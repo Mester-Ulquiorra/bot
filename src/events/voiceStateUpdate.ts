@@ -39,6 +39,6 @@ const VoiceStateUpdateEvent: Event = {
 
         GetSpecialChannel("MiscLog").send({ embeds: [embed] });
     }
-}
+};
 
 export default VoiceStateUpdateEvent;

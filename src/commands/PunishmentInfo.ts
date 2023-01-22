@@ -92,7 +92,7 @@ const PunishmentInfoCommand: SlashCommand = {
             );
         }
     },
-}
+};
 
 /**
  *
@@ -163,7 +163,7 @@ async function showPunishmentById(interaction: ChatInputCommandInteraction | But
  * @param page The page to display.
  * @param refresh If this is a refresh (the interaction already exists)
  */
-async function showPunishmentsOfMember(interaction: ChatInputCommandInteraction | ButtonInteraction | SelectMenuInteraction, user: User, page: number, refresh: boolean = false) {
+async function showPunishmentsOfMember(interaction: ChatInputCommandInteraction | ButtonInteraction | SelectMenuInteraction, user: User, page: number, refresh = false) {
     const maxPage = await GetMaxPunishmentPages(user.id);
 
     // check if page is bigger than the available pages
@@ -174,7 +174,7 @@ async function showPunishmentsOfMember(interaction: ChatInputCommandInteraction 
         user: user.id,
     }).sort({ at: -1 });
 
-    if (punishments.length === 0) return "The member has no punishments."
+    if (punishments.length === 0) return "The member has no punishments.";
 
     // create the embed
     const embed = await createPunishmentsEmbed(
@@ -198,7 +198,7 @@ async function showPunishmentsOfMember(interaction: ChatInputCommandInteraction 
             value: i.toString(),
             description: `Show page ${i}`,
         });
-    };
+    }
 
     const components = [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents([
         new StringSelectMenuBuilder()
@@ -233,7 +233,7 @@ async function showPunishmentsOfMember(interaction: ChatInputCommandInteraction 
  */
 async function createPunishmentsEmbed(userid: string, punishments: Array<DBPunishment>, page: number, max_page: number) {
     // create the embed
-    let returnembed = CreateEmbed(`**Punishments of <@${userid}> (page ${page} / ${max_page})**`)
+    const returnEmbed = CreateEmbed(`**Punishments of <@${userid}> (page ${page} / ${max_page})**`)
         .setFooter({ text: `User ID: ${userid}` });
 
     for (
@@ -242,7 +242,7 @@ async function createPunishmentsEmbed(userid: string, punishments: Array<DBPunis
         i < punishments.length && i < page * PageSize;
         i++, punishment = punishments[i]
     ) {
-        returnembed.addFields([
+        returnEmbed.addFields([
             {
                 // This shows: type, member, moderator, punished at, punished until, active, reason
                 name: `**__Punishment ${punishment.punishmentId}__**`,
@@ -259,7 +259,7 @@ async function createPunishmentsEmbed(userid: string, punishments: Array<DBPunis
         ]);
     }
 
-    return returnembed;
+    return returnEmbed;
 }
 
 /**

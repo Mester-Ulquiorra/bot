@@ -1,4 +1,4 @@
-import { ActionRowBuilder, APIActionRowComponent, ButtonBuilder, ButtonStyle, EmbedBuilder, User } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, User } from "discord.js";
 import config from "../config.js";
 import { PunishmentType } from "../database/PunishmentConfig.js";
 import UserConfig from "../database/UserConfig.js";
@@ -41,7 +41,7 @@ export const ModLevelToName = function (level: number): string {
         case level === 6: return "Owner";
         default: return "Member";
     }
-}
+};
 
 /**
  * A function to convert a mod name to a level as a number
@@ -57,14 +57,14 @@ export const ModNameToLevel = function (name: ModName): number {
         case "Owner": return 6;
         case "Test": return -1;
     }
-}
+};
 
 /**
  * A function to connvert a mod name to the role id
  */
 export const ModNameToId = function (name: ModType): string {
     return ModRoleIds.get(name);
-}
+};
 
 export const CanManageUser = function (user: DBUser, target: DBUser): boolean {
     if (user.mod == 0) return false;
@@ -73,7 +73,7 @@ export const CanManageUser = function (user: DBUser, target: DBUser): boolean {
     if (user.mod <= target.mod) return false;
 
     return true;
-}
+};
 
 /**
  * A map to hold all the max mutes.
@@ -102,7 +102,7 @@ export const CanPerformPunishment = function (user: DBUser, punishmentType: Puni
 
     const checkDuration = punishmentType === PunishmentType.Mute ? maxMutes.get(user.mod as number) : maxBans.get(user.mod as number);
     return (checkDuration !== 0 && checkDuration >= duration);
-}
+};
 
 interface CreateModEmbedOptions {
     anti?: boolean,
@@ -115,7 +115,7 @@ interface CreateModEmbedOptions {
 /**
  * A function for turning a punishmentType into "muted", "unbanned", "kicked" etc.
  */
-function getModActionName(punishmentType: number, anti: boolean = false) {
+function getModActionName(punishmentType: number, anti = false) {
     const base = anti ? "un" : "";
     switch (punishmentType) {
         case PunishmentType.Warn: return "warned";
@@ -168,7 +168,7 @@ export const CreateModEmbed = function (mod: User, target: User | string, punish
     }]);
 
     // set the footer to the punishment id
-    const footer = `Punishment ID: ${punishment?.punishmentId ?? "#unknown#"} ` + ((punishment.automated && options?.userEmbed && !options?.anti) ? "(this is an automated punishment, false positives might occur)" : "")
+    const footer = `Punishment ID: ${punishment?.punishmentId ?? "#unknown#"} ` + ((punishment.automated && options?.userEmbed && !options?.anti) ? "(this is an automated punishment, false positives might occur)" : "");
     embed.setFooter({ text: footer });
 
     // we're done with the basic stuff, but if this is an anti punishment, we also need to add the original moderator
@@ -189,7 +189,7 @@ export const CreateModEmbed = function (mod: User, target: User | string, punish
         embed.addFields([{ name: "Details", value: options?.detail, inline: false }]);
 
     return embed;
-}
+};
 
 export const CreateAppealButton = function (isBan = false) {
     return !isBan ?
@@ -205,5 +205,5 @@ export const CreateAppealButton = function (isBan = false) {
                 .setLabel("Join Mester's Prison to get access to the appeal button")
                 .setStyle(ButtonStyle.Link)
                 .setURL(config.PrisonInvite)
-        ).toJSON()
-}
+        ).toJSON();
+};

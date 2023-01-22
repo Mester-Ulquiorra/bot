@@ -31,7 +31,7 @@ const TicketCommand: SlashCommand = {
         // if the subcommand is either add or remove
         if (subcommand === "add" || subcommand === "remove") {
             const target = interaction.options.getMember("member") as GuildMember;
-            if (!target) return "The member is not in the server anymore"
+            if (!target) return "The member is not in the server anymore";
 
             // get the reason
             const reason = interaction.options.getString("reason") ?? "no reason provided";
@@ -125,7 +125,7 @@ const TicketCommand: SlashCommand = {
                     content: "Sorry, you've run out of time!",
                     ephemeral: true,
                 });
-            })
+            });
         }
     },
 
@@ -137,10 +137,10 @@ const TicketCommand: SlashCommand = {
                 interaction,
                 TicketType.Private,
                 [interaction.targetId]
-            )
+            );
         }
     }
-}
+};
 
 /**
  * A function for managing users in a ticket
@@ -232,7 +232,7 @@ async function manageUser(interaction: ChatInputCommandInteraction, target: Guil
             message.delete();
         });
     });
-};
+}
 
 /**
  *
@@ -328,7 +328,7 @@ async function deleteTicket(interaction: ChatInputCommandInteraction | ButtonInt
 
     // delete the ticket config
     await ticketConfig.delete();
-};
+}
 
 /**
  *
@@ -380,7 +380,7 @@ async function sendto(interaction: ChatInputCommandInteraction, userConfig: DBUs
 
     // send the embed
     interaction.reply({ embeds: [embed], components: [components] });
-};
+}
 
 async function reopen(interaction: ButtonInteraction, userConfig: DBUser) {
     // get ticket config
@@ -422,7 +422,7 @@ async function reopen(interaction: ButtonInteraction, userConfig: DBUser) {
 
     // reload ticket permissions
     ReloadTicketPermissions(ticketChannel, ticketConfig);
-};
+}
 
 async function accept(interaction: ButtonInteraction, userConfig: DBUser) {
     // get ticket config
@@ -458,7 +458,7 @@ async function accept(interaction: ButtonInteraction, userConfig: DBUser) {
 
     // reload ticket permissions
     ReloadTicketPermissions(interaction.channel as TextChannel, ticketConfig);
-};
+}
 
 async function cancelSendTo(interaction: ButtonInteraction, userConfig: DBUser) {
     // get ticket config
@@ -485,6 +485,6 @@ async function cancelSendTo(interaction: ButtonInteraction, userConfig: DBUser) 
         embeds: [CreateEmbed(`**Cancelled by ${interaction.user}**`)],
         components: [],
     });
-};
+}
 
 export default TicketCommand;
