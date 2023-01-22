@@ -5,8 +5,7 @@
         "moduleResolution": "Node16",
         "target": "ES2022",
         "lib": [
-            "ES2022",
-            "DOM"
+            "ES2022"
         ],
         "types": [
             // add node as an option
@@ -20,7 +19,8 @@
         "emitDecoratorMetadata": true,
         "outDir": "./dist",
         "removeComments": true,
-        "allowSyntheticDefaultImports": true
+        "allowSyntheticDefaultImports": true,
+        "newLine": "lf"
     },
     "include": [
         "./src/",
