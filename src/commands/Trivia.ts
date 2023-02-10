@@ -23,15 +23,17 @@ const TriviaCommmand: SlashCommand = {
             message,
             interaction.member as GuildMember,
             isNaN(category) ? null : category,
-            interaction.options.getString("difficulty") as "easy" | "medium" | "hard" | "mixed" ?? "medium",
+            interaction.options.getString("difficulty") as TriviaDifficulty ?? "medium",
             interaction.options.getInteger("rounds") ?? 5
         );
     }
 };
 
+type TriviaDifficulty = "easy" | "medium" | "hard" | "mixed";
+
 class TriviaGame {
     player: GuildMember;
-    difficulty: "easy" | "medium" | "hard" | "mixed";
+    difficulty: TriviaDifficulty;
     category: number;
     questions: Array<TriviaQuestion>;
     turn: number;
@@ -52,7 +54,7 @@ class TriviaGame {
         message: Message,
         player: GuildMember,
         category: number,
-        difficulty: "easy" | "medium" | "hard" | "mixed" = "medium",
+        difficulty: TriviaDifficulty = "medium",
         amount = 5
     ) {
         this.player = player;
@@ -121,41 +123,7 @@ class TriviaGame {
                                 filter: (x) => x.customId === "trivia.history",
                                 componentType: ComponentType.Button,
                             })
-                            .on("collect", (button2) => {
-                                // check if we already have a summery embed
-                                if (this.summaryEmbed) {
-                                    button2.reply({
-                                        embeds: [this.summaryEmbed],
-                                        ephemeral: true
-                                    });
-                                    return;
-                                }
-
-                                const embed2 = CreateEmbed(
-                                    `Player: ${this.player}`,
-                                    {
-                                        title: "Trivia game question summary",
-                                    }
-                                );
-
-                                for (let i = 0; i < this.questions.length; i++) {
-                                    const question = this.questions[i];
-                                    embed2.addFields([
-                                        {
-                                            name: `${i + 1}. ${question.value}`,
-                                            value: `Correct answer: ${question.correctAnswer} | Player's answer: ${question.userAnswer != null ? question.userAnswer : "ran out of time"}`,
-                                        },
-                                    ]);
-                                }
-
-                                // save the summary embed
-                                this.summaryEmbed = embed2;
-
-                                button2.reply({
-                                    embeds: [embed2],
-                                    ephemeral: true,
-                                });
-                            });
+                            .on("collect", this.showSummary);
 
                         this.end(false);
                         return;
@@ -166,6 +134,42 @@ class TriviaGame {
                 }
             });
         this.start(amount);
+    }
+
+    async showSummary(button: ButtonInteraction) {
+        // check if we already have a summary embed
+        if (this.summaryEmbed) {
+            button.reply({
+                embeds: [this.summaryEmbed],
+                ephemeral: true
+            });
+            return;
+        }
+
+        const embed2 = CreateEmbed(
+            `Player: ${this.player}`,
+            {
+                title: "Trivia game question summary",
+            }
+        );
+
+        for (let i = 0; i < this.questions.length; i++) {
+            const question = this.questions[i];
+            embed2.addFields([
+                {
+                    name: `${i + 1}. ${question.value}`,
+                    value: `Correct answer: ${question.correctAnswer} | Player's answer: ${question.userAnswer != null ? question.userAnswer : "ran out of time"}`,
+                },
+            ]);
+        }
+
+        // save the summary embed
+        this.summaryEmbed = embed2;
+
+        button.reply({
+            embeds: [embed2],
+            ephemeral: true,
+        });
     }
 
     async start(amount: number) {

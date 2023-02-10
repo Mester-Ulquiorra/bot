@@ -164,70 +164,71 @@ class ChessGame {
                     x.user.id === this.player2.id,
                 componentType: ComponentType.Button,
             })
-            .on("collect", async (button) => {
-                button.deferUpdate();
-
-                // if the button is the forfeit button
-                if (button.customId === "chess.forfeit") {
-                    const winner = button.user.id === this.player1.id ? this.player2 : this.player1;
-                    this.winner = winner;
-
-                    // delete all components
-                    this.message.edit({ components: [] });
-
-                    this.end(`${button.user} has forfeited the game, ${winner} wins!`);
-                }
-
-                // if the button is the request draw button
-                if (button.customId === "chess.requestdraw") {
-                    // send a message to the other player
-                    const drawembed = CreateEmbed(`${button.user} has requested a draw!\nYou have 60 seconds to accept/deny`,
-                        { color: EmbedColor.Warning, });
-
-                    const drawcomponents = [
-                        new ActionRowBuilder<ButtonBuilder>().addComponents([
-                            new ButtonBuilder()
-                                .setCustomId("chess.acceptdraw")
-                                .setLabel("Accept draw")
-                                .setStyle(ButtonStyle.Danger),
-                            new ButtonBuilder()
-                                .setCustomId("chess.declinedraw")
-                                .setLabel("Decline draw")
-                                .setStyle(ButtonStyle.Secondary),
-                        ]).toJSON(),
-                    ];
-
-                    const drawMessage = await this.message.channel.send({
-                        embeds: [drawembed],
-                        components: drawcomponents,
-                        reply: {
-                            messageReference: this.message.id,
-                            failIfNotExists: false,
-                        },
-                    });
-
-                    drawMessage
-                        .awaitMessageComponent({
-                            filter: (x: ButtonInteraction) =>
-                                x.user.id ===
-                                (button.user.id === this.player1.id
-                                    ? this.player2.id
-                                    : this.player1.id),
-                            time: 60_000,
-                            componentType: ComponentType.Button,
-                        })
-                        .then(async (drawbutton: ButtonInteraction) => {
-                            if (drawbutton.customId === "chess.acceptdraw") {
-                                this.end(`${drawbutton.user} has accepted the draw`, true);
-                            }
-                        })
-                        .finally(() => {
-                            drawMessage.delete();
-                        });
-                }
-            });
+            .on("collect", this.executeComponent);
 
         this.performTurn();
+    }
+
+    async executeComponent(button: ButtonInteraction) {
+        button.deferUpdate();
+
+        // if the button is the forfeit button
+        if (button.customId === "chess.forfeit") {
+            this.winner = button.user.id === this.player1.id ? this.player2 : this.player1;
+
+            // delete all components
+            this.message.edit({ components: [] });
+
+            this.end(`${button.user} has forfeited the game, ${this.winner} wins!`);
+        }
+
+        // if the button is the request draw button
+        if (button.customId === "chess.requestdraw") {
+            // send a message to the other player
+            const drawembed = CreateEmbed(`${button.user} has requested a draw!\nYou have 60 seconds to accept/deny`,
+                { color: EmbedColor.Warning, });
+
+            const drawcomponents = [
+                new ActionRowBuilder<ButtonBuilder>().addComponents([
+                    new ButtonBuilder()
+                        .setCustomId("chess.acceptdraw")
+                        .setLabel("Accept draw")
+                        .setStyle(ButtonStyle.Danger),
+                    new ButtonBuilder()
+                        .setCustomId("chess.declinedraw")
+                        .setLabel("Decline draw")
+                        .setStyle(ButtonStyle.Secondary),
+                ]).toJSON(),
+            ];
+
+            const drawMessage = await this.message.channel.send({
+                embeds: [drawembed],
+                components: drawcomponents,
+                reply: {
+                    messageReference: this.message.id,
+                    failIfNotExists: false,
+                },
+            });
+
+            drawMessage
+                .awaitMessageComponent({
+                    filter: (x: ButtonInteraction) =>
+                        x.user.id ===
+                        (button.user.id === this.player1.id
+                            ? this.player2.id
+                            : this.player1.id),
+                    time: 60_000,
+                    componentType: ComponentType.Button,
+                })
+                .then(async (drawbutton: ButtonInteraction) => {
+                    if (drawbutton.customId === "chess.acceptdraw") {
+                        this.end(`${drawbutton.user} has accepted the draw`, true);
+                    }
+                })
+                .finally(() => {
+                    drawMessage.delete();
+                });
+        }
     }
 
     /**

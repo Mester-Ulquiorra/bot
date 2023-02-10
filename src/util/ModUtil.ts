@@ -100,7 +100,7 @@ export const CanPerformPunishment = function (user: DBUser, punishmentType: Puni
 
     if (duration === -1) return false;
 
-    const checkDuration = punishmentType === PunishmentType.Mute ? maxMutes.get(user.mod as number) : maxBans.get(user.mod as number);
+    const checkDuration = punishmentType === PunishmentType.Mute ? maxMutes.get(user.mod) : maxBans.get(user.mod);
     return (checkDuration !== 0 && checkDuration >= duration);
 };
 
@@ -146,7 +146,7 @@ export const CreateModEmbed = function (mod: User, target: User | string, punish
     // first get a string representation of the action
     const modActionName = getModActionName(punishment?.type ?? options?.backupType, options?.anti);
 
-    const targetString = typeof target === "string" ? `<@${target}` : target.toString();
+    const targetString = typeof target === "string" ? `<@${target}>` : target.toString();
 
     const embed = CreateEmbed(
         // if it's a user embed, replace the member with "you"

@@ -83,7 +83,7 @@ async function GetXPFromMessage(message: Message): Promise<number> {
 
     // check if the user has sent a message in this half minute
     if (
-        !(currTime - lastMessage >= LevelConf.MessageLimit * 1000) &&
+        (currTime - lastMessage < LevelConf.MessageLimit * 1000) &&
         !test_mode
     )
         return 0;

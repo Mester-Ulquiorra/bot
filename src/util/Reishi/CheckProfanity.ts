@@ -33,20 +33,30 @@ export function DetectProfanity(string: string): string {
         if (backCheck.length > 5) backCheck.shift();
 
         // check for exact word (without leet speak reverse)
-        let wordResult: string = null;
-        if (wordResult = CheckWord(word)) return wordResult;
+        let wordResult = CheckWord(word);
+        if (wordResult) return wordResult;
 
         // reverse the word from leet speak, then check if we have a match
-        if (wordResult = CheckWord(ReverseLeetSpeak(word))) return wordResult;
+        wordResult = CheckWord(ReverseLeetSpeak(word));
+        if (wordResult) return wordResult;
 
         // for back_check we don't want to check everything at once, but in descending groups
-        for (let j = 0; j < backCheck.length; j++) {
-            if (wordResult = CheckWord(backCheck.slice(j).join(""))) return wordResult;
-
-            if (wordResult = CheckWord(ReverseLeetSpeak(backCheck.slice(j).join("")))) return wordResult;
-        }
+        wordResult = CheckBack(backCheck);
+        if (wordResult) return wordResult;
     }
 
+    return null;
+}
+
+function CheckBack(backCheck: Array<string>) {
+    let wordResult: string = null;
+    for (let j = 0; j < backCheck.length; j++) {
+        wordResult = CheckWord(backCheck.slice(j).join(""));
+        if (wordResult) return wordResult;
+
+        wordResult = CheckWord(ReverseLeetSpeak(backCheck.slice(j).join("")));
+        if (wordResult) return wordResult;
+    }
     return null;
 }
 
@@ -54,7 +64,7 @@ export function DetectProfanity(string: string): string {
  * @param word The word to check.
  * @returns The word that was in the blacklist (if none, it's null).
  */
-function CheckWord(word: string): string {
+function CheckWord(word: string) {
     // check if the word is in the blacklist
     // if it is, return the word, otherwise return null
     return blacklist.words.includes(word) ? word : null;

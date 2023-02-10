@@ -11,7 +11,7 @@ const ExcludeNormalSearch = [
 
 const DiscordInviteRegexp = /(w{3}\.)?(discord\.com\/invite\/|discord\.gg\/)(.+)/gi;
 
-const UrlRegexp = /([a-zA-Z]{2,20}):\/\/([\w_-]+(?:(?:\.[\w_-]+)?))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?/igm; //idk how to do this
+const UrlRegexp = /([a-z]{2,20}):\/\/([\w-]+(?:(?:\.[\w-]+)?))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?/igm; //idk how to do this
 
 /**
  *

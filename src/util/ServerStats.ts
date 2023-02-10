@@ -9,9 +9,7 @@ export default async function() {
         const guild = GetGuild();
 
         // get the bots
-        const bots = 1;/*await guild.members.fetch().then((members) => {
-            return members.reduce((acc, member) => member.user.bot ? acc + 1 : acc, 0);
-        });*/
+        const bots = 1;
 
         // edit the members channel
         guild.channels.fetch(MembersChannelId).then((channel) => {

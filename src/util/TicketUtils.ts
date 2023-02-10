@@ -92,7 +92,7 @@ export const CreateTicket = async function (
     // if userstoadd is empty, create a waitingfor message
     if (usersToAdd.length === 0) {
         const [waitingembed, components] = CreateWaitingforMessage(
-            ticketConfig.waitingfor as number,
+            ticketConfig.waitingfor,
             "new ticket",
             false
         );

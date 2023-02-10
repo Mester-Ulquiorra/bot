@@ -1,10 +1,16 @@
 .test
-.vscode
 .env
 .env.test
+
+.vscode
+.scannerwork
+
 package-lock.json
 CreateCommands-old.js
 DB-key.pem
+sonar-project.properties
+
 node_modules
 dist/*
+
 !dist/res

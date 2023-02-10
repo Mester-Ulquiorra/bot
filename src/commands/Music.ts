@@ -73,7 +73,7 @@ async function play(interaction: ChatInputCommandInteraction) {
     const videoLink = interaction.options.getString("link");
 
     // validate link
-    if ((await pldl.validate(videoLink)) == false) return "The link is invalid";
+    if (typeof await pldl.validate(videoLink) !== "string") return "The link is invalid";
 
     // add the song to the queue, then start playing
     const videoEmbed = await addSong(interaction, videoLink);
@@ -90,7 +90,7 @@ async function skip(interaction: ChatInputCommandInteraction) {
     if (!playing) return "There are currently no songs playing.";
 
     interaction.reply({
-        embeds: [CreateEmbed(`**${(playing as Song).title}** has been skipped!`)]
+        embeds: [CreateEmbed(`**${(playing).title}** has been skipped!`)]
     });
 
     // basically we just want to call startPlaying again 

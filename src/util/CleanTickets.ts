@@ -11,12 +11,11 @@ export default async function() {
     });
 
     // for each ticket
-    for (let i = 0; i < tickets.length; i++) {
-        const ticket = tickets[i];
+    for (const ticket of tickets) {
 
         // check if the ticket is expired
         if (
-            Math.floor(Date.now() / 1000) - (ticket.closedat as number) <
+            Math.floor(Date.now() / 1000) - ticket.closedat <
             TicketExpirationTime
         )
             continue;
@@ -24,7 +23,7 @@ export default async function() {
         try {
             // delete the channel using this handy one liner
             GetGuild().channels
-                .fetch(ticket.channel as string)
+                .fetch(ticket.channel)
                 .then((channel) => {
                     channel.delete(`Ticket deleted - passed expiration time`);
                 });

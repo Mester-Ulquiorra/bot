@@ -42,17 +42,20 @@ export const CheckMessage = async function (message: Message, client: Client): P
     // check if we're in a ticket
     if (ChannelIsTicket(message.channel.name)) return true;
 
-    let result: string;
-    if (result = CheckProfanity(message)) return PunishMessage(message, "BlacklistedWord", result, client);
+    let result = CheckProfanity(message);
+    if (result) return PunishMessage(message, "BlacklistedWord", result, client);
 
-    if (result = CheckFlood(message)) return PunishMessage(message, "RepeatedText", result, client);
+    result = CheckFlood(message);
+    if (result) return PunishMessage(message, "RepeatedText", result, client);
 
-    if (result = CheckLink(message)) return PunishMessage(message, "Link", result, client);
+    result = CheckLink(message);
+    if (result) return PunishMessage(message, "Link", result, client);
 
     if (message.mentions.members?.size >= MassMentionThreshold)
         return PunishMessage(message, "MassMention", null, client);
 
-    if (result = await CheckProtectedPing(message)) return PunishMessage(message, "ProtectedPing", result, client);
+    result = await CheckProtectedPing(message);
+    if (result) return PunishMessage(message, "ProtectedPing", result, client);
 
     return true;
 };

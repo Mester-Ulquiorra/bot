@@ -82,7 +82,7 @@ const LockCommand: SlashCommand = {
  */
 async function lockOne(channel: TextChannel, lock: boolean, reason: string, interaction: ChatInputCommandInteraction) {
     // now let's lock
-    lockSingleChannel(channel, lock, interaction);
+    lockSingleChannel(channel, interaction, lock);
 
     // create the embed
     const embed = CreateEmbed(
@@ -95,7 +95,7 @@ async function lockOne(channel: TextChannel, lock: boolean, reason: string, inte
     channel.send({ embeds: [embed] });
 }
 
-async function lockSingleChannel(channel: TextChannel, lock = true, interaction: ChatInputCommandInteraction) {
+async function lockSingleChannel(channel: TextChannel, interaction: ChatInputCommandInteraction, lock = true,) {
     return channel.permissionOverwrites.edit(EveryoneRoleId, {
         SendMessages: lock ? false : null,
         SendMessagesInThreads: lock ? false : null,

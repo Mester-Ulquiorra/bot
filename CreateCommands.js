@@ -249,7 +249,7 @@ commands.push(
         .setDescription("Play a fun game of UNO!")
 );
 
-commands.map(command => command.toJSON());
+commands.forEach(command => command.toJSON());
 for (const command of commands) {
     console.log(JSON.stringify(command));
 }

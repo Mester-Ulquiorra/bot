@@ -48,7 +48,8 @@
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "start": "node --expose-gc dist/Ulquiorra.js",
-        "build": "tsc -p tsconfig.json && node dist/build.js"
+        "build": "tsc -p tsconfig.json && node dist/build.js",
+        "analyze": "sonar-scanner.bat -D\"sonar.projectKey=Ulquiorra\" -D\"sonar.sources=.\" -D\"sonar.host.url=http://localhost:9000\" -D\"sonar.login=sqp_02d81ec76a32c2b6396d06945eb3ce58bac2f2e8\" -Dsonar.scm.provider=git"
     },
     "keywords": [],
     "author": "Mester",

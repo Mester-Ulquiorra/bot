@@ -57,56 +57,56 @@ async function nicknameChange(oldMember: GuildMember, newMember: GuildMember) {
 
     GetSpecialChannel("MiscLog").send({ embeds: [embed] });
 
-    // we're doing some trolling
     if (newMember.nickname == null) return;
 
-    if (DetectProfanity(newMember.nickname)) {
-        const auditLogs = await GetGuild().fetchAuditLogs({
-            type: AuditLogEvent.MemberUpdate,
-            limit: 10
-        });
+    if (!DetectProfanity(newMember.nickname)) return;
 
-        // check if a moderator has changed the nick of the person
-        if (auditLogs.entries
-            .find(entry => {
-                if (entry.executor.id === newMember.id) return false;
-                const changes = entry.changes;
-                for (const change of changes) {
-                    if (change.key === "nick" && change.new === newMember.nickname) return true;
-                }
-                return false;
-            })
-        ) return;
+    const auditLogs = await GetGuild().fetchAuditLogs({
+        type: AuditLogEvent.MemberUpdate,
+        limit: 10
+    });
 
-        // the member has changed it
-        if (!newMember.kickable) return;
+    // check if a moderator has changed the nick of the person
+    if (auditLogs.entries
+        .find(entry => {
+            if (entry.executor.id === newMember.id) return false;
+            const changes = entry.changes;
 
-        const punishmentId = SnowFlake.getUniqueID().toString();
+            for (const change of changes) {
+                if (change.key === "nick" && change.new === newMember.nickname) return true;
+            }
 
-        const punishment = await PunishmentConfig.create({
-            punishmentId: punishmentId,
-            user: newMember.id,
-            mod: Ulquiorra.user.id,
-            type: PunishmentType.Kick,
-            at: Math.floor(Date.now() / 1000),
-            active: false,
-            automated: true,
-            reason: "member has set their nickname to something inappropriate"
-        });
+            return false;
+        })
+    ) return;
 
-        const modEmbed = CreateModEmbed(Ulquiorra.user, newMember.user, punishment, { detail: newMember.nickname });
-        const userEmbed = CreateModEmbed(Ulquiorra.user, newMember.user, punishment, { userEmbed: true, detail: newMember.nickname });
+    // the member has changed it
+    if (!newMember.kickable) return;
 
-        newMember
-            .send({ embeds: [userEmbed] })
-            .catch(() => { return; })
-            .finally(() => { newMember.kick("inappropriate nickname"); });
+    const punishmentId = SnowFlake.getUniqueID().toString();
 
-        Log(`${newMember.user.tag} (${newMember.id}) has been automatically kicked: ${punishment.reason}. Punishment ID: ${punishment.punishmentId}`);
+    const punishment = await PunishmentConfig.create({
+        punishmentId: punishmentId,
+        user: newMember.id,
+        mod: Ulquiorra.user.id,
+        type: PunishmentType.Kick,
+        at: Math.floor(Date.now() / 1000),
+        active: false,
+        automated: true,
+        reason: "member has set their nickname to something inappropriate"
+    });
 
-        GetSpecialChannel("ModLog").send({ embeds: [modEmbed] });
+    const modEmbed = CreateModEmbed(Ulquiorra.user, newMember.user, punishment, { detail: newMember.nickname });
+    const userEmbed = CreateModEmbed(Ulquiorra.user, newMember.user, punishment, { userEmbed: true, detail: newMember.nickname });
 
-    }
+    newMember
+        .send({ embeds: [userEmbed] })
+        .catch(() => { return; })
+        .finally(() => { newMember.kick("inappropriate nickname"); });
+
+    Log(`${newMember.user.tag} (${newMember.id}) has been automatically kicked: ${punishment.reason}. Punishment ID: ${punishment.punishmentId}`);
+
+    GetSpecialChannel("ModLog").send({ embeds: [modEmbed] });
 }
 
 export default GuildMemberUpdateEvent;

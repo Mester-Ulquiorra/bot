@@ -59,7 +59,7 @@ const XpCommand: SlashCommand = {
         const relativexp = levelConfig.xp - LevelToXP(levelConfig.level);
 
         // we either change the xp, then regenerate the level, or the other way around
-        // depends on levelmod
+        // depends on levelmode
         if (levelmode) {
             levelConfig.level = !setmode
                 ? levelConfig.level + numbervalue
