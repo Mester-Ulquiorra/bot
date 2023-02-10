@@ -29,7 +29,7 @@
         "zlib-sync": "^0.1.7"
     },
     "name": "ulquiorra",
-    "version": "4.2.1-rank",
+    "version": "4.2.1-reishifix",
     "type": "module",
     "exports": "./dist/Ulquiorra",
     "devDependencies": {
@@ -46,7 +46,7 @@
         "typescript": "^4.8.4"
     },
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
+        "test": "mocha",
         "start": "node --expose-gc dist/Ulquiorra.js",
         "build": "tsc -p tsconfig.json && node dist/build.js",
         "analyze": "sonar-scanner.bat -D\"sonar.projectKey=Ulquiorra\" -D\"sonar.sources=.\" -D\"sonar.host.url=http://localhost:9000\" -D\"sonar.login=sqp_02d81ec76a32c2b6396d06945eb3ce58bac2f2e8\" -Dsonar.scm.provider=git"
