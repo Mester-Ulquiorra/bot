@@ -4,10 +4,10 @@ import clc from "cli-color";
 const dateFormat = "yyyy-MM-dd HH:mm:ss.SSS";
 
 export enum LogType {
-    Info = 0,
-    Warn = 1,
-    Error = 2,
-    Fatal = 3
+    Info = "info",
+    Warn = "warn",
+    Error = "error",
+    Fatal = "fatal"
 }
 
 function getColoredType(type: LogType) {

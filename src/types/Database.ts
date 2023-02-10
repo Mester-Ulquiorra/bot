@@ -37,7 +37,6 @@ export interface DBGiveaway {
     winners: number;
 }
 
-
 export interface DBLevel {
     userId: string;
     level: number;

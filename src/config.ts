@@ -23,7 +23,7 @@ const base = {
     PrisonId: "1014272380534804581",
     PrisonInvite: "https://discord.gg/SNVtdQHpxm",
 
-    Version: "4.2.1-rank",
+    Version: "4.2.1",
 
     SuperUsers: [
         "730775136881475645",

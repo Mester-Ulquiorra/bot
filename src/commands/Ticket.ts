@@ -365,7 +365,7 @@ async function sendto(interaction: ChatInputCommandInteraction, userConfig: DBUs
         return "You can't send a ticket to a lower mod level than yours.";
 
     // check if modLevel is 0
-    if (modLevel === 0) return GetError("Value", "modlevel");
+    if (modLevel === 0) return GetError("BadValue", "modlevel");
 
     // change the ticket's waitingfor to the mod level
     ticketConfig.waitingfor = modLevel;

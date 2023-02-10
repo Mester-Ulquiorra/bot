@@ -24,7 +24,7 @@ const SetModCommand: SlashCommand = {
             return GetError("BadUser");
 
         if (modLevel >= userConfig.mod)
-            return GetError("Value", "modlevel");
+            return GetError("BadValue", "modlevel");
 
         targetConfig.mod = modLevel;
         await targetConfig.save();

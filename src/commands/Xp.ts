@@ -26,7 +26,7 @@ const XpCommand: SlashCommand = {
         // exponent is based on if we're adding or removing XP (except if we're in setmode, then it's always 1)
         const numbervalue =
             Number.parseInt(value.substring(0, value.length - (levelmode ? 1 : 0)), 10) *
-            ( (setmode || interaction.options.getSubcommand() === "add") ? 1 : -1 );
+            ((setmode || interaction.options.getSubcommand() === "add") ? 1 : -1);
 
         // check if value is correct
         if (
@@ -34,7 +34,7 @@ const XpCommand: SlashCommand = {
             (levelmode && (value.length == 1 || numbervalue > 100)) ||
             isNaN(numbervalue)
         )
-            return GetError("Value", "value");
+            return GetError("BadValue", "value");
 
         // get the level config of the member
         const levelConfig = await GetLevelConfig(target.id);
@@ -53,7 +53,7 @@ const XpCommand: SlashCommand = {
 
         // check if the new xp is valid
         if (newxp < 0 || newxp > MaxXp)
-            return GetError("Value", "value: not supported");
+            return GetError("BadValue", "value: not supported");
 
         // calculate relativexp
         const relativexp = levelConfig.xp - LevelToXP(levelConfig.level);

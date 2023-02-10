@@ -2,6 +2,7 @@ import { ActionRowBuilder, APIActionRowComponent, APIButtonComponent, APISelectM
 import { getQuestions, Question } from "open-trivia-db";
 import SlashCommand from "../types/SlashCommand.js";
 import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
+import shuffleArray from "../util/EtcUtils.js";
 import Log, { LogType } from "../util/Log.js";
 
 const TriviaCommmand: SlashCommand = {
@@ -200,7 +201,7 @@ class TriviaGame {
                 });
 
             // combine and shuffle the arrays
-            this.questions = shuffle<Question>(easy.concat(medium, hard));
+            this.questions = shuffleArray(easy.concat(medium, hard));
         } else {
             this.questions = await getQuestions({
                 difficulty: this.difficulty,
@@ -357,7 +358,7 @@ class TriviaGame {
         for (let i = 0; i < this.questions[this.turn].allAnswers.length; i++) {
             ids.push(i);
         }
-        ids = shuffle(ids);
+        ids = shuffleArray(ids);
 
         const allAnswers = [this.questions[this.turn].correctAnswer, ...this.questions[this.turn].incorrectAnswers].map(x => String(x));
 
@@ -392,7 +393,7 @@ class TriviaGame {
             }
 
             // shuffle options
-            options = shuffle(options);
+            options = shuffleArray(options);
 
             components = [
                 new ActionRowBuilder<StringSelectMenuBuilder>().addComponents([
@@ -428,31 +429,6 @@ class TriviaGame {
 interface TriviaQuestion extends Question {
     userAnswer?: string,
     mappedAnswers?: Map<number, string>
-}
-
-/**
- * A utility function for shuffling an array (https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle)
- * @param array The array to shuffle
- * @returns The shuffled array
- */
-function shuffle<T>(array: Array<T>) {
-    let currentIndex = array.length,
-        randomIndex: number;
-
-    // While there remain elements to shuffle.
-    while (currentIndex != 0) {
-        // Pick a remaining element.
-        randomIndex = Math.floor(Math.random() * currentIndex);
-        currentIndex--;
-
-        // And swap it with the current element.
-        [array[currentIndex], array[randomIndex]] = [
-            array[randomIndex],
-            array[currentIndex],
-        ];
-    }
-
-    return array;
 }
 
 export default TriviaCommmand;

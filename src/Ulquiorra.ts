@@ -10,19 +10,20 @@ import { createInterface } from "readline";
 import { fileURLToPath, URL } from "url";
 import { browser } from "./commands/Rank.js";
 import config from "./config.js";
-import test_mode from "./testMode.js";
+import testMode from "./testMode.js";
 import AutoUnpunish from "./util/AutoUnpunish.js";
 import CleanTickets from "./util/CleanTickets.js";
 import { HandleConsoleCommand } from "./util/ConsoleUtil.js";
 import Log, { LogType } from "./util/Log.js";
 import { Register } from "./util/Register.js";
 import ServerStats from "./util/ServerStats.js";
-console.log(generateDependencyReport());
+
+if(testMode) console.log(generateDependencyReport());
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 dotconfig({
-    path: join(__dirname, "..", test_mode ? ".env.test" : ".env")
+    path: join(__dirname, "..", testMode ? ".env.test" : ".env")
 });
 
 // this is a really bad way of avoiding errors, but it is what it is
@@ -54,7 +55,11 @@ const Ulquiorra = new Client({
     }
 });
 
-Mongoose.connect(`mongodb+srv://discordbot:${process.env.DB_PASS}@${process.env.DB_URL}/discord-database?retryWrites=true&w=majority`).catch((err) => {
+Mongoose.connect(`mongodb+srv://ulquiorra@${process.env.DB_URL}/discord-database?retryWrites=true&w=majority`, {
+    authMechanism: "MONGODB-X509",
+    sslCert: "DB-key.pem",
+    sslKey: "DB-key.pem",
+}).catch((err) => {
     Log("An error has happened while trying to connect to the database, which is a fatal issue. Terminating...", LogType.Fatal);
     Log(err, LogType.Fatal);
     shutdown("MongoDB connection error");

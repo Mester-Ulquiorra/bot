@@ -1,10 +1,10 @@
 import { ColorResolvable, EmbedBuilder, GuildMember, User } from "discord.js";
 
 export enum EmbedColor {
-    Info = 0,
-    Success = 1,
-    Warning = 2,
-    Error = 3
+    Info = "info",
+    Success = "success",
+    Warning = "warning",
+    Error = "error"
 }
 
 interface EmbedOptions {

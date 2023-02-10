@@ -21,7 +21,7 @@ commands.push(
                 .setDescription("The reason of the unban")
                 .setRequired(false)
         )
-)
+);
 
 commands.push(
     new SlashCommandBuilder()
@@ -34,7 +34,7 @@ commands.push(
                 .setMinValue(1)
                 .setRequired(false)
         )
-)
+);
 
 commands.push(
     new SlashCommandBuilder()
@@ -52,7 +52,7 @@ commands.push(
                 .setDescription("Enable this to get the rank as a text instead of an image")
                 .setRequired(false)
         )
-)
+);
 
 commands.push(
     new SlashCommandBuilder()
@@ -109,7 +109,7 @@ commands.push(
                         .setRequired(true)
                 )
         )
-)
+);
 
 commands.push(
     new SlashCommandBuilder()
@@ -152,7 +152,7 @@ commands.push(
                         .setRequired(true)
                 )
         )
-)
+);
 
 commands.push(
     new SlashCommandBuilder()
@@ -209,19 +209,19 @@ commands.push(
                         .setRequired(true)
                 )
         )
-)
+);
 
 commands.push(
     new ContextMenuCommandBuilder()
         .setName("Show punishment ID")
         .setType(ApplicationCommandType.Message)
-)
+);
 
 commands.push(
     new ContextMenuCommandBuilder()
         .setName("Translate message")
         .setType(ApplicationCommandType.Message)
-)
+);
 
 commands.push(
     new SlashCommandBuilder()
@@ -241,9 +241,15 @@ commands.push(
                 .setDescription("Member to delete messages from")
                 .setRequired(false)
         )
-)
+);
 
-commands.map(command => command.toJSON())
+commands.push(
+    new SlashCommandBuilder()
+        .setName("uno")
+        .setDescription("Play a fun game of UNO!")
+);
+
+commands.map(command => command.toJSON());
 for (const command of commands) {
     console.log(JSON.stringify(command));
 }

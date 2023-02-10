@@ -3,6 +3,7 @@ import { ChatInputCommandInteraction, GuildMember } from "discord.js";
 import pldl from "play-dl";
 import SlashCommand from "../types/SlashCommand.js";
 import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
+import shuffleArray from "../util/EtcUtils.js";
 import { CalculateMaxPage } from "../util/MathUtils.js";
 
 enum LoopType {
@@ -312,7 +313,7 @@ async function addSong(interaction: ChatInputCommandInteraction, link: string) {
 
         const doShuffle = interaction.options.getBoolean("shuffle") ?? false;
 
-        const videos = doShuffle ? shuffle(await playlist.all_videos()) : await playlist.all_videos();
+        const videos = doShuffle ? shuffleArray(await playlist.all_videos()) : await playlist.all_videos();
 
         for (const video of videos) {
             const song = new Song(video.url, "yt_video", video.title);
@@ -389,31 +390,6 @@ class Song {
             throw new Error("The link is malformed");
         }
     }
-}
-
-/**
- * A utility function for shuffling an array (https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle)
- * @param array The array to shuffle
- * @returns The shuffled array
- */
-function shuffle<T>(array: T[]): T[] {
-    let currentIndex = array.length,
-        randomIndex: number;
-
-    // While there remain elements to shuffle.
-    while (currentIndex != 0) {
-        // Pick a remaining element.
-        randomIndex = Math.floor(Math.random() * currentIndex);
-        currentIndex--;
-
-        // And swap it with the current element.
-        [array[currentIndex], array[randomIndex]] = [
-            array[randomIndex],
-            array[currentIndex],
-        ];
-    }
-
-    return array;
 }
 
 export default MusicCommmand;

@@ -1,8 +1,10 @@
-dist
-node_modules
 .test
+.vscode
 .env
 .env.test
 package-lock.json
-.vscode
 CreateCommands-old.js
+DB-key.pem
+node_modules
+dist/*
+!dist/res
