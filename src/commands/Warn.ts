@@ -7,7 +7,7 @@ import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import Log from "../util/Log.js";
-import { CanManageUser, CreateModEmbed } from "../util/ModUtil.js";
+import { CanManageUser, CreateModEmbed } from "../util/ModUtils.js";
 
 const WarnCommand: SlashCommand = {
     name: "warn",
@@ -48,7 +48,7 @@ const WarnCommand: SlashCommand = {
         const channelEmbed = CreateEmbed(`${target} has been warned: **${reason}**`);
 
         // send out the embeds
-        target.send({ embeds: [userEmbed] }).catch(() => { return; });
+        target.send({ embeds: [userEmbed.embed] }).catch(() => { return; });
 
         interaction.channel.sendTyping().then(() => {
             interaction.channel.send({ embeds: [channelEmbed] });

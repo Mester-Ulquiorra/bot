@@ -2,8 +2,9 @@ import { Client } from "discord.js";
 import { readdir } from "fs";
 import { join } from "path";
 import { pathToFileURL } from "url";
-import test_mode from "../testMode.js";
+import testMode from "../testMode.js";
 import ConsoleCommand from "../types/ConsoleCommand.js";
+import Event, { EventInvoker } from "../types/Event.js";
 import SlashCommand from "../types/SlashCommand.js";
 import Log, { LogType } from "../util/Log.js";
 
@@ -26,9 +27,9 @@ async function Register(commandPath: string, eventPath: string, consoleCommandPa
         for (const commandFile of commandFiles) {
             const urlPath = pathToFileURL(join(commandPath, commandFile)).toString();
             try {
-                const module = (await import(urlPath)).default;
+                const module: SlashCommand = (await import(urlPath)).default;
 
-                if (test_mode) console.log(module);
+                if (testMode) console.log(module);
                 commands.set(module.name, module);
             } catch (error) {
                 Log(`Error while trying to load ${commandFile}: ${error.stack}`, LogType.Error);
@@ -44,9 +45,9 @@ async function Register(commandPath: string, eventPath: string, consoleCommandPa
         for (const consoleCommandFile of consoleCommandFiles) {
             const urlPath = pathToFileURL(join(consoleCommandPath, consoleCommandFile)).toString();
             try {
-                const module = (await import(urlPath)).default;
+                const module: ConsoleCommand = (await import(urlPath)).default;
 
-                if (test_mode) console.log(module);
+                if (testMode) console.log(module);
                 consoleCommands.set(module.name, module);
             } catch (error) {
                 Log(`Error while trying to load ${consoleCommandFile}: ${error.stack}`, LogType.Error);
@@ -62,10 +63,10 @@ async function Register(commandPath: string, eventPath: string, consoleCommandPa
         for (const eventFile of eventFiles) {
             const urlPath = pathToFileURL(join(eventPath, eventFile)).toString();
             try {
-                const module = (await import(urlPath)).default;
+                const module: Event = (await import(urlPath)).default;
 
-                if (test_mode) console.log(module);
-                client.on(module.name, module.run.bind(module, client));
+                if (testMode) console.log(module);
+                client.on(module.name, EventInvoker.bind(module, module, client));
             } catch (error) {
                 Log(`Error while trying to load ${eventFile}: ${error.stack}`, LogType.Error);
             }

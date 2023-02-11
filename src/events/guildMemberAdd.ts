@@ -8,7 +8,7 @@ import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import Log from "../util/Log.js";
 import ManageRole from "../util/ManageRole.js";
-import { CreateModEmbed } from "../util/ModUtil.js";
+import { CreateModEmbed } from "../util/ModUtils.js";
 import { DetectProfanity } from "../util/Reishi/CheckProfanity.js";
 
 const GuildMemberAddEvent: Event = {
@@ -38,7 +38,7 @@ const GuildMemberAddEvent: Event = {
             const userEmbed = CreateModEmbed(client.user, member.user, punishment, { userEmbed: true, detail: member.displayName });
 
             member
-                .send({ embeds: [userEmbed] })
+                .send({ embeds: [userEmbed.embed] })
                 .catch(() => { return; })
                 .finally(() => { member.kick("inappropriate username"); });
 

@@ -4,8 +4,8 @@ import Event from "../types/Event.js";
 import { shutdown } from "../Ulquiorra.js";
 import { GetGuild } from "../util/ClientUtils.js";
 import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
-import { GetXPFromMessage } from "../util/LevelUtil.js";
-import { CreateAppealButton } from "../util/ModUtil.js";
+import { GetXPFromMessage } from "../util/LevelUtils.js";
+import { CreateAppealButton } from "../util/ModUtils.js";
 import { CheckMessage } from "../util/Reishi.js";
 import { CreateTicket, TicketTypeToName } from "../util/TicketUtils.js";
 
@@ -31,7 +31,7 @@ const MessageCreateEvent: Event = {
         }
 
         // only continue to xp if the message is not blocked by Reishi
-        if (!(await CheckMessage(message, client))) return;
+        if (!await CheckMessage(message, client)) return;
 
         GetXPFromMessage(message);
     }

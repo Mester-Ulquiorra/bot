@@ -4,10 +4,10 @@
  * @param string The string to reverse.
  * @returns The reversed string.
  */
-export const ReverseLeetSpeak = function(string: string) {
+export const ReverseLeetSpeak = function (string: string) {
     // this is going to try to reverse leet speak as good as it can
     return string
-        .replaceAll(/[1]/g, "i")
+        .replaceAll(/1/g, "i")
         .replaceAll(/4/g, "a")
         .replaceAll(/3/g, "e")
         .replaceAll(/[$5]/g, "s")
@@ -21,6 +21,14 @@ export const ReverseLeetSpeak = function(string: string) {
  * @param text The text to escape.
  * @returns The escaped text.
  */
-export const EscapeRegEXP = function(text: string): string {
+export const EscapeRegEXP = function (text: string): string {
     return text.replaceAll(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
 };
+
+/**
+ * Lowercses string, removes special characters and unnecessary whitespace from a string and returns it as an array of words
+ * @param string The string to strip
+ */
+export function StripString(string: string) {
+    return string.toLowerCase().replaceAll(/[^\p{L}\s\d$+#]/giu, "").split(/\s+/).filter(s => s !== "");
+}

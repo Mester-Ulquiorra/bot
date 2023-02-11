@@ -1,5 +1,5 @@
 import { ChannelType, Message, PermissionsBitField } from "discord.js";
-import test_mode from "../testMode.js";
+import testMode from "../testMode.js";
 import Event from "../types/Event.js";
 import { GetSpecialChannel } from "../util/ClientUtils.js";
 import CreateEmbed from "../util/CreateEmbed.js";
@@ -13,7 +13,7 @@ const MessageDeleteEvent: Event = {
         // check if the author of the message is a bot or if the author has ADMINISTRATOR permissions, if that's true then don't log the message
         if (
             message.author.bot ||
-            (!test_mode && message.member?.permissions.has(PermissionsBitField.Flags.Administrator)) ||
+            (!testMode && message.member?.permissions.has(PermissionsBitField.Flags.Administrator)) ||
             message.channel.type === ChannelType.DM
         )
             return;
@@ -54,11 +54,11 @@ const MessageDeleteEvent: Event = {
             .setFooter({
                 text:
                     `Member ID: ${message.author.id} | Message ID: ${message.id} `
-                        +
-                        // this part adds extra information about the replied message if it exists
-                        repliedMessage != null
+                    +
+                    // this part adds extra information about the replied message if it exists
+                    (repliedMessage != null
                         ? `| Replied user ID: ${repliedMessage.author.id} | Replied message ID: ${repliedMessage.id}`
-                        : ""
+                        : "")
             });
 
         // create the field for attachments

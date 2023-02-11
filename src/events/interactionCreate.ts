@@ -1,8 +1,9 @@
 import { BaseInteraction, Client, InteractionReplyOptions } from "discord.js";
-import { commands } from "../util/Register.js";
 import Event from "../types/Event.js";
+import { SlashCommandReturnValue } from "../types/SlashCommand.js";
 import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
 import Log, { LogType } from "../util/Log.js";
+import { commands } from "../util/Register.js";
 /**
  * A list of custom ids the interaction manager should ignore.
  * The array contains regex patterns.
@@ -58,7 +59,7 @@ const InteractionCreateEvent: Event = {
         let returnMessage: string | Error | void;
 
         try {
-            let returnStatus: Promise<string | void>;
+            let returnStatus: SlashCommandReturnValue;
             if (interaction.isChatInputCommand()) returnStatus = command.run(interaction, client);
             if (interaction.isButton()) returnStatus = command.runButton(interaction, client);
             if (interaction.isModalSubmit()) returnStatus = command.runModal(interaction, client);

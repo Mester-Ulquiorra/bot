@@ -4,7 +4,7 @@ import { DBLevel } from "../types/Database.js";
 import SlashCommand from "../types/SlashCommand.js";
 import { GetGuild } from "../util/ClientUtils.js";
 import CreateEmbed from "../util/CreateEmbed.js";
-import { LevelToXP, XPToLevelUp } from "../util/LevelUtil.js";
+import { LevelToXP, XPToLevelUp } from "../util/LevelUtils.js";
 import { CalculateMaxPage } from "../util/MathUtils.js";
 
 const PageSize = 10;

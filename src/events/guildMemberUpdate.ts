@@ -5,7 +5,7 @@ import Ulquiorra, { SnowFlake } from "../Ulquiorra.js";
 import { GetGuild, GetSpecialChannel } from "../util/ClientUtils.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import Log from "../util/Log.js";
-import { CreateModEmbed } from "../util/ModUtil.js";
+import { CreateModEmbed } from "../util/ModUtils.js";
 import { DetectProfanity } from "../util/Reishi/CheckProfanity.js";
 
 const GuildMemberUpdateEvent: Event = {
@@ -100,7 +100,7 @@ async function nicknameChange(oldMember: GuildMember, newMember: GuildMember) {
     const userEmbed = CreateModEmbed(Ulquiorra.user, newMember.user, punishment, { userEmbed: true, detail: newMember.nickname });
 
     newMember
-        .send({ embeds: [userEmbed] })
+        .send({ embeds: [userEmbed.embed] })
         .catch(() => { return; })
         .finally(() => { newMember.kick("inappropriate nickname"); });
 

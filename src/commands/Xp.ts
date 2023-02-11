@@ -1,7 +1,7 @@
 import SlashCommand from "../types/SlashCommand.js";
 import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
-import { GetLevelConfig, LevelToXP, XPToLevel } from "../util/LevelUtil.js";
+import { GetLevelConfig, LevelToXP, XPToLevel } from "../util/LevelUtils.js";
 import Log from "../util/Log.js";
 import { AddRankFieldEmbeds } from "./Rank.js";
 

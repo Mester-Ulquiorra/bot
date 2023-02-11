@@ -4,7 +4,7 @@ import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import Log from "../util/Log.js";
-import { ModNameToLevel } from "../util/ModUtil.js";
+import { ModNameToLevel } from "../util/ModUtils.js";
 
 const ClearCommmand: SlashCommand = {
     name: "clear",

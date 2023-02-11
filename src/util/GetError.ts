@@ -1,4 +1,4 @@
-type ErrorType = "Default" | "Permission" | "Database" | "BadUser" | "Duration" | "BadValue" | "MemberUnavailable" | "InsufficentModLevel";
+type ErrorType = "Default" | "Permission" | "Database" | "BadUser" | "Duration" | "BadValue" | "UserUnavailable" | "InsufficentModLevel";
 
 export default function (error: ErrorType = "Default", info = "[unknown]") {
     switch (error) {
@@ -8,7 +8,7 @@ export default function (error: ErrorType = "Default", info = "[unknown]") {
         case "BadUser": return "You are not allowed to perform this action on this user.";
         case "Duration": return "Incorrect duration formatting.";
         case "BadValue": return `Incorrect value for the following option: ${info}`;
-        case "MemberUnavailable": return "The member has left the server.";
+        case "UserUnavailable": return "The user is not available (either left the server or deleted account).";
         case "InsufficentModLevel": return "Your mod level is not allowed to run that command / use those parameters.";
     }
 }

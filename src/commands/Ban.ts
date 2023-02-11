@@ -8,14 +8,14 @@ import ConvertDuration from "../util/ConvertDuration.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import Log from "../util/Log.js";
-import { CanManageUser, CanPerformPunishment, CreateAppealButton, CreateModEmbed } from "../util/ModUtil.js";
+import { CanManageUser, CanPerformPunishment, CreateModEmbed } from "../util/ModUtils.js";
 
 const BanCommand: SlashCommand = {
     name: "ban",
 
     async run(interaction, _client) {
         const target = interaction.options.getMember("member") as GuildMember;
-        if (!target) return GetError("MemberUnavailable");
+        if (!target) return GetError("UserUnavailable");
 
         const reason = interaction.options.getString("reason") ?? "no reason provided";
         const duration = ConvertDuration(interaction.options.getString("duration"));
@@ -54,7 +54,7 @@ const BanCommand: SlashCommand = {
         const channelEmbed = CreateEmbed(`${target.user} has been banned: **${reason}**`);
 
         target
-            .send({ embeds: [userEmbed], components: [CreateAppealButton(true)] })
+            .send({ embeds: [userEmbed.embed], components: userEmbed.components })
             .catch(() => { return; })
             .finally(() => {
                 target.ban({ reason: `Banned by ${interaction.user.tag}: ${reason}` }).catch(() => { return; });

@@ -1,5 +1,5 @@
 import { ChannelType, Message, PermissionsBitField } from "discord.js";
-import test_mode from "../testMode.js";
+import testMode from "../testMode.js";
 import Event from "../types/Event.js";
 import { GetSpecialChannel } from "../util/ClientUtils.js";
 import CreateEmbed from "../util/CreateEmbed.js";
@@ -14,7 +14,7 @@ const MessageUpdateEvent: Event = {
         // check if the author of the message is a bot or if the author has ADMINISTRATOR permissions, if that's true then don't log the message
         if (
             newMessage.author.bot ||
-            (!test_mode && newMessage.member?.permissions.has(PermissionsBitField.Flags.Administrator)) ||
+            (!testMode && newMessage.member?.permissions.has(PermissionsBitField.Flags.Administrator)) ||
             newMessage.channel.type === ChannelType.DM
         )
             return;

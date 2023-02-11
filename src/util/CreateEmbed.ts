@@ -25,16 +25,16 @@ function getColor(color: EmbedColor): ColorResolvable {
     }
 }
 
-export default function (description: string, options: EmbedOptions = null) {
+export default function (description: string, options: EmbedOptions = {}) {
     const embed = new EmbedBuilder()
         .setDescription(description)
         .setColor(getColor(options?.color ?? EmbedColor.Info));
 
-    if (options?.title != null) embed.setTitle(options.title);
+    if (options.title) embed.setTitle(options.title);
 
-    if (options?.author != null)
+    if (options.author)
         embed.setAuthor({
-            name: options.author instanceof GuildMember ? options.author.displayName : options.author.tag,
+            name: options.author instanceof GuildMember ? options.author.user.tag : options.author.tag,
             iconURL: options.author.displayAvatarURL()
         });
 

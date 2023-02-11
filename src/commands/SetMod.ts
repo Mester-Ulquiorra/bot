@@ -5,7 +5,7 @@ import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import Log from "../util/Log.js";
 import ManageRole from "../util/ManageRole.js";
-import { CanManageUser, ModNameToId, ModNameToLevel, ModType } from "../util/ModUtil.js";
+import { CanManageUser, ModNameToId, ModNameToLevel, ModType } from "../util/ModUtils.js";
 
 const SetModCommand: SlashCommand = {
     name: "setmod",

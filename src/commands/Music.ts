@@ -3,8 +3,8 @@ import { ChatInputCommandInteraction, GuildMember } from "discord.js";
 import pldl from "play-dl";
 import SlashCommand from "../types/SlashCommand.js";
 import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
-import shuffleArray from "../util/EtcUtils.js";
 import { CalculateMaxPage } from "../util/MathUtils.js";
+import shuffleArray from "../util/MiscUtils.js";
 
 enum LoopType {
     NoLoop,

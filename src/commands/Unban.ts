@@ -5,7 +5,7 @@ import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import Log from "../util/Log.js";
-import { CanPerformPunishment, CreateModEmbed } from "../util/ModUtil.js";
+import { CanPerformPunishment, CreateModEmbed } from "../util/ModUtils.js";
 
 const UnbanCommand: SlashCommand = {
     name: "unban",

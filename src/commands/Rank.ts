@@ -6,7 +6,7 @@ import { fileURLToPath, URL } from "url";
 import { DBLevel } from "../types/Database.js";
 import SlashCommand from "../types/SlashCommand.js";
 import CreateEmbed from "../util/CreateEmbed.js";
-import { GetLevelConfig, LevelToXP, XPToLevelUp } from "../util/LevelUtil.js";
+import { GetLevelConfig, LevelToXP, XPToLevelUp } from "../util/LevelUtils.js";
 
 const minimalArgs = [
     "--autoplay-policy=user-gesture-required",

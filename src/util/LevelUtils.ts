@@ -1,7 +1,7 @@
 import { GuildMember, Message, spoiler } from "discord.js";
 import config from "../config.js";
 import LevelConfig, { IDBLevel } from "../database/LevelConfig.js";
-import test_mode from "../testMode.js";
+import testMode from "../testMode.js";
 import { GetGuild, GetSpecialChannel } from "./ClientUtils.js";
 import CreateEmbed, { EmbedColor } from "./CreateEmbed.js";
 import gib_detect from "./GibberishDetector/gib_detect.js";
@@ -84,7 +84,7 @@ async function GetXPFromMessage(message: Message): Promise<number> {
     // check if the user has sent a message in this half minute
     if (
         (currTime - lastMessage < LevelConf.MessageLimit * 1000) &&
-        !test_mode
+        !testMode
     )
         return 0;
 

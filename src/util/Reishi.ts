@@ -1,14 +1,14 @@
 import { Client, Message } from "discord.js";
 import config from "../config.js";
 import PunishmentConfig, { PunishmentType } from "../database/PunishmentConfig.js";
-import test_mode from "../testMode.js";
+import testMode from "../testMode.js";
 import { DBPunishment } from "../types/Database.js";
 import { SnowFlake } from "../Ulquiorra.js";
 import { GetSpecialChannel } from "./ClientUtils.js";
 import { GetUserConfig } from "./ConfigHelper.js";
 import Log from "./Log.js";
 import ManageRole from "./ManageRole.js";
-import { CreateModEmbed } from "./ModUtil.js";
+import { CreateModEmbed } from "./ModUtils.js";
 import CheckFlood from "./Reishi/CheckFlood.js";
 import CheckLink from "./Reishi/CheckLink.js";
 import CheckProfanity from "./Reishi/CheckProfanity.js";
@@ -118,7 +118,7 @@ async function PunishMessage(message: Message, type: PunishmentNames, word: stri
     // check the mod level
     if (userconfig.mod != 0) {
         // check if we're in test mode
-        if (test_mode) message.react("❌");
+        if (testMode) message.react("❌");
         return;
     }
 
@@ -171,7 +171,7 @@ async function PunishMessage(message: Message, type: PunishmentNames, word: stri
     );
 
     // send the embeds
-    message.author.send({ embeds: [userEmbed] }).catch(() => {
+    message.author.send({ embeds: [userEmbed.embed], components: userEmbed.components }).catch(() => {
         return null;
     });
     GetSpecialChannel("ModLog").send({ embeds: [modEmbed] });

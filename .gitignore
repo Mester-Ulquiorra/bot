@@ -11,6 +11,7 @@ DB-key.pem
 sonar-project.properties
 
 node_modules
+coverage
 dist/*
 
 !dist/res

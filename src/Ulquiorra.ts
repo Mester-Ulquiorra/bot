@@ -13,12 +13,12 @@ import config from "./config.js";
 import testMode from "./testMode.js";
 import AutoUnpunish from "./util/AutoUnpunish.js";
 import CleanTickets from "./util/CleanTickets.js";
-import { HandleConsoleCommand } from "./util/ConsoleUtil.js";
+import { HandleConsoleCommand } from "./util/ConsoleUtils.js";
 import Log, { LogType } from "./util/Log.js";
 import { Register } from "./util/Register.js";
 import ServerStats from "./util/ServerStats.js";
 
-if(testMode) console.log(generateDependencyReport());
+if (testMode) console.log(generateDependencyReport());
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
@@ -28,7 +28,7 @@ dotconfig({
 
 // this is a really bad way of avoiding errors, but it is what it is
 process.on("uncaughtException", (error) => {
-    Log(`An uncaught exception has occured, ignoring, but may cause issues... ${error.stack}`, LogType.Warn);
+    Log(`An uncaught exception has occured, ignoring, but may cause issues...\n${error.stack}`, LogType.Warn);
 });
 
 process.on("exit", () => {
@@ -57,8 +57,8 @@ const Ulquiorra = new Client({
 
 Mongoose.connect(`mongodb+srv://ulquiorra@${process.env.DB_URL}/discord-database?retryWrites=true&w=majority`, {
     authMechanism: "MONGODB-X509",
-    sslCert: "DB-key.pem",
-    sslKey: "DB-key.pem",
+    sslCert: join(__dirname, "..", "DB-key.pem"),
+    sslKey: join(__dirname, "..", "DB-key.pem"),
 }).catch((err) => {
     Log("An error has happened while trying to connect to the database, which is a fatal issue. Terminating...", LogType.Fatal);
     Log(err, LogType.Fatal);

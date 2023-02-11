@@ -69,7 +69,7 @@ const TictactoeCommand: SlashCommand = {
 
 async function play(interaction: ChatInputCommandInteraction) {
     const member = interaction.options.getMember("member") as GuildMember;
-    if (!member) return GetError("MemberUnavailable");
+    if (!member) return GetError("UserUnavailable");
 
 
     if (member.id === interaction.user.id)

@@ -3,7 +3,8 @@ import config from "../../config.js";
 import { GetUserConfig } from "../ConfigHelper.js";
 
 enum ProtectionDecision {
-    Yes, No
+    Yes = "yes",
+    No = "no"
 }
 
 interface ProtectionMemory {
@@ -58,8 +59,8 @@ export default async function (message: Message): Promise<string> {
         protDecision = null;
     }
 
-    if(protDecision && protDecision.decision === ProtectionDecision.Yes) return `Pinged the following protected member: ${user}`;
-    else if(protDecision) return null;
+    if (protDecision && protDecision.decision === ProtectionDecision.Yes) return `Pinged the following protected member: ${user}`;
+    else if (protDecision) return null;
 
     // ask the user if they want to mute
     const inputMessage = await message.reply({

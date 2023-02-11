@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
 
 /**
- * the channel ids, where normal links shouldn't be checked (this doesn't include discord invites, etc.)
+ * the channel ids, where normal links shouldn't be checked (this doesn't include discord invites)
  */
 const ExcludeNormalSearch = [
     "841687705989152778", // media
@@ -9,9 +9,8 @@ const ExcludeNormalSearch = [
     "1008039145563750420", // music commands
 ];
 
-const DiscordInviteRegexp = /(w{3}\.)?(discord\.com\/invite\/|discord\.gg\/)(.+)/gi;
-
-const UrlRegexp = /([a-z]{2,20}):\/\/([\w-]+(?:(?:\.[\w-]+)?))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?/igm; //idk how to do this
+export const DiscordInviteRegExp = /discord(?:app)?\.com\/(?:(friend-)?invite|servers)?\/([a-z0-9-]+)|discord\.gg\/(?:\S+\/)?([a-z0-9-]+)/m;
+export const UrlRegExp = /https?:\/\/(?:www\.)?([-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b)*(\/[/\d\w.-]*)*(?:[?])*(.+)*/i;
 
 /**
  *
@@ -20,13 +19,13 @@ const UrlRegexp = /([a-z]{2,20}):\/\/([\w-]+(?:(?:\.[\w-]+)?))([\w.,@?^=%&:/~+#-
  */
 export default function (message: Message) {
     // check if we have a discord invite
-    if (message.content.match(DiscordInviteRegexp)?.length >= 1) return null;
+    const discordInvite = message.content.match(DiscordInviteRegExp);
+    if (discordInvite) return discordInvite[0];
 
     // check if we're in an excluded channel
     if (ExcludeNormalSearch.includes(message.channelId)) {
         return null;
     }
 
-    // try to find a link and return it (either null or the link)
-    return message.content.match(UrlRegexp)?.[0];
+    return message.content.match(DiscordInviteRegExp)?.[0];
 }

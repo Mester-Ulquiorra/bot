@@ -10,14 +10,14 @@ import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import Log from "../util/Log.js";
 import ManageRole from "../util/ManageRole.js";
-import { CanManageUser, CanPerformPunishment, CreateAppealButton, CreateModEmbed } from "../util/ModUtil.js";
+import { CanManageUser, CanPerformPunishment, CreateModEmbed } from "../util/ModUtils.js";
 
 const MuteCommand: SlashCommand = {
     name: "mute",
 
     async run(interaction, _client) {
         const target = interaction.options.getMember("member") as GuildMember;
-        if (!target) return GetError("MemberUnavailable");
+        if (!target) return GetError("UserUnavailable");
 
         const reason = interaction.options.getString("reason") ?? "no reason provided";
         const duration = ConvertDuration(interaction.options.getString("duration"));
@@ -54,7 +54,7 @@ const MuteCommand: SlashCommand = {
         const userEmbed = CreateModEmbed(interaction.user, target.user, punishment, { userEmbed: true });
         const channelEmbed = CreateEmbed(`${target} has been muted: **${reason}**`);
 
-        target.send({ embeds: [userEmbed], components: [CreateAppealButton()] }).catch(() => { return; });
+        target.send({ embeds: [userEmbed.embed], components: userEmbed.components }).catch(() => { return; });
 
         interaction.channel.sendTyping().then(() => {
             interaction.channel.send({ embeds: [channelEmbed] });

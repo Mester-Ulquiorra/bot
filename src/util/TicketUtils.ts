@@ -6,7 +6,7 @@ import { SnowFlake } from "../Ulquiorra.js";
 import { GetGuild } from "./ClientUtils.js";
 import { GetUserConfig } from "./ConfigHelper.js";
 import CreateEmbed, { EmbedColor } from "./CreateEmbed.js";
-import { ModName, ModNameToId, ModNameToLevel, ModType } from "./ModUtil.js";
+import { ModName, ModNameToId, ModNameToLevel, ModType } from "./ModUtils.js";
 
 export const CreateTicket = async function (
     ticketOwner: GuildMember,

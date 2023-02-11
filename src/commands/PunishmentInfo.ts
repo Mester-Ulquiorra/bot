@@ -3,6 +3,7 @@ import PunishmentConfig, { PunishmentTypeToName } from "../database/PunishmentCo
 import { DBPunishment } from "../types/Database.js";
 import SlashCommand from "../types/SlashCommand.js";
 import CreateEmbed from "../util/CreateEmbed.js";
+import GetError from "../util/GetError.js";
 import { CalculateMaxPage } from "../util/MathUtils.js";
 
 const PageSize = 10;
@@ -26,17 +27,17 @@ const PunishmentInfoCommand: SlashCommand = {
                 );
         }
 
-        return "How the fuck did you get here?";
+        return new Error("Incorrect subcommand");
     },
 
     async runSelectMenu(interaction, client) {
         if (interaction.customId === "punishmentinfo.pageselector") {
             // get the user id using this very shitty and messy way
-            const userid = interaction.message.embeds[0].footer.text
+            const userId = interaction.message.embeds[0].footer.text
                 .match(/\d{17,}/)[0]
                 .replaceAll(/[<@>]/gi, "");
 
-            const user = await client.users.fetch(userid)
+            const user = await client.users.fetch(userId)
                 .then(user => { return user; })
                 .catch(() => { return; });
 
@@ -54,13 +55,13 @@ const PunishmentInfoCommand: SlashCommand = {
     async runButton(interaction, client) {
         if (interaction.customId === "punishmentinfo.showactivep") {
             // get the user id using this very shitty and messy way
-            const userid = interaction.message.embeds[0].footer.text
+            const userId = interaction.message.embeds[0].footer.text
                 .match(/\d{17,}/)[0]
                 .replaceAll(/[<@>]/gi, "");
 
             // find the user's latest punishment
             const punishment = await PunishmentConfig.findOne({
-                user: userid,
+                user: userId,
                 active: true,
             });
 
@@ -73,23 +74,27 @@ const PunishmentInfoCommand: SlashCommand = {
             );
         }
 
-        if (interaction.customId === "punishmentinfo.showallp") {
+        if (interaction.customId.startsWith("punishmentinfo.showallp-")) {
             // get the user id using this very shitty and messy way
-            const userid = interaction.message.embeds[0].footer.text
-                .match(/\d{17,}/)[0]
-                .replaceAll(/[<@>]/gi, "");
+            const userId = interaction.customId.match(/punishmentinfo\.showallp-(\d+)/)[1];
 
-            const user = await client.users.fetch(userid)
+            const user = await client.users.fetch(userId)
                 .then(user => { return user; })
                 .catch(() => { return; });
 
-            if (!user) return "User was not found";
+            if (!user) return GetError("UserUnavailable");
 
             return showPunishmentsOfMember(
                 interaction,
                 user,
                 1
             );
+        }
+
+        if (interaction.customId.startsWith("punishmentinfo.showp-")) {
+            const punishmentId = interaction.customId.match(/punishmentinfo\.showp-(\d+)/)[1];
+
+            return showPunishmentById(interaction, punishmentId);
         }
     },
 };
@@ -105,7 +110,7 @@ async function showPunishmentById(interaction: ChatInputCommandInteraction | But
 
     // check if punishment exists
     if (!punishment)
-        return "The punishment wasn't found, perhaps a typo in the ID?";
+        return "The punishment wasn't found.";
 
     // create the embed
     const embed = CreateEmbed(

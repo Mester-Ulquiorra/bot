@@ -6,7 +6,7 @@ import Ulquiorra from "../Ulquiorra.js";
 import { GetGuild, GetSpecialChannel } from "./ClientUtils.js";
 import Log, { LogType } from "./Log.js";
 import ManageRole from "./ManageRole.js";
-import { CreateModEmbed } from "./ModUtil.js";
+import { CreateModEmbed } from "./ModUtils.js";
 
 /**
  * A function for invalidating every punishment that is not valid anymore.
@@ -57,7 +57,7 @@ export default async function () {
                     Log(`${member.user.tag} (${member.user.id}) has been automatically unmuted`);
 
                     // create embed
-                    const modembed = CreateModEmbed(
+                    const userEmbed = CreateModEmbed(
                         Ulquiorra.user,
                         member.user,
                         punishment,
@@ -65,7 +65,7 @@ export default async function () {
                     );
 
                     // send embed to the user
-                    member.send({ embeds: [modembed] }).catch(() => {
+                    member.send({ embeds: [userEmbed] }).catch(() => {
                         return null;
                     });
 

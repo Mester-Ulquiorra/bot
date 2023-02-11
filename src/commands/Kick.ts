@@ -7,7 +7,7 @@ import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import Log from "../util/Log.js";
-import { CanManageUser, CreateModEmbed } from "../util/ModUtil.js";
+import { CanManageUser, CreateModEmbed } from "../util/ModUtils.js";
 
 const KickCommand: SlashCommand = {
     name: "kick",
@@ -42,7 +42,7 @@ const KickCommand: SlashCommand = {
         const channelEmbed = CreateEmbed(`${target} has been kicked: **${reason}**`);
 
         target
-            .send({ embeds: [userEmbed] })
+            .send({ embeds: [userEmbed.embed] })
             .catch(() => { return; })
             .finally(() => {
                 target.kick(`Kicked by ${interaction.user.tag}: ${reason}`).catch(() => { return "Couldn't kick member"; });

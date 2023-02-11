@@ -5,7 +5,7 @@ import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import Log from "../util/Log.js";
-import { ModNameToLevel } from "../util/ModUtil.js";
+import { ModNameToLevel } from "../util/ModUtils.js";
 
 const EveryoneRoleId = "775789526781263912";
 
@@ -82,7 +82,7 @@ const LockCommand: SlashCommand = {
  */
 async function lockOne(channel: TextChannel, lock: boolean, reason: string, interaction: ChatInputCommandInteraction) {
     // now let's lock
-    lockSingleChannel(channel, interaction, lock);
+    lockChannel(channel, interaction, lock);
 
     // create the embed
     const embed = CreateEmbed(
@@ -95,7 +95,7 @@ async function lockOne(channel: TextChannel, lock: boolean, reason: string, inte
     channel.send({ embeds: [embed] });
 }
 
-async function lockSingleChannel(channel: TextChannel, interaction: ChatInputCommandInteraction, lock = true,) {
+async function lockChannel(channel: TextChannel, interaction: ChatInputCommandInteraction, lock = true,) {
     return channel.permissionOverwrites.edit(EveryoneRoleId, {
         SendMessages: lock ? false : null,
         SendMessagesInThreads: lock ? false : null,

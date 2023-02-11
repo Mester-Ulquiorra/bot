@@ -130,11 +130,11 @@ async function endGiveaway(giveaway: IDBGiveaway) {
     const winners = getWinners(users, giveaway.winners);
     const lastWinner = winners[winners.length - 1].toString();
     const winnerString = winners.length > 1 ? winners
-        // convert users into pingable string
-        .map(user => user.toString())
         // get all winners except last
         .slice(0, -1)
-        .join(", ") + ` and ${lastWinner}` : winners[0].toString();
+        // convert users into pingable string
+        .map(user => user.toString())
+        .join(", ") + ` and ${lastWinner}` : lastWinner;
 
     const embed = EmbedBuilder.from(message.embeds[0])
         .addFields({

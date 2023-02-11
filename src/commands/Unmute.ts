@@ -8,7 +8,7 @@ import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import Log from "../util/Log.js";
 import ManageRole from "../util/ManageRole.js";
-import { CanManageUser, CanPerformPunishment, CreateModEmbed } from "../util/ModUtil.js";
+import { CanManageUser, CanPerformPunishment, CreateModEmbed } from "../util/ModUtils.js";
 
 const UnmuteCommand: SlashCommand = {
     name: "unmute",
@@ -16,7 +16,7 @@ const UnmuteCommand: SlashCommand = {
     async run(interaction, _client) {
         // get member and reason
         const target = interaction.options.getMember("member") as GuildMember;
-        if (!target) return GetError("MemberUnavailable");
+        if (!target) return GetError("UserUnavailable");
 
         const reason = interaction.options.getString("reason") ?? "no reason provided";
 

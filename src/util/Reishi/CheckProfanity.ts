@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { ReverseLeetSpeak } from "../MessageUtils.js";
+import { ReverseLeetSpeak, StripString } from "../MessageUtils.js";
 import blacklist from "./blacklist.js";
 
 /**
@@ -15,17 +15,14 @@ export default function (message: Message): string {
 /**
  * The internal function that detects profanity.
  */
-export function DetectProfanity(string: string): string {
+export function DetectProfanity(string: string) {
     // remove characters like - _ and so on and split the string into words
-    const words = string.toLowerCase().replaceAll(/[^\p{L}\s\d$+#]/giu, "").split(" ");
+    const words = StripString(string);
 
     const backCheck = new Array<string>();
 
     // loop through every word
     for (const word of words) {
-        // if the word is literally nothing, skip it (it shouldn't actually ever happen, but just in case)
-        if (word.length === 0) continue;
-
         // push the element to back_check, if the word is not long
         if (word.length <= 4) backCheck.push(word);
 

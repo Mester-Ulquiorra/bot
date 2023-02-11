@@ -1,26 +1,53 @@
 import { Message } from "discord.js";
-import { ReverseLeetSpeak } from "../MessageUtils.js";
+import { ReverseLeetSpeak, StripString } from "../MessageUtils.js";
 
-const WordLengthThreshold = 3; // how long does a word have to be to actually be checked
-const WordCountThresholdPercent = 75; // how many times can a word appear before it's considered a repeated word
-const WordCountThreshold = 15; // what's the absolute count of words where it's considered a repeated word
-const WordCountLengthThreshold = 7; // how long does a word have to be to be checked for letter count
-const LetterCountThreshold = 7; // how many times can a letter appear in a row before it's considered a repeated letter
-const NewLineThreshold = 8; // the maximum allowed new lines in a message
+/**
+ * minimum length of a word that is checked
+ */
+const WordLengthThreshold = 3;
+/**
+ * how many times can a word appear before it's considered a repeated word (in percent)
+ */
+const WordCountThresholdPercent = 75;
+/**
+ * what's the absolute count of words where it's considered a repeated word
+ */
+const WordCountAbsoluteThreshold = 15;
+/**
+ * how long does a word have to be to be checked for absolute count
+ */
+const WordCountAbsoluteLengthThreshold = 6;
+/**
+ * how many times can a letter appear in a row before it's considered a repeated letter
+ */
+const LetterCountThreshold = 7;
+/**
+ * the maximum allowed new lines in a message
+ */
+const NewLineThreshold = 10;
 
 /**
  * @returns The word that was found (if none, it's null).
  */
-export default function (message: Message): string {
+export default function (message: Message) {
+    return DetectFlood(message.content);
+}
+
+/**
+ * The internal function to detect flood
+ * @param string The string to detect flood in
+ * @returns The detected error or null if the string is safe
+ */
+export function DetectFlood(string: string) {
     // check if message contains new lines over the threshold
-    if (message.content.match(/\n/g)?.length >= NewLineThreshold)
+    if (string.match(/\n/g)?.length >= NewLineThreshold)
         return "too many newlines";
 
-    // check if there's 3 new lines in a row
-    if (message.content.match(/\n{3,}/g)?.length >= 1)
+    // check if there are 4 new lines in a row
+    if (string.match(/\n{4,}/g)?.length >= 1)
         return "too many newlines in a row";
 
-    return CheckRepeatedText(message.content.replaceAll(/\n/g, ""));
+    return CheckRepeatedText(string);
 }
 
 /**
@@ -30,16 +57,13 @@ export default function (message: Message): string {
  */
 function CheckRepeatedText(string: string): string {
     // remove characters like - _ and so on + split the string into words
-    const words = ReverseLeetSpeak(string.replaceAll(/[-_"'|*~]+/g, "")).split(" ");
+    const words = StripString(string).map(s => ReverseLeetSpeak(s));
 
-    // create word_map
+    // create wordMap
     const wordMap = new Map<string, number>();
 
     // go through the words
     for (const word of words) {
-        // just in case, continue if the word is literally nothing
-        if (word.length === 0) continue;
-
         // if the word is not longer than threshold, then skip
         if (word.length < WordLengthThreshold) continue;
 
@@ -53,12 +77,15 @@ function CheckRepeatedText(string: string): string {
 
     // check if there is a word that exceeds the count threshold
     for (const [word, count] of wordMap) {
+        const wordPercent = (count * 100) / words.length;
+
+        // only do the percentage calculation if there are more than 5 words
+        const overPercent = (wordPercent >= WordCountThresholdPercent && words.length > 5);
+        // this part is checking if the word is repeated more than the absolute threshold
+        const overAbsoluteCount = (word.length >= WordCountAbsoluteLengthThreshold && count >= WordCountAbsoluteThreshold);
+
         if (
-            // this weird part is calculating the percentage of the word count
-            (((count * 100) / words.length > WordCountThresholdPercent && words.length > 5) ||
-                /*only do the percentage calculation if there are more than 5 words */
-                // this part is checking if the word is repeated more than the threshold
-                (word.length >= WordCountLengthThreshold && count >= WordCountThreshold)) &&
+            (overPercent || overAbsoluteCount) &&
             words.length != 1
         )
             return `repeated word ${word}`;
@@ -81,7 +108,7 @@ function CheckLetters(word: string): string {
         if (letter === tempLetter) lettersInRow++;
         // if the letter is different, reset the count
         else {
-            lettersInRow = 0;
+            lettersInRow = 1;
             tempLetter = letter;
         }
 

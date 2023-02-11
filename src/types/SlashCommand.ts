@@ -1,5 +1,7 @@
 import { ButtonInteraction, ChatInputCommandInteraction, Client, MessageContextMenuCommandInteraction, ModalSubmitInteraction, StringSelectMenuInteraction, UserContextMenuCommandInteraction } from "discord.js";
 
+export type SlashCommandReturnValue = Promise<Error | string | void>;
+
 interface SlashCommand {
     /**
      * The name of the command.
@@ -21,32 +23,32 @@ interface SlashCommand {
     /**
      * The main function that executes when a normal slash command is run
      */
-    run?: (_interaction: ChatInputCommandInteraction, _client: Client, ..._args: Array<object>) => Promise<string | void>,
+    run?: (_interaction: ChatInputCommandInteraction, _client: Client, ..._args: Array<object>) => SlashCommandReturnValue,
 
     /**
      * The function that executes when a modal is submitted
      */
-    runModal?: (_modal: ModalSubmitInteraction, _client: Client) => Promise<string | void>,
+    runModal?: (_modal: ModalSubmitInteraction, _client: Client) => SlashCommandReturnValue,
 
     /**
      * The function that executes when a button is clicked
      */
-    runButton?: (_interaction: ButtonInteraction, _client: Client) => Promise<string | void>,
+    runButton?: (_interaction: ButtonInteraction, _client: Client) => SlashCommandReturnValue,
 
     /**
      * The function that executes when a user context command is run
      */
-    runUserContextCommand?: (_interaction: UserContextMenuCommandInteraction, _client: Client) => Promise<string | void>,
+    runUserContextCommand?: (_interaction: UserContextMenuCommandInteraction, _client: Client) => SlashCommandReturnValue,
 
     /**
      * The function that executes when a message context command is run
      */
-    runMessageContextCommand?: (_interaction: MessageContextMenuCommandInteraction, _client: Client) => Promise<string | void>,
+    runMessageContextCommand?: (_interaction: MessageContextMenuCommandInteraction, _client: Client) => SlashCommandReturnValue,
 
     /**
      * The function that executes when a select menu is clicked
      */
-    runSelectMenu?: (_interaction: StringSelectMenuInteraction, _client: Client) => Promise<string | void>
+    runSelectMenu?: (_interaction: StringSelectMenuInteraction, _client: Client) => SlashCommandReturnValue
 }
 
 export default SlashCommand;

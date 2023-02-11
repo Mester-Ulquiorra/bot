@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, User } from "discord.js";
+import { ActionRowBuilder, APIActionRowComponent, APIButtonComponent, ButtonBuilder, ButtonStyle, EmbedBuilder, User } from "discord.js";
 import config from "../config.js";
 import { PunishmentType } from "../database/PunishmentConfig.js";
 import UserConfig from "../database/UserConfig.js";
@@ -104,10 +104,10 @@ export const CanPerformPunishment = function (user: DBUser, punishmentType: Puni
     return (checkDuration !== 0 && checkDuration >= duration);
 };
 
-interface CreateModEmbedOptions {
-    anti?: boolean,
+interface CreateModEmbedOptions<T extends boolean, U extends boolean> {
+    anti?: U,
     backupType?: number,
-    userEmbed?: boolean,
+    userEmbed?: T,
     detail?: string,
     reason?: string
 }
@@ -139,57 +139,60 @@ function addDurationField(embed: EmbedBuilder, punishmentType: number, actionNam
     }]);
 }
 
+type ModEmbed<T extends boolean, U extends boolean> = T extends true ? (U extends false ? { embed: EmbedBuilder, components: [APIActionRowComponent<APIButtonComponent>] } : EmbedBuilder) : EmbedBuilder;
 /**
  * A function for creating an universal mod embed
  */
-export const CreateModEmbed = function (mod: User, target: User | string, punishment: DBPunishment, options?: CreateModEmbedOptions) {
+export function CreateModEmbed<T extends boolean = false, U extends boolean = false>(mod: User, target: User | string, punishment: DBPunishment, options: CreateModEmbedOptions<T, U> = {}): ModEmbed<T, U> {
     // first get a string representation of the action
-    const modActionName = getModActionName(punishment?.type ?? options?.backupType, options?.anti);
+    const modActionName = getModActionName(punishment?.type ?? options.backupType, options.anti);
 
     const targetString = typeof target === "string" ? `<@${target}>` : target.toString();
 
     const embed = CreateEmbed(
         // if it's a user embed, replace the member with "you"
-        options?.userEmbed
+        options.userEmbed
             ? `**You have been ${modActionName} by ${mod}!**`
             : `**${targetString} has been ${modActionName} by ${mod}!**`,
-        { color: options?.userEmbed ? EmbedColor.Info : EmbedColor.Success }
+        { color: options.userEmbed ? EmbedColor.Info : EmbedColor.Success }
     );
 
     // if this is an anti punishment, and there is an explicit reason given, add it
-    if (options?.anti && options?.reason)
+    if (options.anti && options.reason)
         embed.addFields([{ name: "Reason", value: options.reason, inline: false }]);
 
     // now add the "real" reason, but call it "Original reason", if this is an anti punishment
     embed.addFields([{
-        name: options?.anti ? "Original reason" : "Reason",
+        name: options.anti ? "Original reason" : "Reason",
         value: punishment?.reason ?? "#unknown#",
         inline: false
     }]);
 
     // set the footer to the punishment id
-    const footer = `Punishment ID: ${punishment?.punishmentId ?? "#unknown#"} ` + ((punishment.automated && options?.userEmbed && !options?.anti) ? "(this is an automated punishment, false positives might occur)" : "");
+    const footer = `Punishment ID: ${punishment?.punishmentId ?? "#unknown#"} ` + ((punishment.automated && options.userEmbed && !options.anti) ? "(this is an automated punishment, false positives might occur)" : "");
     embed.setFooter({ text: footer });
 
     // we're done with the basic stuff, but if this is an anti punishment, we also need to add the original moderator
-    if (options?.anti) {
+    if (options.anti) {
         embed.addFields([{
             name: "Original moderator",
             value: punishment == null ? "#unknown#" : `<@${punishment.mod}>`,
             inline: true
         }]);
-        return embed;
+
+        return <ModEmbed<T, U>>embed;
     }
 
     // now add the duration
     addDurationField(embed, punishment?.type, modActionName, punishment?.until ?? -1);
 
     // if detail is set, add it
-    if (options?.detail && !options?.userEmbed)
-        embed.addFields([{ name: "Details", value: options?.detail, inline: false }]);
+    if (options.detail && !options.userEmbed)
+        embed.addFields([{ name: "Details", value: options.detail, inline: false }]);
 
-    return embed;
-};
+    if (options.userEmbed) return <ModEmbed<T, U>>{ embed, components: [CreateAppealButton(punishment.type === PunishmentType.Ban)] };
+    else return <ModEmbed<T, U>>embed;
+}
 
 export const CreateAppealButton = function (isBan = false) {
     return !isBan ?

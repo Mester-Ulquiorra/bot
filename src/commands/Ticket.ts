@@ -7,7 +7,7 @@ import SlashCommand from "../types/SlashCommand.js";
 import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
-import { CanManageUser, ModNameToLevel } from "../util/ModUtil.js";
+import { CanManageUser, ModNameToLevel } from "../util/ModUtils.js";
 import { CanManageTicket, ChannelIsTicket, CreateTicket, CreateWaitingforMessage, ReloadTicketPermissions, TicketTypeToName } from "../util/TicketUtils.js";
 
 const TicketCreateRegex = /^ticket\.create[0-3]$/;
