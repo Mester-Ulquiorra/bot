@@ -18,13 +18,6 @@ import { ChannelIsTicket } from "./TicketUtils.js";
 const MassMentionThreshold = 5;
 
 /**
- * Array containing channel ids where link detection should be absolutely excluded.
- */
-const AbsoluteNoSearch = [
-    "992888358789459998", // level 100 chat
-];
-
-/**
  * The main function of Reishi.
  * @param message The message to check.
  * @param client The bot client.
@@ -35,7 +28,7 @@ export const CheckMessage = async function (message: Message, client: Client): P
     if (message.author.bot) return true;
 
     // check if the message's channel is an absolute no search channel
-    if (AbsoluteNoSearch.includes(message.channel.id)) return true;
+    if (config.channels.AbsoluteNoSearch.includes(message.channel.id)) return true;
 
     if (message.channel.isDMBased()) return true;
 

@@ -4,7 +4,7 @@ import Event from "../types/Event.js";
 import { GetSpecialChannel } from "../util/ClientUtils.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 
-const MAX_CONTENT_LENGTH = 1021;
+const MaxContentLength = 1021;
 
 const MessageDeleteEvent: Event = {
     name: "messageDelete",
@@ -36,8 +36,8 @@ const MessageDeleteEvent: Event = {
                 {
                     name: "Content",
                     // this weird thing appends "..." to the end of the message content if it's too long
-                    value: message.content.length > MAX_CONTENT_LENGTH
-                        ? `${message.content.substring(0, MAX_CONTENT_LENGTH)}...`
+                    value: message.content.length > MaxContentLength
+                        ? `${message.content.substring(0, MaxContentLength)}...`
                         : message.content,
                     inline: false,
                 },

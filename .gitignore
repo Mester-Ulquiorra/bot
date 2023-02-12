@@ -7,7 +7,7 @@
 
 package-lock.json
 CreateCommands-old.js
-DB-key.pem
+*.pem
 sonar-project.properties
 
 node_modules

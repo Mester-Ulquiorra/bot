@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { ActionRowBuilder, APISelectMenuOption, ButtonBuilder, ButtonInteraction, ButtonStyle, ComponentType, GuildMember, InteractionCollector, Message, StringSelectMenuBuilder } from "discord.js";
 import * as path from "path";
 import { fileURLToPath } from "url";
+import config from "../config.js";
 import SlashCommand from "../types/SlashCommand.js";
 import { SnowFlake } from "../Ulquiorra.js";
 import { GetGuild } from "../util/ClientUtils.js";
@@ -666,34 +667,7 @@ class ChessGame {
      * @returns An emoji representing the piece
      */
     static getPieceEmoji(piece: chess.Piece): string {
-        switch (piece.type) {
-            case chess.PAWN:
-                return piece.color === chess.WHITE
-                    ? "1005159635038261388"
-                    : "1005159627547222156";
-            case chess.BISHOP:
-                return piece.color === chess.WHITE
-                    ? "1005159637051506800"
-                    : "1005159629761822720";
-            case chess.KNIGHT:
-                return piece.color === chess.WHITE
-                    ? "1005159633696084029"
-                    : "1005159626498646119";
-            case chess.ROOK:
-                return piece.color === chess.WHITE
-                    ? "1005159631099809843"
-                    : "1005159623881404497";
-            case chess.QUEEN:
-                return piece.color === chess.WHITE
-                    ? "1005159636330086490"
-                    : "1005159628570636288";
-            case chess.KING:
-                return piece.color === chess.WHITE
-                    ? "1005159632081268757"
-                    : "1005159625173250190";
-            default:
-                return "❓";
-        }
+        return config.ChessPieceEmojis.get({ piece: piece.type, color: piece.color }) ?? "❓";
     }
 }
 

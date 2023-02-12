@@ -5,7 +5,7 @@ import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import Log from "../util/Log.js";
 import ManageRole from "../util/ManageRole.js";
-import { CanManageUser, ModNameToId, ModNameToLevel, ModType } from "../util/ModUtils.js";
+import { CanManageUser, ModName, ModNameToId, ModNameToLevel } from "../util/ModUtils.js";
 
 const SetModCommand: SlashCommand = {
     name: "setmod",
@@ -55,36 +55,36 @@ const SetModCommand: SlashCommand = {
  */
 async function SetModRole(member: GuildMember, modLevel: number) {
     // remove head and test mod role
-    if (modLevel !== ModNameToLevel("Head")) ManageRole(member, ModNameToId(ModType.Head), "Remove");
-    if (modLevel !== ModNameToLevel("Test")) ManageRole(member, ModNameToId(ModType.Test), "Remove");
-    if (modLevel <= 0 || modLevel >= ModNameToLevel("Head")) ManageRole(member, ModNameToId(ModType.Base), "Remove");
+    if (modLevel !== ModNameToLevel("Head")) ManageRole(member, ModNameToId("Head"), "Remove");
+    if (modLevel !== ModNameToLevel("Test")) ManageRole(member, ModNameToId("Test"), "Remove");
+    if (modLevel <= 0 || modLevel >= ModNameToLevel("Head")) ManageRole(member, ModNameToId("Base"), "Remove");
 
     // go through basemod names and remove all roles
-    for (const modName of [1, 2, 3]) {
-        if (modLevel !== modName) await ManageRole(member, ModNameToId(modName), "Remove");
+    for (const modName of ["Level 1", "Level 2", "Level 3"] as ModName[]) {
+        if (modLevel !== ModNameToLevel(modName)) await ManageRole(member, ModNameToId(modName), "Remove");
     }
 
     // if modlevel is between 1 and 3 add the normal mod role
     if (modLevel >= 1 && modLevel < ModNameToLevel("Head")) {
-        ManageRole(member, ModNameToId(ModType.Base), "Add");
+        ManageRole(member, ModNameToId("Base"), "Add");
     }
 
     // now that we've fucked up the roles, we need to add the correct ones
     switch (modLevel) {
         case 1:
-            ManageRole(member, ModNameToId(ModType.Level1), "Add");
+            ManageRole(member, ModNameToId("Level 1"), "Add");
             break;
         case 2:
-            ManageRole(member, ModNameToId(ModType.Level2), "Add");
+            ManageRole(member, ModNameToId("Level 2"), "Add");
             break;
         case 3:
-            ManageRole(member, ModNameToId(ModType.Level3), "Add");
+            ManageRole(member, ModNameToId("Level 3"), "Add");
             break;
-        case 4: // head
-            ManageRole(member, ModNameToId(ModType.Head), "Add");
+        case 4:
+            ManageRole(member, ModNameToId("Head"), "Add");
             break;
-        case -1: // test
-            ManageRole(member, ModNameToId(ModType.Test), "Add");
+        case -1:
+            ManageRole(member, ModNameToId("Test"), "Add");
             break;
     }
 }

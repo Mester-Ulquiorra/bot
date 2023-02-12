@@ -38,8 +38,8 @@ async function startGiveaway(interaction: ChatInputCommandInteraction) {
     if (!(interaction.member as GuildMember).roles.cache.has(config.GiveawayRole) && !interaction.memberPermissions.has(PermissionsBitField.Flags.Administrator))
         return GetError("Permission");
 
-    if (!interaction.memberPermissions.has(PermissionsBitField.Flags.Administrator) && interaction.channelId !== config.GiveawayChannel)
-        return `You can only use this command in <#${config.GiveawayChannel}>`;
+    if (!interaction.memberPermissions.has(PermissionsBitField.Flags.Administrator) && interaction.channelId !== config.channels.GiveawayChannel)
+        return `You can only use this command in <#${config.channels.GiveawayChannel}>`;
 
     const name = interaction.options.getString("name");
     const duration = ConvertDuration(interaction.options.getString("duration"));
@@ -75,12 +75,12 @@ async function startGiveaway(interaction: ChatInputCommandInteraction) {
     message.react(GiveawayEmoji);
 
     const giveaway = await GiveawayConfig.create({
-        id: giveawayId,
+        giveawayId,
         message: message.id,
         channel: message.channelId,
         name,
         host: interaction.user.id,
-        start: Date.now(),
+        start: Math.floor(Date.now() / 1000),
         end,
         winners,
     });
@@ -119,6 +119,8 @@ async function endGiveaway(giveaway: IDBGiveaway) {
         // remove the "Ends" and "Winners" fields
         embed.data.fields.shift();
         embed.data.fields.shift();
+
+        embed.setDescription(embed.data.description.split("\n")[0] + `\nEnded on <t:${Math.floor(Date.now() / 1000)}>`);
 
         message.edit({ embeds: [embed] });
         message.reactions.removeAll();
@@ -181,7 +183,7 @@ function getWinners(users: Array<User>, winners: number): Array<User> {
 
 // set up an interval to automatically end giveaways
 setInterval(async () => {
-    const giveaways = await GiveawayConfig.find({ ended: false, end: { $lte: Date.now() } }).sort({ start: 1 });
+    const giveaways = await GiveawayConfig.find({ ended: false, end: { $lte: Math.floor(Date.now() / 1000) } }).sort({ start: 1 });
 
     for (const giveaway of giveaways) {
         endGiveaway(giveaway);

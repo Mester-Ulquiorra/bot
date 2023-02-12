@@ -1,16 +1,8 @@
 import { Message } from "discord.js";
-
-/**
- * the channel ids, where normal links shouldn't be checked (this doesn't include discord invites)
- */
-const ExcludeNormalSearch = [
-    "841687705989152778", // media
-    "1005570504817655930", // bot commands
-    "1008039145563750420", // music commands
-];
+import config from "../../config.js";
 
 export const DiscordInviteRegExp = /discord(?:app)?\.com\/(?:(friend-)?invite|servers)?\/([a-z0-9-]+)|discord\.gg\/(?:\S+\/)?([a-z0-9-]+)/m;
-export const UrlRegExp = /https?:\/\/(?:www\.)?([-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b)*(\/[/\d\w.-]*)*(?:[?])*(.+)*/i;
+export const UrlRegExp = /https?:\/\/(?:www\.)?([\w@:%.+~#=]{2,256}\.[a-z]{2,6}\b)*(\/[/\w.-]*)*(?:[?])*(.+)*/i;
 
 /**
  *
@@ -23,9 +15,18 @@ export default function (message: Message) {
     if (discordInvite) return discordInvite[0];
 
     // check if we're in an excluded channel
-    if (ExcludeNormalSearch.includes(message.channelId)) {
+    if (config.channels.ExcludeNormalSearch.includes(message.channelId)) {
         return null;
     }
 
-    return message.content.match(DiscordInviteRegExp)?.[0];
+    return DetectLink(message.content);
+}
+
+/**
+ * Internal function for detecting links
+ * @param string The string to detect links in
+ */
+export function DetectLink(string: string) {
+    // try to find a link and return it (either null or the link)
+    return string.match(DiscordInviteRegExp)?.[0] || string.match(UrlRegExp)?.[0];
 }

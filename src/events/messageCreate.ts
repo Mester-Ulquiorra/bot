@@ -23,7 +23,7 @@ const MessageCreateEvent: Event = {
             message.author.send({
                 embeds: [
                     CreateEmbed(HelpMessage, {
-                        title: `How the xp system on ${message.guild.name} works in 2 minutes:`,
+                        title: `How the xp system in ${message.guild.name} works in 2 minutes:`,
                         color: EmbedColor.Success,
                     }),
                 ],
@@ -76,7 +76,7 @@ async function handleSuperuserCommand(client: Client, message: Message) {
             { color: EmbedColor.Success },
         ).setFooter({ text: "Remember: abusing this system can lead to punishments" });
 
-        GetGuild().channels.fetch("812699682391457812").then((channel: TextChannel) => {
+        GetGuild().channels.fetch(config.channels.TicketsChannel).then((channel: TextChannel) => {
             channel.send({ embeds: [embed], components });
         });
     }
@@ -99,7 +99,7 @@ async function handleSuperuserCommand(client: Client, message: Message) {
             }
         ).setFooter({ text: "Watch out, there's a 2 minute cooldown!" });
 
-        const verifyChannel = await GetGuild().channels.fetch("1006077960584970280") as TextChannel;
+        const verifyChannel = await GetGuild().channels.fetch(config.channels.VerifyChannel) as TextChannel;
 
         verifyChannel.send({ embeds: [embed], components });
     }

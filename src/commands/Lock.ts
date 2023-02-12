@@ -1,4 +1,5 @@
 import { ChatInputCommandInteraction, TextChannel } from "discord.js";
+import config from "../config.js";
 import SlashCommand from "../types/SlashCommand.js";
 import { GetGuild } from "../util/ClientUtils.js";
 import { GetUserConfig } from "../util/ConfigHelper.js";
@@ -6,13 +7,6 @@ import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import Log from "../util/Log.js";
 import { ModNameToLevel } from "../util/ModUtils.js";
-
-const EveryoneRoleId = "775789526781263912";
-
-/**
- * An array with the ids of channels to lock when an all lock is executed.
- */
-const LockAllIds = ["841687635109478440", "841687705989152778", "1005570504817655930", "1008039145563750420"];
 
 const LockCommand: SlashCommand = {
     name: "lock",
@@ -49,7 +43,7 @@ const LockCommand: SlashCommand = {
         if (lock_all) {
             // fetch all channels that are in the all lock id array
             const channelsToLock = (await GetGuild().channels.fetch()).filter(
-                (channel) => LockAllIds.includes(channel.id)
+                (channel) => config.channels.LockAllIds.includes(channel.id)
             );
 
             for (const [_, channel] of channelsToLock) {
@@ -96,7 +90,7 @@ async function lockOne(channel: TextChannel, lock: boolean, reason: string, inte
 }
 
 async function lockChannel(channel: TextChannel, interaction: ChatInputCommandInteraction, lock = true,) {
-    return channel.permissionOverwrites.edit(EveryoneRoleId, {
+    return channel.permissionOverwrites.edit(config.EveryoneRole, {
         SendMessages: lock ? false : null,
         SendMessagesInThreads: lock ? false : null,
     }, {

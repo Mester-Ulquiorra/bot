@@ -55,10 +55,12 @@ const Ulquiorra = new Client({
     }
 });
 
-Mongoose.connect(`mongodb+srv://ulquiorra@${process.env.DB_URL}/discord-database?retryWrites=true&w=majority`, {
+Mongoose.connect(`mongodb+srv://${process.env.DB_URL}/${process.env.DB_NAME}`, {
     authMechanism: "MONGODB-X509",
-    sslCert: join(__dirname, "..", "DB-key.pem"),
-    sslKey: join(__dirname, "..", "DB-key.pem"),
+    sslCert: join(__dirname, "..", process.env.DB_KEY),
+    sslKey: join(__dirname, "..", process.env.DB_KEY),
+    retryWrites: true,
+    w: "majority"
 }).catch((err) => {
     Log("An error has happened while trying to connect to the database, which is a fatal issue. Terminating...", LogType.Fatal);
     Log(err, LogType.Fatal);

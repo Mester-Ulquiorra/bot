@@ -25,6 +25,12 @@ function getColor(color: EmbedColor): ColorResolvable {
     }
 }
 
+/**
+ * Function for creating a universal embed with extra options
+ * @param description The description field of the embed
+ * @param options Extra options for the embed, including the author field, color and title
+ * @returns The EmbedBuilder object that can be used for post-processing or sending right away
+ */
 export default function (description: string, options: EmbedOptions = {}) {
     const embed = new EmbedBuilder()
         .setDescription(description)

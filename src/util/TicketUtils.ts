@@ -6,7 +6,7 @@ import { SnowFlake } from "../Ulquiorra.js";
 import { GetGuild } from "./ClientUtils.js";
 import { GetUserConfig } from "./ConfigHelper.js";
 import CreateEmbed, { EmbedColor } from "./CreateEmbed.js";
-import { ModName, ModNameToId, ModNameToLevel, ModType } from "./ModUtils.js";
+import { ModName, ModNameToId, ModNameToLevel } from "./ModUtils.js";
 
 export const CreateTicket = async function (
     ticketOwner: GuildMember,
@@ -260,7 +260,7 @@ export const ReloadTicketPermissions = async function (channel: TextChannel, tic
     }
 
     channel.permissionOverwrites
-        .create(ModNameToId(ModType.Head), {
+        .create(ModNameToId("Head"), {
             ViewChannel: ModNameToLevel("Head") >= modlevel,
             SendMessages: true,
             ManageMessages: true,
@@ -272,9 +272,9 @@ export const ReloadTicketPermissions = async function (channel: TextChannel, tic
     // now we are at the normal mods
     // let's go through them, cause cool
     for (let i = 1; i <= ModNameToLevel("Level 3"); i++) {
-        const mod_role_id = ModNameToId(i);
+        const modRoleId = ModNameToId(`Level ${i}` as ModName);
         channel.permissionOverwrites
-            .create(mod_role_id, {
+            .create(modRoleId, {
                 ViewChannel: ModNameToLevel(`Level ${i}` as ModName) >= modlevel,
                 SendMessages: false, // this is so only the claimer mod can send messages
             })

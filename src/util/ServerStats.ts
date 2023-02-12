@@ -1,10 +1,8 @@
+import config from "../config.js";
 import { GetGuild } from "./ClientUtils.js";
 import Log, { LogType } from "./Log.js";
 
-const MembersChannelId = "811680790370058271";
-const BoostChannelId = "979763624916684862";
-
-export default async function() {
+export default async function () {
     try {
         const guild = GetGuild();
 
@@ -12,15 +10,15 @@ export default async function() {
         const bots = 1;
 
         // edit the members channel
-        guild.channels.fetch(MembersChannelId).then((channel) => {
+        guild.channels.fetch(config.channels.MembersChannel).then((channel) => {
             channel.edit({ name: `Members: ${guild.memberCount - bots}` });
         });
 
         // edit the boost channel
-        guild.channels.fetch(BoostChannelId).then((channel) => {
+        guild.channels.fetch(config.channels.BoostChannel).then((channel) => {
             channel.edit({ name: `Boosts: ${guild.premiumSubscriptionCount}` });
         });
-    } catch(error) {
+    } catch (error) {
         Log(`Couldn't refresh server stats: ${error.stack}`, LogType.Warn);
     }
 }

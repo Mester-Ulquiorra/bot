@@ -1,44 +1,33 @@
 import { ActionRowBuilder, APIActionRowComponent, APIButtonComponent, ButtonBuilder, ButtonStyle, EmbedBuilder, User } from "discord.js";
 import config from "../config.js";
 import { PunishmentType } from "../database/PunishmentConfig.js";
-import UserConfig from "../database/UserConfig.js";
 import { DBPunishment, DBUser } from "../types/Database.js";
 import CreateEmbed, { EmbedColor } from "./CreateEmbed.js";
 
-const userSchema = UserConfig.schema.obj;
-
-export enum ModType {
-    Base = 0,
+enum ModLevel {
     Level1 = 1,
-    Level2 = 2,
-    Level3 = 3,
-    Head = 4,
-    Admin = 5,
+    Level2,
+    Level3,
+    Head,
+    Admin,
+    Owner,
     Test = -1
 }
 
 export type ModName = "Base" | "Level 1" | "Level 2" | "Level 3" | "Head" | "Admin" | "Owner" | "Test";
 
 /**
- * A map of the mod role ids.
+ * Convert a mod level to its string representation
+ * @param level The level of the mod as a number
+ * @returns The string representation of that mod level
  */
-const ModRoleIds = new Map<ModType, string>([
-    [ModType.Base, "812701332250951682"],
-    [ModType.Level1, "977969136216993883"],
-    [ModType.Level2, "977969134442790982"],
-    [ModType.Level3, "977969128071651368"],
-    [ModType.Head, "846696368419373057"],
-    [ModType.Admin, "835532621664354404"],
-    [ModType.Test, "985576003969646634"],
-]);
-
-export const ModLevelToName = function (level: number): string {
+export const ModLevelToName = function (level: ModLevel): string {
     switch (true) {
-        case level === -1: return "Test mod";
-        case level >= ModType.Level1 && level <= ModType.Level3: return "Mod";
-        case level === ModType.Head: return "Head mod";
-        case level === ModType.Admin: return "Admin";
-        case level === 6: return "Owner";
+        case level === ModLevel.Test: return "Test mod";
+        case level >= ModLevel.Level1 && level <= ModLevel.Level3: return "Mod";
+        case level === ModLevel.Head: return "Head mod";
+        case level === ModLevel.Admin: return "Admin";
+        case level === ModLevel.Owner: return "Owner";
         default: return "Member";
     }
 };
@@ -60,16 +49,16 @@ export const ModNameToLevel = function (name: ModName): number {
 };
 
 /**
- * A function to connvert a mod name to the role id
+ * A function to convert a mod name to the role id
  */
-export const ModNameToId = function (name: ModType): string {
-    return ModRoleIds.get(name);
+export const ModNameToId = function (name: ModName): string {
+    return config.ModRoleIds.get(name);
 };
 
 export const CanManageUser = function (user: DBUser, target: DBUser): boolean {
-    if (user.mod == 0) return false;
+    if (user.mod === 0) return false;
     if (user.userId == target.userId) return false;
-    if (target.mod != 0 && user.mod < ModNameToLevel("Head")) return false;
+    if (target.mod !== 0 && user.mod < ModNameToLevel("Head")) return false;
     if (user.mod <= target.mod) return false;
 
     return true;

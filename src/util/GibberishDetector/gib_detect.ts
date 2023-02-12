@@ -150,6 +150,11 @@ try {
     console.log(e);
 }
 
+/**
+ * Main function for detecting if a string contains gibberish
+ * @param line The string to detect gibberish in
+ * @returns True if the string is gibberish, false otherwise
+ */
 export default function (line: string) {
     return (
         averageTransitionProbability(line, model_data.matrix) >

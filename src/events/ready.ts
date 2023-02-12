@@ -42,7 +42,7 @@ const verifyCooldown = new Map<string, number>();
 
 async function setupVerifyListener() {
     // get the verify channel
-    const verifyChannel = await GetGuild().channels.fetch("1006077960584970280") as TextChannel;
+    const verifyChannel = await GetGuild().channels.fetch(config.channels.VerifyChannel) as TextChannel;
 
     // fetch the first message in the verify channel (should be ours);
     const verifyMessage = (await verifyChannel.messages.fetch())

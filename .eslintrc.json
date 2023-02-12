@@ -7,6 +7,8 @@
         "eslint:recommended",
         "plugin:@typescript-eslint/recommended"
     ],
+    "ignorePatterns": ["node_modules/**/*", "*.js"],
+    // hi people this is a comment!!!
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
         "ecmaVersion": "latest",

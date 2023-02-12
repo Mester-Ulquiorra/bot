@@ -71,8 +71,7 @@ export default async function (message: Message): Promise<string> {
         }
     });
 
-    inputMessage.react("✅");
-    inputMessage.react("❌");
+    inputMessage.react("✅").then(() => { inputMessage.react("❌"); });
 
     return inputMessage.awaitReactions({
         max: 1,
