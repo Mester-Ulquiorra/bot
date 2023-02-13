@@ -35,11 +35,11 @@ const GiveawayCommand: SlashCommand = {
 
 async function startGiveaway(interaction: ChatInputCommandInteraction) {
     // check if member has Giveaway role
-    if (!(interaction.member as GuildMember).roles.cache.has(config.GiveawayRole) && !interaction.memberPermissions.has(PermissionsBitField.Flags.Administrator))
+    if (!(interaction.member as GuildMember).roles.cache.has(config.roles.Giveaway) && !interaction.memberPermissions.has(PermissionsBitField.Flags.Administrator))
         return GetError("Permission");
 
-    if (!interaction.memberPermissions.has(PermissionsBitField.Flags.Administrator) && interaction.channelId !== config.channels.GiveawayChannel)
-        return `You can only use this command in <#${config.channels.GiveawayChannel}>`;
+    if (!interaction.memberPermissions.has(PermissionsBitField.Flags.Administrator) && interaction.channelId !== config.channels.Giveaway)
+        return `You can only use this command in <#${config.channels.Giveaway}>`;
 
     const name = interaction.options.getString("name");
     const duration = ConvertDuration(interaction.options.getString("duration"));

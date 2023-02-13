@@ -23,13 +23,13 @@ export default async function (message: Message): Promise<string> {
 
     // check if the user is a mod or they have the protected role
     const userConfig = await GetUserConfig(message.author.id);
-    if (userConfig.mod !== 0 || message.member.roles.cache.has(config.ProtectedRole)) return null;
+    if (userConfig.mod !== 0 || message.member.roles.cache.has(config.roles.Protected)) return null;
 
     // check if the message contains a mention with the protected role
     const protectedPings = [...new Set(
         message.mentions.members
             .map(member => member)
-            .filter(member => member.roles.cache.has(config.ProtectedRole))
+            .filter(member => member.roles.cache.has(config.roles.Protected))
     )];
 
     if (protectedPings.length === 0) return null;

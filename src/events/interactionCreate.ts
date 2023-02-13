@@ -63,7 +63,9 @@ const InteractionCreateEvent: Event = {
             if (interaction.isChatInputCommand()) returnStatus = command.run(interaction, client);
             if (interaction.isButton()) returnStatus = command.runButton(interaction, client);
             if (interaction.isModalSubmit()) returnStatus = command.runModal(interaction, client);
-            if (interaction.isStringSelectMenu()) returnStatus = command.runSelectMenu(interaction, client);
+            if (interaction.isStringSelectMenu()) returnStatus = command.runStringSelectMenu(interaction, client);
+            if (interaction.isRoleSelectMenu()) returnStatus = command.runRoleSelectMenu(interaction, client);
+            if (interaction.isMentionableSelectMenu()) returnStatus = command.runMentionableSelectMenu(interaction, client);
             if (interaction.isMessageContextMenuCommand()) returnStatus = command.runMessageContextCommand(interaction, client);
             if (interaction.isUserContextMenuCommand()) returnStatus = command.runUserContextCommand(interaction, client);
             returnMessage = await returnStatus.then(result => { return result; }).catch((error) => { return error; });

@@ -41,7 +41,7 @@ const TictactoeCommand: SlashCommand = {
         }
     },
 
-    async runSelectMenu(interaction, client) {
+    async runStringSelectMenu(interaction, client) {
         // get page
         const page = Number.parseInt(interaction.values[0]);
 

@@ -1,15 +1,15 @@
 import { Client, ComponentType, TextChannel } from "discord.js";
+import sharp from "sharp";
+import { create as svgCreate } from "svg-captcha";
 import config from "../config.js";
 import Event from "../types/Event.js";
-import { GetGuild } from "../util/ClientUtils.js";
-import Log from "../util/Log.js";
-import { create as svgCreate } from "svg-captcha";
-import sharp from "sharp";
-import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
-import ManageRole from "../util/ManageRole.js";
-import AutoUnpunish from "../util/AutoUnpunish.js";
-import ServerStats from "../util/ServerStats.js";
 import Ulquiorra from "../Ulquiorra.js";
+import AutoUnpunish from "../util/AutoUnpunish.js";
+import { GetGuild } from "../util/ClientUtils.js";
+import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
+import Log from "../util/Log.js";
+import ManageRole from "../util/ManageRole.js";
+import ServerStats from "../util/ServerStats.js";
 
 const ReadyEvent: Event = {
     name: "ready",
@@ -42,7 +42,7 @@ const verifyCooldown = new Map<string, number>();
 
 async function setupVerifyListener() {
     // get the verify channel
-    const verifyChannel = await GetGuild().channels.fetch(config.channels.VerifyChannel) as TextChannel;
+    const verifyChannel = await GetGuild().channels.fetch(config.channels.Verify) as TextChannel;
 
     // fetch the first message in the verify channel (should be ours);
     const verifyMessage = (await verifyChannel.messages.fetch())
@@ -131,7 +131,7 @@ async function setupVerifyListener() {
                                 // give them the role
                                 ManageRole(
                                     interaction.member,
-                                    config.MemberRole,
+                                    config.roles.Member,
                                     "Add",
                                     "verified user"
                                 );

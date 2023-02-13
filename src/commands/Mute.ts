@@ -29,7 +29,7 @@ const MuteCommand: SlashCommand = {
 
         if (!CanManageUser(userConfig, targetConfig) || target.user.bot) return GetError("BadUser");
 
-        if (targetConfig.muted && (await ManageRole(target, config.MutedRole, "Check"))) return "Member is already muted";
+        if (targetConfig.muted && (await ManageRole(target, config.roles.Muted, "Check"))) return "Member is already muted";
 
         const punishmentId = SnowFlake.getUniqueID().toString();
 
@@ -43,7 +43,7 @@ const MuteCommand: SlashCommand = {
             until: duration === -1 ? -1 : Math.floor(Date.now() / 1000) + duration
         });
 
-        ManageRole(target, config.MutedRole, "Add", `Muted by ${interaction.user.tag}: ${reason}`);
+        ManageRole(target, config.roles.Muted, "Add", `Muted by ${interaction.user.tag}: ${reason}`);
 
         targetConfig.muted = true;
         await targetConfig.save();

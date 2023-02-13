@@ -90,7 +90,7 @@ async function lockOne(channel: TextChannel, lock: boolean, reason: string, inte
 }
 
 async function lockChannel(channel: TextChannel, interaction: ChatInputCommandInteraction, lock = true,) {
-    return channel.permissionOverwrites.edit(config.EveryoneRole, {
+    return channel.permissionOverwrites.edit(config.roles.Everyone, {
         SendMessages: lock ? false : null,
         SendMessagesInThreads: lock ? false : null,
     }, {

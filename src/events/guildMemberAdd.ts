@@ -58,7 +58,7 @@ const GuildMemberAddEvent: Event = {
         await memberConfig.save();
 
         // check if the member is muted and if yes, add the role back
-        if (memberConfig.muted) ManageRole(member, config.MutedRole, "Add", "joined back as muted");
+        if (memberConfig.muted) ManageRole(member, config.roles.Muted, "Add", "joined back as muted");
 
         // create the embed
         const embed = CreateEmbed(`**Let's welcome our new member, ${member}!**`)

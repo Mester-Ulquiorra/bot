@@ -29,7 +29,7 @@
         "zlib-sync": "^0.1.7"
     },
     "name": "ulquiorra",
-    "version": "4.3.1",
+    "version": "4.3.1-selfroles",
     "type": "module",
     "exports": "./dist/Ulquiorra",
     "devDependencies": {

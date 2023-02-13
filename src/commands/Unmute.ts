@@ -30,7 +30,7 @@ const UnmuteCommand: SlashCommand = {
         if (!CanManageUser(userConfig, targetConfig) || target.user.bot) return GetError("BadUser");
 
         // check if member is muted
-        if (!targetConfig.muted && !(await ManageRole(target, config.MutedRole, "Check")))
+        if (!targetConfig.muted && !(await ManageRole(target, config.roles.Muted, "Check")))
             return "Member is not muted.";
 
         // get the member's latest active mute punishment
@@ -53,7 +53,7 @@ const UnmuteCommand: SlashCommand = {
         await targetConfig.save();
 
         // remove the muted role
-        ManageRole(target, config.MutedRole, "Remove");
+        ManageRole(target, config.roles.Muted, "Remove");
 
         // log
         Log(`${target.user.tag} (${target.id}) has been unmuted by ${interaction.user.tag} (${interaction.user.id}): ${reason}`);

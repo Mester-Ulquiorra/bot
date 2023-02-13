@@ -183,14 +183,14 @@ async function manageAppeal(interaction: ButtonInteraction, accepted: boolean) {
                     targetConfig.muted = false;
                     await targetConfig.save();
 
-                    const member = await GetGuild().members
+                    const targetMember = await GetGuild().members
                         .fetch(target.id)
                         .then((member) => { return member; })
                         .catch(() => { return; });
 
-                    if (!member) break;
+                    if (!targetMember) break;
 
-                    ManageRole(member, config.MutedRole, "Remove", `appeal accepted by ${interaction.user.tag}`);
+                    ManageRole(targetMember, config.roles.Muted, "Remove", `appeal accepted by ${interaction.user.tag}`);
                     break;
                 }
 
@@ -215,11 +215,22 @@ async function manageAppeal(interaction: ButtonInteraction, accepted: boolean) {
                 reason: `Punishment appeal accepted: ${bold(reason)}`
             });
 
-            target.send({ embeds: [userEmbed] })
+            target.send({
+                embeds: [userEmbed], components: punishment.type === PunishmentType.Ban ? [
+                    new ActionRowBuilder<ButtonBuilder>()
+                        .addComponents(
+                            new ButtonBuilder()
+                                .setStyle(ButtonStyle.Link)
+                                .setURL(config.ServerInvite)
+                                .setLabel("You can join back using this link!")
+                        )
+                ] : []
+            })
                 .catch(() => { return; })
-                .finally(() => {
+                .finally(async () => {
                     // kick the member from the prison
-                    GetGuild(true).members.kick(target, "appealed punishment").catch(() => { return; });
+                    const member = await GetGuild(true).members.fetch(target.id);
+                    member.kick("appealed punishment").catch(() => { return; });
                 });
             GetSpecialChannel("ModLog").send({ embeds: [modEmbed] });
         })

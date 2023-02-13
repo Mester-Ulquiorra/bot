@@ -30,7 +30,7 @@ const PunishmentInfoCommand: SlashCommand = {
         return new Error("Incorrect subcommand");
     },
 
-    async runSelectMenu(interaction, client) {
+    async runStringSelectMenu(interaction, client) {
         if (interaction.customId === "punishmentinfo.pageselector") {
             // get the user id using this very shitty and messy way
             const userId = interaction.message.embeds[0].footer.text

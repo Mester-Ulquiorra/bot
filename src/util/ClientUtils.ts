@@ -6,13 +6,12 @@ type SpecialChannelName = "ModLog" | "MessageLog" | "Welcome" | "LevelUp" | "Tes
 
 export const GetSpecialChannel = function (channelName: SpecialChannelName): GuildTextBasedChannel {
     switch (channelName) {
-        case "ModLog": return Ulquiorra.channels.cache.get(config.channels.ModLogChannel) as TextChannel;
-        case "MessageLog": return Ulquiorra.channels.cache.get(config.channels.MessageLogChannel) as TextChannel;
-        case "Welcome": return Ulquiorra.channels.cache.get(config.channels.WelcomeChannel) as TextChannel;
-        case "LevelUp": return Ulquiorra.channels.cache.get(config.channels.LevelUpChannel) as TextChannel;
-        case "TestMode": return Ulquiorra.channels.cache.get(config.channels.TestModeChannel) as TextChannel;
-        case "Appeal": return Ulquiorra.channels.cache.get(config.channels.AppealChannel) as TextChannel;
-        case "MiscLog": return Ulquiorra.channels.cache.get(config.channels.MiscLogChannel) as TextChannel;
+        case "ModLog": return Ulquiorra.channels.cache.get(config.channels.ModLog) as TextChannel;
+        case "MessageLog": return Ulquiorra.channels.cache.get(config.channels.MessageLog) as TextChannel;
+        case "Welcome": return Ulquiorra.channels.cache.get(config.channels.Welcome) as TextChannel;
+        case "LevelUp": return Ulquiorra.channels.cache.get(config.channels.LevelUp) as TextChannel;
+        case "Appeal": return Ulquiorra.channels.cache.get(config.channels.Appeal) as TextChannel;
+        case "MiscLog": return Ulquiorra.channels.cache.get(config.channels.MiscLog) as TextChannel;
     }
 };
 

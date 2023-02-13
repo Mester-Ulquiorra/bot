@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, Message, TextChannel } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, Message, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, TextChannel } from "discord.js";
 import config from "../config.js";
 import Event from "../types/Event.js";
 import { shutdown } from "../Ulquiorra.js";
@@ -54,11 +54,11 @@ async function handleSuperuserCommand(client: Client, message: Message) {
             allowedMentions: { users: [] },
         });
 
-    if (command === "ticket-test") {
+    if (command === "test-ticket") {
         CreateTicket(message.member, "test");
     }
 
-    if (command === "ticket-send") {
+    if (command === "send-ticket") {
         const rawComponent = new ActionRowBuilder<ButtonBuilder>();
 
         for (let i = 0; i < 4; i++) {
@@ -76,12 +76,12 @@ async function handleSuperuserCommand(client: Client, message: Message) {
             { color: EmbedColor.Success },
         ).setFooter({ text: "Remember: abusing this system can lead to punishments" });
 
-        GetGuild().channels.fetch(config.channels.TicketsChannel).then((channel: TextChannel) => {
+        GetGuild().channels.fetch(config.channels.Tickets).then((channel: TextChannel) => {
             channel.send({ embeds: [embed], components });
         });
     }
 
-    if (command === "verify-send") {
+    if (command === "send-verify") {
         const components = [
             new ActionRowBuilder<ButtonBuilder>().addComponents([
                 new ButtonBuilder()
@@ -99,12 +99,12 @@ async function handleSuperuserCommand(client: Client, message: Message) {
             }
         ).setFooter({ text: "Watch out, there's a 2 minute cooldown!" });
 
-        const verifyChannel = await GetGuild().channels.fetch(config.channels.VerifyChannel) as TextChannel;
+        const verifyChannel = await GetGuild().channels.fetch(config.channels.Verify) as TextChannel;
 
         verifyChannel.send({ embeds: [embed], components });
     }
 
-    if (command === "appeal-send") {
+    if (command === "send-appeal") {
         (GetGuild(true).channels.cache.get("1014272383932186656") as TextChannel)
             .send({
                 embeds: [
@@ -113,6 +113,36 @@ async function handleSuperuserCommand(client: Client, message: Message) {
                 ],
                 components: [
                     CreateAppealButton()
+                ]
+            });
+    }
+
+    if (command === "send-selfroles") {
+        (GetGuild().channels.cache.get(config.channels.SelfRoles) as TextChannel)
+            .send({
+                embeds: [
+                    CreateEmbed(`**Feel free to pick any roles you want.\nThese roles give you access to certain pings or colors (well, that will come later)!**`)
+                ],
+                components: [
+                    new ActionRowBuilder<StringSelectMenuBuilder>().setComponents(
+                        new StringSelectMenuBuilder()
+                            .setCustomId("selfroles.select")
+                            .setMaxValues(1)
+                            .setOptions(
+                                new StringSelectMenuOptionBuilder()
+                                    .setLabel("Ping for bot updates")
+                                    .setEmoji({ name: "🤖" })
+                                    .setValue("botupdate"),
+                                new StringSelectMenuOptionBuilder()
+                                    .setLabel("Ping for announcements")
+                                    .setEmoji({ name: "📢" })
+                                    .setValue("announcement"),
+                                new StringSelectMenuOptionBuilder()
+                                    .setLabel("Ping for giveaways")
+                                    .setEmoji({ name: "💰" })
+                                    .setValue("giveaway"),
+                            )
+                    )
                 ]
             });
     }

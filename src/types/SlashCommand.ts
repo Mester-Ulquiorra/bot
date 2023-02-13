@@ -1,4 +1,4 @@
-import { ButtonInteraction, ChatInputCommandInteraction, Client, MessageContextMenuCommandInteraction, ModalSubmitInteraction, StringSelectMenuInteraction, UserContextMenuCommandInteraction } from "discord.js";
+import { ButtonInteraction, ChatInputCommandInteraction, Client, MentionableSelectMenuInteraction, MessageContextMenuCommandInteraction, ModalSubmitInteraction, RoleSelectMenuInteraction, StringSelectMenuInteraction, UserContextMenuCommandInteraction } from "discord.js";
 
 export type SlashCommandReturnValue = Promise<Error | string | void>;
 
@@ -19,36 +19,43 @@ interface SlashCommand {
      * A list of message context menu commands the command can respond to.
      */
     messageContextCommandNames?: Array<string>,
-
     /**
      * The main function that executes when a normal slash command is run
      */
-    run?: (_interaction: ChatInputCommandInteraction, _client: Client, ..._args: Array<object>) => SlashCommandReturnValue,
+    run?: (interaction: ChatInputCommandInteraction, client: Client, ...args: Array<object>) => SlashCommandReturnValue,
 
     /**
      * The function that executes when a modal is submitted
      */
-    runModal?: (_modal: ModalSubmitInteraction, _client: Client) => SlashCommandReturnValue,
+    runModal?: (modal: ModalSubmitInteraction, client: Client) => SlashCommandReturnValue,
 
     /**
      * The function that executes when a button is clicked
      */
-    runButton?: (_interaction: ButtonInteraction, _client: Client) => SlashCommandReturnValue,
+    runButton?: (interaction: ButtonInteraction, client: Client) => SlashCommandReturnValue,
 
     /**
      * The function that executes when a user context command is run
      */
-    runUserContextCommand?: (_interaction: UserContextMenuCommandInteraction, _client: Client) => SlashCommandReturnValue,
+    runUserContextCommand?: (interaction: UserContextMenuCommandInteraction, client: Client) => SlashCommandReturnValue,
 
     /**
      * The function that executes when a message context command is run
      */
-    runMessageContextCommand?: (_interaction: MessageContextMenuCommandInteraction, _client: Client) => SlashCommandReturnValue,
+    runMessageContextCommand?: (interaction: MessageContextMenuCommandInteraction, client: Client) => SlashCommandReturnValue,
 
     /**
-     * The function that executes when a select menu is clicked
+     * The function that executes when a string select menu is clicked
      */
-    runSelectMenu?: (_interaction: StringSelectMenuInteraction, _client: Client) => SlashCommandReturnValue
+    runStringSelectMenu?: (interaction: StringSelectMenuInteraction, client: Client) => SlashCommandReturnValue
+    /**
+    * The function that executes when a role select menu is clicked
+    */
+    runRoleSelectMenu?: (interaction: RoleSelectMenuInteraction, client: Client) => SlashCommandReturnValue
+    /**
+   * The function that executes when a mentionable select menu is clicked
+   */
+    runMentionableSelectMenu?: (interaction: MentionableSelectMenuInteraction, client: Client) => SlashCommandReturnValue
 }
 
 export default SlashCommand;
