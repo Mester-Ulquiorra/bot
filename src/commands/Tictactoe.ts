@@ -489,7 +489,7 @@ class TicTacToeGame {
             title: `**${this.player1.username} vs. ${this.player2.username}**`,
         });
 
-        const components: Array<APIActionRowComponent<APIButtonComponent>> = [];
+        const components = new Array<APIActionRowComponent<APIButtonComponent>>();
 
         // iterate over the board
 
@@ -593,7 +593,7 @@ const getElo = (stats: DBTictactoe) => {
 
 /* ------- Leaderboard stuff ------- */
 
-const PAGE_SIZE = 10;
+const PageSize = 10;
 /**
  * A map to hold all the pages as a cache.
  */
@@ -648,7 +648,7 @@ async function ReadPage(page: number, maxPage: number): Promise<EmbedBuilder | s
     });
 
     // read from the page
-    for (let i = 0; i < PAGE_SIZE; i++) {
+    for (let i = 0; i < PageSize; i++) {
         if (!cachepage[i]) break; // we have reached the end of the page
 
         const stats = cachepage[i].stat;
@@ -661,7 +661,7 @@ async function ReadPage(page: number, maxPage: number): Promise<EmbedBuilder | s
         embed.addFields([
             {
                 // this part figures out the position of the rank in the leaderboard
-                name: `${((page - 1) * PAGE_SIZE + i + 1).toString()}. ${cachepage[i].name}`,
+                name: `${((page - 1) * PageSize + i + 1).toString()}. ${cachepage[i].name}`,
 
                 value: `Games played: ${stats.gamesPlayed} | Games won: ${stats.gamesWon} | Games lost: ${stats.gamesLost}\nWin percentage: ${win_percentage.toFixed(2) + "%"} | ELO: ${ELO}`,
 
@@ -681,7 +681,7 @@ async function ReadPage(page: number, maxPage: number): Promise<EmbedBuilder | s
 async function GetMaxPage() {
     const levelcount = await TictactoeConfig.countDocuments();
 
-    return CalculateMaxPage(levelcount, PAGE_SIZE);
+    return CalculateMaxPage(levelcount, PageSize);
 }
 
 /**
@@ -716,15 +716,15 @@ function GetPageSelector(maxPage: number) {
  */
 async function CachePage(stats: DBTictactoe[], page: number, client: Client) {
     // create a buffer to later write into cache
-    const buffer = new Array<PageCache>(PAGE_SIZE);
+    const buffer = new Array<PageCache>(PageSize);
 
     // create the start index for levels
-    const start_index = (page - 1) * PAGE_SIZE;
+    const start_index = (page - 1) * PageSize;
 
     // now read PAGE_SIZE levels
     for (
         let j = start_index;
-        j < start_index + PAGE_SIZE && j < stats.length;
+        j < start_index + PageSize && j < stats.length;
         j++
     ) {
         // read level

@@ -1,6 +1,7 @@
 import { ChatInputCommandInteraction, EmbedBuilder, GuildMember, PermissionsBitField, TextChannel, User } from "discord.js";
 import config from "../config.js";
 import GiveawayConfig, { IDBGiveaway } from "../database/GiveawayConfig.js";
+import { GiveawayFilter } from "../types/Database.js";
 import SlashCommand from "../types/SlashCommand.js";
 import { SnowFlake } from "../Ulquiorra.js";
 import { GetGuild } from "../util/ClientUtils.js";
@@ -85,7 +86,7 @@ async function startGiveaway(interaction: ChatInputCommandInteraction) {
         winners,
     });
 
-    Log(`${interaction.user.tag} (${interaction.user.id}) has created a new giveaway. ID: ${giveaway.id}`);
+    Log(`${interaction.user.tag} (${interaction.user.id}) has created a new giveaway. ID: ${giveaway.giveawayId}`);
 }
 
 async function endGiveaway(giveaway: IDBGiveaway) {
@@ -123,13 +124,12 @@ async function endGiveaway(giveaway: IDBGiveaway) {
         embed.setDescription(embed.data.description.split("\n")[0] + `\nEnded on <t:${Math.floor(Date.now() / 1000)}>`);
 
         message.edit({ embeds: [embed] });
-        message.reactions.removeAll();
 
         await giveaway.save();
         return;
     }
 
-    const winners = getWinners(users, giveaway.winners);
+    const winners = getWinners(users, giveaway.winners, giveaway.filter);
     const lastWinner = winners[winners.length - 1].toString();
     const winnerString = winners.length > 1 ? winners
         // get all winners except last
@@ -156,7 +156,7 @@ async function endGiveaway(giveaway: IDBGiveaway) {
     await giveaway.save();
 }
 
-function getWinners(users: Array<User>, winners: number): Array<User> {
+function getWinners(users: Array<User>, winners: number, filter: GiveawayFilter): Array<User> {
     if (users.length <= winners) return users;
 
     // split up the users into groups

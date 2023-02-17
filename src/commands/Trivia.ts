@@ -2,7 +2,6 @@ import { ActionRowBuilder, APIActionRowComponent, APIButtonComponent, APISelectM
 import { getQuestions, Question } from "open-trivia-db";
 import SlashCommand from "../types/SlashCommand.js";
 import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
-import Log, { LogType } from "../util/Log.js";
 import shuffleArray from "../util/MiscUtils.js";
 
 const TriviaCommmand: SlashCommand = {
@@ -123,7 +122,7 @@ class TriviaGame {
                                 filter: (x) => x.customId === "trivia.history",
                                 componentType: ComponentType.Button,
                             })
-                            .on("collect", this.showSummary);
+                            .on("collect", this.showSummary.bind(this));
 
                         this.end(false);
                         return;
@@ -146,7 +145,7 @@ class TriviaGame {
             return;
         }
 
-        const embed2 = CreateEmbed(
+        const embed = CreateEmbed(
             `Player: ${this.player}`,
             {
                 title: "Trivia game question summary",
@@ -155,7 +154,7 @@ class TriviaGame {
 
         for (let i = 0; i < this.questions.length; i++) {
             const question = this.questions[i];
-            embed2.addFields([
+            embed.addFields([
                 {
                     name: `${i + 1}. ${question.value}`,
                     value: `Correct answer: ${question.correctAnswer} | Player's answer: ${question.userAnswer != null ? question.userAnswer : "ran out of time"}`,
@@ -164,10 +163,10 @@ class TriviaGame {
         }
 
         // save the summary embed
-        this.summaryEmbed = embed2;
+        this.summaryEmbed = embed;
 
         button.reply({
-            embeds: [embed2],
+            embeds: [this.summaryEmbed],
             ephemeral: true,
         });
     }
@@ -188,6 +187,7 @@ class TriviaGame {
                     difficulty: "easy",
                     amount: amounts[0],
                     category: this.category,
+                    type: "multiple"
                 });
 
             const medium =
@@ -195,6 +195,7 @@ class TriviaGame {
                     difficulty: "medium",
                     amount: amounts[1],
                     category: this.category,
+                    type: "multiple"
                 });
 
             const hard =
@@ -202,6 +203,7 @@ class TriviaGame {
                     difficulty: "hard",
                     amount: amounts[2],
                     category: this.category,
+                    type: "multiple"
                 });
 
             // combine and shuffle the arrays
@@ -211,6 +213,7 @@ class TriviaGame {
                 difficulty: this.difficulty,
                 amount,
                 category: this.category,
+                type: "multiple"
             });
         }
 
@@ -225,26 +228,17 @@ class TriviaGame {
         // wait for a response
         this.message
             .awaitMessageComponent({
-                filter: (i: Interaction) => i.user.id === this.player.id && (i.isStringSelectMenu() || i.isButton()),
+                filter: (i: Interaction) => i.user.id === this.player.id,
                 time: 30_000,
+                componentType: ComponentType.StringSelect
             })
             .then(async (interaction) => {
                 interaction.deferUpdate();
 
                 // get the id
-                let id = 0;
-                if (interaction.isButton()) {
-                    id = Number.parseInt(interaction.customId[interaction.customId.length - 1]);
-                } else if (interaction.isStringSelectMenu()) {
-                    id = Number.parseInt(interaction.values[0]);
-                } else {
-                    // wtf
-                    Log(`Trivia question got neither a button or select menu???`, LogType.Error);
-                    this.end(true, "a fatal error has occured, please alert Mester");
-                    return;
-                }
+                const id = Number.parseInt(interaction.values[0]);
 
-                const userAnswer = this.questions[this.turn].mappedAnswers.get(id);
+                const userAnswer = this.questions[this.turn].shuffledAnswers.find(a => a.id === id).answer;
 
                 // save user's answer
                 this.questions[this.turn].userAnswer = userAnswer;
@@ -358,57 +352,35 @@ class TriviaGame {
             return { embed, components };
         }
 
-        let ids: number[] = [];
-        for (let i = 0; i < this.questions[this.turn].allAnswers.length; i++) {
-            ids.push(i);
+        const allAnswers = shuffleArray([this.questions[this.turn].correctAnswer, ...this.questions[this.turn].incorrectAnswers].map(x => String(x)));
+
+        // assign a random id to each answer
+        const answerMap = new Array<{ id: number; answer: string; }>();
+        for (let i = 0; i < allAnswers.length; i++) {
+            answerMap.push({ id: i, answer: allAnswers[i] });
         }
-        ids = shuffleArray(ids);
 
-        const allAnswers = [this.questions[this.turn].correctAnswer, ...this.questions[this.turn].incorrectAnswers].map(x => String(x));
+        // set the shuffled answers
+        this.questions[this.turn].shuffledAnswers = answerMap;
+        const options: Array<APISelectMenuOption> = [];
 
-        // set the mapped answers
-        this.questions[this.turn].mappedAnswers = new Map<number, string>(
-            allAnswers.map((x, i) => { return [ids[i], x]; })
-        );
-
-        // check if correct answer is a yes/no question
-        if (this.questions[this.turn].type === "boolean") {
-            components = [
-                new ActionRowBuilder<ButtonBuilder>().addComponents([
-                    new ButtonBuilder()
-                        .setCustomId(`trivia.answer${ids[0]}`)
-                        .setLabel("Correct")
-                        .setStyle(ButtonStyle.Success),
-                    new ButtonBuilder()
-                        .setCustomId(`trivia.answer${ids[1]}`)
-                        .setLabel("Incorrect")
-                        .setStyle(ButtonStyle.Danger),
-                ]).toJSON(),
-            ];
-        } else {
-            let options: Array<APISelectMenuOption> = [];
-
-            // fill options based on allAnswers and ids
-            for (let i = 0, answer = allAnswers[0]; i < allAnswers.length; i++, answer = allAnswers[i]) {
-                options.push({
-                    label: answer,
-                    value: ids[i].toString()
-                });
-            }
-
-            // shuffle options
-            options = shuffleArray(options);
-
-            components = [
-                new ActionRowBuilder<StringSelectMenuBuilder>().addComponents([
-                    new StringSelectMenuBuilder()
-                        .setCustomId("trivia.answer")
-                        .setOptions(options)
-                        .setMaxValues(1)
-                        .setMinValues(1),
-                ]).toJSON()
-            ];
+        // fill options based on allAnswers and ids
+        for (let i = 0, answer = answerMap[0]; i < answerMap.length; i++, answer = answerMap[i]) {
+            options.push({
+                label: answer.answer,
+                value: answer.id.toString()
+            });
         }
+
+        components = [
+            new ActionRowBuilder<StringSelectMenuBuilder>().addComponents([
+                new StringSelectMenuBuilder()
+                    .setCustomId("trivia.answer")
+                    .setOptions(options)
+                    .setMaxValues(1)
+                    .setMinValues(1),
+            ]).toJSON()
+        ];
 
         return { embed, components };
     }
@@ -432,7 +404,7 @@ class TriviaGame {
 
 interface TriviaQuestion extends Question {
     userAnswer?: string,
-    mappedAnswers?: Map<number, string>
+    shuffledAnswers?: { id: number; answer: string }[]
 }
 
 export default TriviaCommmand;

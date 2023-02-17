@@ -41,6 +41,13 @@ const GiveawayConfigSchema = new mongoose.Schema<IDBGiveaway>({
     winners: {
         type: SchemaTypes.Number,
         default: 1
+    },
+    filter: {
+        nitro: {
+            type: SchemaTypes.Boolean,
+            default: undefined
+        },
+        default: {}
     }
 });
 

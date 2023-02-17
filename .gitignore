@@ -9,9 +9,12 @@ package-lock.json
 CreateCommands-old.js
 *.pem
 sonar-project.properties
+pnpm-lock.yaml
 
+build
 node_modules
 coverage
 dist/*
+logs
 
 !dist/res

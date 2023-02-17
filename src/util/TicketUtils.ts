@@ -115,11 +115,10 @@ export const CreateTicket = async function (
 };
 
 /**
- *
- * @param {number} ticketType The type of the ticket to get the name of.
- * @returns A string representing the name of the ticket type.
+ * Get the name of the ticket type
+ * @param ticketType The ticket type to get the name of
  */
-export const TicketTypeToName = function (ticketType: TicketType): string {
+export function TicketTypeToName(ticketType: TicketType): string {
     switch (ticketType) {
         case TicketType.General:
             return "General help";
@@ -134,7 +133,7 @@ export const TicketTypeToName = function (ticketType: TicketType): string {
         default:
             return "No type";
     }
-};
+}
 
 /**
  * A function for checking if the channel is a ticket
@@ -151,9 +150,6 @@ export const ChannelIsTicket = function (channelName: string): boolean {
  * @param userConfig the user config
  */
 export const CanManageTicket = function (ticketConfig: DBTicket, userConfig: DBUser) {
-    // if the id of the user is the same as the creator of ticketconfig, return true
-    if (ticketConfig.creator === userConfig.userId) return true;
-
     // if the user is an admin or higher, return true
     if (userConfig.mod >= ModNameToLevel("Admin")) return true;
 
@@ -165,11 +161,17 @@ export const CanManageTicket = function (ticketConfig: DBTicket, userConfig: DBU
         return true;
 
     // if the user is a normal mod, and the ticket's type is not a mod or a headmod report, return true
-    return !!(
+    if (
         userConfig.mod < ModNameToLevel("Head") &&
         userConfig.mod != 0 &&
         ticketConfig.type < TicketType.ModReport
-    );
+    )
+        return true;
+
+    // if the id of the user is the same as the creator of ticketconfig, return true
+    if (ticketConfig.creator === userConfig.userId) return true;
+
+    return false;
 };
 
 /**

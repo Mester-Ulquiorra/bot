@@ -1,4 +1,6 @@
-import { GuildMember, Role } from "discord.js";
+import { GuildMember, RoleResolvable } from "discord.js";
+
+type RoleResult<T extends string> = T extends "Add" ? Promise<GuildMember> : T extends "Remove" ? Promise<GuildMember> : T extends "Check" ? boolean : never;
 
 /**
  * A function to manage roles.
@@ -7,22 +9,19 @@ import { GuildMember, Role } from "discord.js";
  * @param mode How the role should be managed. (Add, Remove, Check) [Default: Check]
  * @param reason The reason for the role change. (Optional)
  */
-export default async function(
+export default async function (
     member: GuildMember,
-    role: Role | string,
+    role: RoleResolvable,
     mode: "Add" | "Remove" | "Check" = "Check",
     reason = ""
-): Promise<void | boolean> {
+): Promise<RoleResult<typeof mode>> {
+    const roleID = typeof role === "string" ? role : role.id;
     switch (mode) {
         case "Add":
-            member.roles.add(role, reason);
-            return;
+            return member.roles.add(roleID, reason);
         case "Remove":
-            member.roles.remove(role, reason);
-            return;
+            return member.roles.remove(roleID, reason);
         case "Check":
-            return member.roles.cache.has(
-                typeof role === "string" ? role : role.id
-            );
+            return member.roles.cache.has(roleID);
     }
 }

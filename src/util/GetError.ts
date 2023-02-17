@@ -1,5 +1,11 @@
 type ErrorType = "Default" | "Permission" | "Database" | "BadUser" | "Duration" | "BadValue" | "UserUnavailable" | "InsufficentModLevel";
 
+/**
+ * Get a unified error message.
+ * @param {ErrorType} error The type of error
+ * @param {string} info Additional information to the error
+ * @returns {string} The error message
+ */
 export default function (error: ErrorType = "Default", info = "[unknown]") {
     switch (error) {
         case "Default": return "Something has went wrong, please try again. If this keeps happening, open a ticket.";

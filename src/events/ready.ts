@@ -1,9 +1,8 @@
 import { Client, ComponentType, TextChannel } from "discord.js";
-import sharp from "sharp";
 import { create as svgCreate } from "svg-captcha";
 import config from "../config.js";
 import Event from "../types/Event.js";
-import Ulquiorra from "../Ulquiorra.js";
+import Ulquiorra, { browser } from "../Ulquiorra.js";
 import AutoUnpunish from "../util/AutoUnpunish.js";
 import { GetGuild } from "../util/ClientUtils.js";
 import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
@@ -15,12 +14,13 @@ const ReadyEvent: Event = {
     name: "ready",
 
     async run(client: Client) {
-        // fetch the guild and their channels
+        // fetch the guild and its channels
         client.guilds.fetch(config.GuildId).then((guild) => {
             guild.channels.fetch();
         });
-        // fetch the prison
-        client.guilds.fetch(config.PrisonId);
+
+        // fetch the prison 
+        client.guilds.fetch(config.PrisonId).catch(() => { return; });
 
         client.user.setActivity({
             name: `Version ${config.Version}`,
@@ -81,10 +81,20 @@ async function setupVerifyListener() {
                 background: "#212121",
             });
 
-            const captchaBuffer = await sharp(Buffer.from(captcha.data))
-                .resize(500)
-                .png()
-                .toBuffer();
+            // convert the captcha buffer into a png with puppeteer
+            const page = await browser.newPage();
+            await page.setViewport({ width: 600, height: 200 });
+
+            const realData = captcha.data.replace(`width="150"`, `width="600"`).replace(`height="50"`, `height="200"`);
+            // set the content with the body being realData and margin set to 0
+            await page.setContent(`<body style="margin: 0">${realData}</body>`);
+            const captchaBuffer = await page.screenshot({
+                type: "png",
+                omitBackground: true,
+            });
+            
+            await page.close();
+
 
             // try to dm the user
             interaction.user

@@ -31,9 +31,10 @@ const MessageCreateEvent: Event = {
         }
 
         // only continue to xp if the message is not blocked by Reishi
-        if (!await CheckMessage(message, client)) return;
-
-        GetXPFromMessage(message);
+        CheckMessage(message, client).then((clean) => {
+            if (!clean) return;
+            GetXPFromMessage(message);
+        });
     }
 };
 

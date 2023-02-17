@@ -21,7 +21,7 @@ const MassMentionThreshold = 5;
  * The main function of Reishi.
  * @param message The message to check.
  * @param client The bot client.
- * @returns If the message is fine or not.
+ * @returns If the message is clean.
  */
 export const CheckMessage = async function (message: Message, client: Client): Promise<boolean> {
     // check if message author is a bot
@@ -103,8 +103,9 @@ function GetPunishmentReason(type: PunishmentNames) {
  * @param type The punishment type.
  * @param word The word that was caught.
  * @param client The bot client.
+ * @returns If the message was punished or not.
  */
-async function PunishMessage(message: Message, type: PunishmentNames, word: string, client: Client) {
+async function PunishMessage(message: Message, type: PunishmentNames, word: string, client: Client): Promise<boolean> {
     // get the user config
     const userconfig = await GetUserConfig(message.author.id);
 
@@ -112,10 +113,14 @@ async function PunishMessage(message: Message, type: PunishmentNames, word: stri
     if (userconfig.mod != 0) {
         // check if we're in test mode
         if (testMode) message.react("❌");
-        return;
+        return false;
     }
 
     // delete the message
+    if (word === "__delete__") {
+        message.delete();
+        return false;
+    }
     if (!(type === "RepeatedText" && message.mentions.members.size !== 0)) message.delete();
 
     // get a punishment id
@@ -169,5 +174,5 @@ async function PunishMessage(message: Message, type: PunishmentNames, word: stri
     });
     GetSpecialChannel("ModLog").send({ embeds: [modEmbed] });
 
-    return false;
+    return true;
 }

@@ -1,4 +1,4 @@
-import chess from "chess.js";
+import * as chess from "chess.js";
 import testMode from "./testMode.js";
 import { ModName } from "./util/ModUtils.js";
 
@@ -77,7 +77,7 @@ const base = {
     PrisonInvite: "https://discord.gg/SNVtdQHpxm",
     ServerInvite: "https://discord.gg/MfmUFk5kbe",
 
-    Version: "4.3.1-selfroles",
+    Version: "4.3.2",
 
     SuperUsers: [
         "730775136881475645",
@@ -136,7 +136,45 @@ const base = {
 
         [{ color: chess.WHITE, piece: chess.KING }, "1005159632081268757"],
         [{ color: chess.BLACK, piece: chess.KING }, "1005159625173250190"],
-    ])
+    ]),
+
+    puppeteerArgs: [
+        "--autoplay-policy=user-gesture-required",
+        "--disable-background-networking",
+        "--disable-background-timer-throttling",
+        "--disable-backgrounding-occluded-windows",
+        "--disable-breakpad",
+        "--disable-client-side-phishing-detection",
+        "--disable-component-update",
+        "--disable-default-apps",
+        "--disable-dev-shm-usage",
+        "--disable-domain-reliability",
+        "--disable-extensions",
+        "--disable-features=AudioServiceOutOfProcess",
+        "--disable-hang-monitor",
+        "--disable-ipc-flooding-protection",
+        "--disable-notifications",
+        "--disable-offer-store-unmasked-wallet-cards",
+        "--disable-popup-blocking",
+        "--disable-print-preview",
+        "--disable-prompt-on-repost",
+        "--disable-renderer-backgrounding",
+        "--disable-setuid-sandbox",
+        "--disable-speech-api",
+        "--disable-sync",
+        "--hide-scrollbars",
+        "--ignore-gpu-blacklist",
+        "--metrics-recording-only",
+        "--mute-audio",
+        "--no-default-browser-check",
+        "--no-first-run",
+        "--no-pings",
+        "--no-sandbox",
+        "--no-zygote",
+        "--password-store=basic",
+        "--use-gl=swiftshader",
+        "--use-mock-keychain",
+    ]
 };
 
 const test = {

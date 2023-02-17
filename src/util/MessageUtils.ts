@@ -1,6 +1,6 @@
 /**
  * A function for reversing leet speak in a string.
- * 1 - i, 4 - a, 3 - e, $5 - s, 0 - o, + - t, # - h
+ * Legend: 1 - i, 4 - a, 3 - e, $5 - s, 0 - o, +7 - t, # - h
  * @param string The string to reverse.
  * @returns The reversed string.
  */
@@ -12,17 +12,8 @@ export const ReverseLeetSpeak = function (string: string) {
         .replaceAll(/3/g, "e")
         .replaceAll(/[$5]/g, "s")
         .replaceAll(/#/g, "h")
-        .replaceAll(/\+/g, "t")
+        .replaceAll(/[+7]/g, "t")
         .replaceAll(/0/g, "o");
-};
-
-/**
- * A function for escaping regexp characters in a string.
- * @param text The text to escape.
- * @returns The escaped text.
- */
-export const EscapeRegEXP = function (text: string): string {
-    return text.replaceAll(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
 };
 
 /**
@@ -30,5 +21,5 @@ export const EscapeRegEXP = function (text: string): string {
  * @param string The string to strip
  */
 export function StripString(string: string) {
-    return string.toLowerCase().replaceAll(/[^\p{L}\s\d$+#]/giu, "").split(/\s+/).filter(s => s !== "");
+    return string.toLowerCase().replaceAll(/[^\p{L}\s\d$+#']/giu, "").split(/\s+/).filter(s => s !== "");
 }

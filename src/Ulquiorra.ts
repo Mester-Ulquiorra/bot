@@ -5,10 +5,11 @@ import { Client } from "discord.js";
 import { config as dotconfig } from "dotenv";
 import Mongoose from "mongoose";
 import { Snowflake } from "nodejs-snowflake";
-import { join } from "path";
+import { tmpdir } from "os";
+import path, { join } from "path";
+import puppeteer from "puppeteer";
 import { createInterface } from "readline";
 import { fileURLToPath, URL } from "url";
-import { browser } from "./commands/Rank.js";
 import config from "./config.js";
 import testMode from "./testMode.js";
 import AutoUnpunish from "./util/AutoUnpunish.js";
@@ -48,7 +49,7 @@ const Ulquiorra = new Client({
         "GuildVoiceStates",
         "GuildMessageReactions",
         "DirectMessages",
-        "MessageContent"
+        "MessageContent",
     ],
     allowedMentions: {
         parse: ["roles", "users"]
@@ -70,6 +71,14 @@ Mongoose.connect(`mongodb+srv://${process.env.DB_URL}/${process.env.DB_NAME}`, {
 
 const SnowFlake = new Snowflake({ custom_epoch: config.SnowflakeEpoch });
 const DeeplTranslator = new deepl.Translator(process.env.DEEPL_KEY);
+
+// Set up puppeteer
+const browser = await puppeteer.launch({
+    userDataDir: path.join(tmpdir(), "puppeteer"),
+    args: [
+        ...config.puppeteerArgs
+    ]
+});
 
 function shutdown(reason: string) {
     Log(`Shutting down client: ${reason}`, LogType.Fatal);
@@ -121,6 +130,7 @@ Register(
 export {
     shutdown,
     SnowFlake,
-    DeeplTranslator
+    DeeplTranslator,
+    browser
 };
 export default Ulquiorra;

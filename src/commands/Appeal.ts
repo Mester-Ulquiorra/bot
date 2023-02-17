@@ -241,12 +241,10 @@ async function manageAppeal(interaction: ButtonInteraction, accepted: boolean) {
 }
 
 async function createAppeal(interaction: ButtonInteraction) {
-    // try to find the user's active punishment
     const punishment = await PunishmentConfig.findOne({ user: interaction.user.id, active: true });
     if (!punishment) return "You don't have any active punishments!";
     if (punishment.appealed) return "You've already appealed this punishment.";
 
-    // create modal
     const modal =
         new ModalBuilder()
             .setTitle(`Appeal punishment ${punishment.punishmentId}`)
@@ -271,8 +269,12 @@ async function createAppeal(interaction: ButtonInteraction) {
                 )
             );
 
-    // send the modal
-    interaction.showModal(modal);
+    try {
+        await interaction.showModal(modal);
+    } catch (e) {
+        // handle error
+        return "An error occurred while creating the modal";
+    }
 }
 
 export default AppealCommand;

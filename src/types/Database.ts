@@ -35,6 +35,14 @@ export interface DBGiveaway {
     end: number;
     ended: boolean;
     winners: number;
+    filter: GiveawayFilter;
+}
+
+export interface GiveawayFilter {
+    /**
+     * Are nitro users allowed to be winners?
+     */
+    nitro: boolean;
 }
 
 export interface DBLevel {
