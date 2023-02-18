@@ -53,7 +53,7 @@ const RankCommand: SlashCommand = {
         destination.searchParams.append("currLevel", `Level ${levelConfig.level}`);
         destination.searchParams.append("nextLevel", `Level ${levelConfig.level + 1} (${XPToLevelUp(levelConfig.level) - relativexp} XP left)`);
 
-        await page.setViewport({ width: 1500, height: 300 });
+        await page.setViewport({ width: 1200, height: 300 });
         await page.goto(destination.toString(), { waitUntil: "networkidle0" });
 
         const buffer = await page.screenshot({ type: "jpeg" });

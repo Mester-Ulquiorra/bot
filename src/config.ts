@@ -77,7 +77,7 @@ const base = {
     PrisonInvite: "https://discord.gg/SNVtdQHpxm",
     ServerInvite: "https://discord.gg/MfmUFk5kbe",
 
-    Version: "4.3.2",
+    Version: "4.3.2-chess",
 
     SuperUsers: [
         "730775136881475645",
@@ -118,24 +118,24 @@ const base = {
         { level: 100, id: "992445002527559780" },
     ],
 
-    ChessPieceEmojis: new Map<{ color: string, piece: string }, string>([
-        [{ color: chess.WHITE, piece: chess.PAWN }, "1005159635038261388"],
-        [{ color: chess.BLACK, piece: chess.PAWN }, "1005159627547222156"],
+    ChessPieceEmojis: new Map<string, string>([
+        [chess.WHITE + chess.PAWN, "1005159635038261388"],
+        [chess.BLACK + chess.PAWN, "1005159627547222156"],
 
-        [{ color: chess.WHITE, piece: chess.ROOK }, "1005159631099809843"],
-        [{ color: chess.BLACK, piece: chess.ROOK }, "1005159623881404497"],
+        [chess.WHITE + chess.ROOK, "1005159631099809843"],
+        [chess.BLACK + chess.ROOK, "1005159623881404497"],
 
-        [{ color: chess.WHITE, piece: chess.KNIGHT }, "1005159633696084029"],
-        [{ color: chess.BLACK, piece: chess.KNIGHT }, "1005159626498646119"],
+        [chess.WHITE + chess.KNIGHT, "1005159633696084029"],
+        [chess.BLACK + chess.KNIGHT, "1005159626498646119"],
 
-        [{ color: chess.WHITE, piece: chess.BISHOP }, "1005159637051506800"],
-        [{ color: chess.BLACK, piece: chess.BISHOP }, "1005159629761822720"],
+        [chess.WHITE + chess.BISHOP, "1005159637051506800"],
+        [chess.BLACK + chess.BISHOP, "1005159629761822720"],
 
-        [{ color: chess.WHITE, piece: chess.QUEEN }, "1005159636330086490"],
-        [{ color: chess.BLACK, piece: chess.QUEEN }, "1005159628570636288"],
+        [chess.WHITE + chess.QUEEN, "1005159636330086490"],
+        [chess.BLACK + chess.QUEEN, "1005159628570636288"],
 
-        [{ color: chess.WHITE, piece: chess.KING }, "1005159632081268757"],
-        [{ color: chess.BLACK, piece: chess.KING }, "1005159625173250190"],
+        [chess.WHITE + chess.KING, "1005159632081268757"],
+        [chess.BLACK + chess.KING, "1005159625173250190"],
     ]),
 
     puppeteerArgs: [
@@ -273,24 +273,24 @@ const test = {
         { level: 100, id: "1074393963995336753" },
     ],
 
-    ChessPieceEmojis: new Map<{ color: string, piece: string }, string>([
-        [{ color: chess.WHITE, piece: chess.PAWN }, "1005159635038261388"],
-        [{ color: chess.BLACK, piece: chess.PAWN }, "1005159627547222156"],
+    ChessPieceEmojis: new Map<string, string>([
+        [chess.WHITE + chess.PAWN, "1076527700765851708"],
+        [chess.BLACK + chess.PAWN, "1076527763323883581"],
 
-        [{ color: chess.WHITE, piece: chess.ROOK }, "1005159631099809843"],
-        [{ color: chess.BLACK, piece: chess.ROOK }, "1005159623881404497"],
+        [chess.WHITE + chess.ROOK, "1076527703836078161"],
+        [chess.BLACK + chess.ROOK, "1076527711457132665"],
 
-        [{ color: chess.WHITE, piece: chess.KNIGHT }, "1005159633696084029"],
-        [{ color: chess.BLACK, piece: chess.KNIGHT }, "1005159626498646119"],
+        [chess.WHITE + chess.KNIGHT, "1076527699553697962"],
+        [chess.BLACK + chess.KNIGHT, "1076527707963281449"],
 
-        [{ color: chess.WHITE, piece: chess.BISHOP }, "1005159637051506800"],
-        [{ color: chess.BLACK, piece: chess.BISHOP }, "1005159629761822720"],
+        [chess.WHITE + chess.BISHOP, "1076527696437334026"],
+        [chess.BLACK + chess.BISHOP, "1076527704565878785"],
 
-        [{ color: chess.WHITE, piece: chess.QUEEN }, "1005159636330086490"],
-        [{ color: chess.BLACK, piece: chess.QUEEN }, "1005159628570636288"],
+        [chess.WHITE + chess.QUEEN, "1076527702057693184"],
+        [chess.BLACK + chess.QUEEN, "1076527779228692561"],
 
-        [{ color: chess.WHITE, piece: chess.KING }, "1005159632081268757"],
-        [{ color: chess.BLACK, piece: chess.KING }, "1005159625173250190"],
+        [chess.WHITE + chess.KING, "1076527697729167440"],
+        [chess.BLACK + chess.KING, "1076527706121965568"],
     ])
 };
 

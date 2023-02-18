@@ -1,7 +1,7 @@
 import { createCanvas, Image } from "canvas";
 import * as chess from "chess.js";
 import { format } from "date-fns";
-import { ActionRowBuilder, APISelectMenuOption, ButtonBuilder, ButtonInteraction, ButtonStyle, ComponentType, GuildMember, InteractionCollector, Message, StringSelectMenuBuilder } from "discord.js";
+import { ActionRowBuilder, APISelectMenuOption, ButtonBuilder, ButtonInteraction, ButtonStyle, ComponentType, GuildEmoji, GuildMember, InteractionCollector, Message, StringSelectMenuBuilder } from "discord.js";
 import * as path from "path";
 import { fileURLToPath } from "url";
 import config from "../config.js";
@@ -15,60 +15,80 @@ const ChessCommand: SlashCommand = {
     name: "chess",
 
     async run(interaction, client) {
-        const member = interaction.options.getMember("member") as GuildMember;
+        switch (interaction.options.getSubcommand()) {
+            case "play": {
+                const member = interaction.options.getMember("member") as GuildMember;
 
-        if (member.id === interaction.user.id)
-            return "You can't play against yourself.";
+                if (member.id === interaction.user.id)
+                    return "You can't play against yourself.";
 
-        // check if either the user or the member is in a game
-        if (
-            ChessGame.getGameByPlayer(interaction.user.id) ||
-            ChessGame.getGameByPlayer(member.id)
-        )
-            return "You or the user you want to play with is already in a game.";
+                // check if either the user or the member is in a game
+                if (
+                    ChessGame.getGameByPlayer(interaction.user.id) ||
+                    ChessGame.getGameByPlayer(member.id)
+                )
+                    return "You or the user you want to play with is already in a game.";
 
-        // create an embed to wait for the user to accept the game
-        const waitEmbed = CreateEmbed(
-            `**${member}, ${interaction.member} has invited you to play chess! \n Click on the button to accept!**`,
-            { title: `Chess game invitation`, color: EmbedColor.Success }
-        ).setFooter({ text: "You have 15 seconds to accept the game!" });
+                // create an embed to wait for the user to accept the game
+                const waitEmbed = CreateEmbed(
+                    `**${member}, ${interaction.member} has invited you to play chess! \n Click on the button to accept!**`,
+                    { title: `Chess game invitation`, color: EmbedColor.Success }
+                ).setFooter({ text: "You have 15 seconds to accept the game!" });
 
-        // create the accept button
-        const components = [
-            new ActionRowBuilder<ButtonBuilder>().addComponents([
-                new ButtonBuilder()
-                    .setCustomId("chess.acceptgame")
-                    .setEmoji("✅")
-                    .setLabel("Accept game")
-                    .setStyle(ButtonStyle.Success),
-            ]).toJSON(),
-        ];
+                // create the accept button
+                const components = [
+                    new ActionRowBuilder<ButtonBuilder>().addComponents([
+                        new ButtonBuilder()
+                            .setCustomId("chess.acceptgame")
+                            .setEmoji("✅")
+                            .setLabel("Accept game")
+                            .setStyle(ButtonStyle.Success),
+                    ]).toJSON(),
+                ];
 
-        const message = await interaction.reply({ embeds: [waitEmbed], components, fetchReply: true });
+                const message = await interaction.reply({ embeds: [waitEmbed], components, fetchReply: true });
 
-        message.awaitMessageComponent({
-            filter: x => x.customId === "chess.acceptgame" && x.user.id === member.id,
-            time: 15_000,
-            componentType: ComponentType.Button,
-        })
-            .then((button) => {
-                button.deferUpdate();
+                message.awaitMessageComponent({
+                    filter: x => x.customId === "chess.acceptgame" && x.user.id === member.id,
+                    time: 15_000,
+                    componentType: ComponentType.Button,
+                })
+                    .then((button) => {
+                        button.deferUpdate();
 
-                // create a new game
-                const game = new ChessGame(interaction.member as GuildMember, member, message);
+                        // create a new game
+                        const game = new ChessGame(interaction.member as GuildMember, member, message);
 
-                // add the game to the map
-                ChessGame.ActiveGames.set(game.id, game);
-            })
-            .catch((err) => {
-                message.edit({
-                    embeds: [
-                        CreateEmbed(
-                            `You haven't accepted the game in time!`,
-                            { color: EmbedColor.Error, title: "Chess game invitation" }
-                        )], components: []
+                        // add the game to the map
+                        ChessGame.ActiveGames.set(game.id, game);
+                    })
+                    .catch((err) => {
+                        message.edit({
+                            embeds: [
+                                CreateEmbed(
+                                    `You haven't accepted the game in time!`,
+                                    { color: EmbedColor.Error, title: "Chess game invitation" }
+                                )], components: []
+                        });
+                    });
+                break;
+            }
+
+            case "cancel": {
+                const [game, player] = ChessGame.getGameByPlayer(interaction.user.id);
+                if (!game) return "You aren't in a game!";
+
+                game.winner = player === 1 ? game.player2 : game.player1;
+                game.end(`**${interaction.user} has forfeited the game!**`);
+
+                interaction.reply({
+                    content: "You have forfeited the game!",
+                    ephemeral: true,
                 });
-            });
+
+                break;
+            }
+        }
     }
 };
 
@@ -165,7 +185,7 @@ class ChessGame {
                     x.user.id === this.player2.id,
                 componentType: ComponentType.Button,
             })
-            .on("collect", this.executeComponent);
+            .on("collect", this.executeComponent.bind(this));
 
         this.performTurn();
     }
@@ -249,7 +269,8 @@ class ChessGame {
                 const moves = this.chessGame.moves({ verbose: true, square: rawSquare.square }) as chess.Move[];
                 if (moves.length === 0) continue;
 
-                const emoji = await GetGuild().emojis.fetch(ChessGame.getPieceEmoji({ color: rawSquare.color, type: rawSquare.type }));
+                const emoji = await ChessGame.getPieceEmoji({ color: rawSquare.color, type: rawSquare.type });
+                console.log(emoji);
 
                 const position = rawSquare.square.toString();
 
@@ -258,9 +279,8 @@ class ChessGame {
                     label: position,
                     description: `Move your piece on ${position}!`,
                     emoji: {
-                        animated: emoji.animated,
-                        name: emoji.name,
-                        id: emoji.id
+                        name: emoji instanceof GuildEmoji ? emoji.name : emoji,
+                        id: emoji instanceof GuildEmoji ? emoji.id : undefined
                     }
                 });
             }
@@ -320,7 +340,7 @@ class ChessGame {
                     let thisMoveString = move.to;
 
                     const pieceToHit = this.chessGame.get(move.to as chess.Square);
-                    const emoji = pieceToHit ? await GetGuild().emojis.fetch(ChessGame.getPieceEmoji(pieceToHit)) : undefined;
+                    const emoji = pieceToHit ? await ChessGame.getPieceEmoji(pieceToHit) : undefined;
 
                     if (move.flags.includes("c") || move.flags.includes("e")) thisMoveString += ` (Capture)`;
                     if (move.flags.includes("k") || move.flags.includes("q")) thisMoveString += ` (Castle)`;
@@ -329,9 +349,8 @@ class ChessGame {
                         label: thisMoveString,
                         value: move.to,
                         emoji: emoji ? {
-                            animated: emoji.animated,
-                            name: emoji.name,
-                            id: emoji.id
+                            name: emoji instanceof GuildEmoji ? emoji.name : emoji,
+                            id: emoji instanceof GuildEmoji ? emoji.id : undefined
                         } : undefined,
                         description: `Move your piece to ${move.to}`
                     });
@@ -349,7 +368,7 @@ class ChessGame {
                     ])
                 ];
 
-                const pieceEmoji = await GetGuild().emojis.fetch(ChessGame.getPieceEmoji(pieceToMove));
+                const pieceEmoji = await ChessGame.getPieceEmoji(pieceToMove);
 
                 await this.inputMessage.edit({
                     content: `Great, now please choose where you want to move your ${pieceEmoji}`,
@@ -574,7 +593,7 @@ class ChessGame {
      * Stop the game and remove it from active games
      * @param reason The reason the game has ended.
      */
-    end(reason: string, isDraw?: boolean) {
+    async end(reason: string, isDraw?: boolean) {
         this.ended = true;
 
         ChessGame.ActiveGames.delete(this.id);
@@ -590,7 +609,9 @@ class ChessGame {
 
         const pgn = Buffer.from(this.chessGame.pgn({ maxWidth: 10 }), "utf-8");
 
-        const embed = CreateEmbed(`**${reason}**\n\nThe PGN file of this game has been attached for you.\nFEN: ${this.chessGame.fen()}`, { color: this.chessGame.isDraw() || isDraw ? EmbedColor.Warning : EmbedColor.Success });
+        const originalDescription = await this.message.fetch(true);
+
+        const embed = CreateEmbed(`${originalDescription.embeds[0].description.split("\n")[0]}\n\n**${reason}**\n\nThe PGN file of this game has been attached for you.\nFEN: ${this.chessGame.fen()}`, { color: this.chessGame.isDraw() || isDraw ? EmbedColor.Warning : EmbedColor.Success });
 
         // redraw board
         const board = this.generateGameBoard();
@@ -619,7 +640,7 @@ class ChessGame {
      * @param id The ID of the user to check
      * @returns An array with the game the user is in and which player they are, or null if they are not in a game
      */
-    static getGameByPlayer(id: string) {
+    static getGameByPlayer(id: string): [ChessGame, 1 | 2] {
         if (ChessGame.ActiveGames.size === 0) return null;
 
         for (const [_key, game] of ChessGame.ActiveGames) {
@@ -662,12 +683,14 @@ class ChessGame {
     }
 
     /**
-     * A static function to get the emoji for a piece
+     * A static function for getting the emoji for a piece as a Discord EmojiResolvable
      * @param piece The piece to get the emoji for
      * @returns An emoji representing the piece
      */
-    static getPieceEmoji(piece: chess.Piece): string {
-        return config.ChessPieceEmojis.get({ piece: piece.type, color: piece.color }) ?? "❓";
+    static async getPieceEmoji(piece: chess.Piece): Promise<"❓" | GuildEmoji> {
+        const rawEmoji = config.ChessPieceEmojis.get(piece.color + piece.type) ?? "❓";
+        if (rawEmoji === "❓") return rawEmoji;
+        else return await GetGuild().emojis.fetch(rawEmoji);
     }
 }
 
