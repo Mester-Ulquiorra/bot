@@ -2,14 +2,13 @@ import { generateDependencyReport } from "@discordjs/voice";
 import "canvas";
 import * as deepl from "deepl-node";
 import { Client } from "discord.js";
-import { config as dotconfig } from "dotenv";
 import Mongoose from "mongoose";
 import { Snowflake } from "nodejs-snowflake";
 import { tmpdir } from "os";
 import path, { join } from "path";
 import puppeteer from "puppeteer";
 import { createInterface } from "readline";
-import { fileURLToPath, URL } from "url";
+import { fileURLToPath } from "url";
 import config from "./config.js";
 import testMode from "./testMode.js";
 import AutoUnpunish from "./util/AutoUnpunish.js";
@@ -18,14 +17,10 @@ import { HandleConsoleCommand } from "./util/ConsoleUtils.js";
 import Log, { LogType } from "./util/Log.js";
 import { Register } from "./util/Register.js";
 import ServerStats from "./util/ServerStats.js";
-
+import "./database.js";
 if (testMode) console.log(generateDependencyReport());
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-
-dotconfig({
-    path: join(__dirname, "..", testMode ? ".env.test" : ".env")
-});
 
 // this is a really bad way of avoiding errors, but it is what it is
 process.on("uncaughtException", (error) => {
@@ -56,25 +51,16 @@ const Ulquiorra = new Client({
     }
 });
 
-Mongoose.connect(`mongodb+srv://${process.env.DB_URL}/${process.env.DB_NAME}`, {
-    authMechanism: "MONGODB-X509",
-    sslCert: join(__dirname, "..", process.env.DB_KEY),
-    sslKey: join(__dirname, "..", process.env.DB_KEY),
-    retryWrites: true,
-    w: "majority"
-}).catch((err) => {
-    Log("An error has happened while trying to connect to the database, which is a fatal issue. Terminating...", LogType.Fatal);
-    Log(err, LogType.Fatal);
-    shutdown("MongoDB connection error");
-});
+
 // ------------------------------------------
 
 const SnowFlake = new Snowflake({ custom_epoch: config.SnowflakeEpoch });
-const DeeplTranslator = new deepl.Translator(process.env.DEEPL_KEY);
+const DeeplTranslator = new deepl.Translator(config.DANGER.DEEPL_KEY);
 
 // Set up puppeteer
 const browser = await puppeteer.launch({
     userDataDir: path.join(tmpdir(), "puppeteer"),
+
     args: [
         ...config.puppeteerArgs
     ]
@@ -96,7 +82,7 @@ Register(
     join(__dirname, "consolecommands"),
     Ulquiorra
 ).then(() => {
-    Ulquiorra.login(process.env.TOKEN).then(async () => {
+    Ulquiorra.login(config.DANGER.TOKEN).then(async () => {
         setInterval(() => {
             Ulquiorra.user.setActivity({
                 name: `Version ${config.Version}`,

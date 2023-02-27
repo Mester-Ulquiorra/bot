@@ -79,7 +79,7 @@ const ChessCommand: SlashCommand = {
                 if (!game) return "You aren't in a game!";
 
                 game.winner = player === 1 ? game.player2 : game.player1;
-                game.end(`**${interaction.user} has forfeited the game!**`);
+                game.end(`**${interaction.user} has forfeited the game, ${game.winner} wins!**`);
 
                 interaction.reply({
                     content: "You have forfeited the game!",
@@ -137,6 +137,8 @@ class ChessGame {
      * Chess controller
      */
     chessGame: chess.Chess;
+    lastMoveFrom: chess.Square;
+    lastMoveTo: chess.Square;
 
     /**
      *
@@ -191,17 +193,78 @@ class ChessGame {
     }
 
     async executeComponent(button: ButtonInteraction) {
-        button.deferUpdate();
-
         // if the button is the forfeit button
         if (button.customId === "chess.forfeit") {
-            this.winner = button.user.id === this.player1.id ? this.player2 : this.player1;
+            // ask for confirmation
+            const confirm = await button.reply({
+                embeds: [
+                    CreateEmbed(
+                        `Are you sure you want to forfeit the game?`,
+                        { color: EmbedColor.Warning, title: "Chess game" }
+                    )],
+                components: [
+                    new ActionRowBuilder<ButtonBuilder>().addComponents([
+                        new ButtonBuilder()
+                            .setCustomId("chess.confirmforfeit")
+                            .setLabel("Confirm")
+                            .setStyle(ButtonStyle.Danger),
+                        new ButtonBuilder()
+                            .setCustomId("chess.cancelforfeit")
+                            .setLabel("Cancel")
+                            .setStyle(ButtonStyle.Success),
+                    ]),
+                ],
+                fetchReply: true,
+                ephemeral: true
+            });
 
-            // delete all components
-            this.message.edit({ components: [] });
+            // create a listener for the buttons
+            confirm.awaitMessageComponent({
+                filter: (x) => x.user.id === button.user.id,
+                componentType: ComponentType.Button,
+                time: 10_000
+            }).then((button) => {
+                if (button.customId === "chess.confirmforfeit") {
+                    button.update({
+                        embeds: [
+                            CreateEmbed(
+                                `You have forfeited the game!`,
+                                { color: EmbedColor.Success, title: "Chess game" }
+                            )],
+                        components: []
+                    });
 
-            this.end(`${button.user} has forfeited the game, ${this.winner} wins!`);
+                    this.winner = button.user.id === this.player1.id ? this.player2 : this.player1;
+
+                    // delete all components
+                    this.message.edit({ components: [] });
+
+                    this.end(`${button.user} has forfeited the game, ${this.winner} wins!`);
+                } else {
+                    button.update({
+                        embeds: [
+                            CreateEmbed(
+                                `You have cancelled the forfeit!`,
+                                { color: EmbedColor.Error, title: "Chess game" }
+                            )],
+                        components: []
+                    });
+                }
+            }).catch(() => {
+                button.editReply({
+                    embeds: [
+                        CreateEmbed(
+                            `You have not confirmed the forfeit!`,
+                            { color: EmbedColor.Error, title: "Chess game" }
+                        )],
+                    components: []
+                });
+            });
+
+            return;
         }
+
+        button.deferUpdate();
 
         // if the button is the request draw button
         if (button.customId === "chess.requestdraw") {
@@ -270,7 +333,6 @@ class ChessGame {
                 if (moves.length === 0) continue;
 
                 const emoji = await ChessGame.getPieceEmoji({ color: rawSquare.color, type: rawSquare.type });
-                console.log(emoji);
 
                 const position = rawSquare.square.toString();
 
@@ -340,19 +402,20 @@ class ChessGame {
                     let thisMoveString = move.to;
 
                     const pieceToHit = this.chessGame.get(move.to as chess.Square);
-                    const emoji = pieceToHit ? await ChessGame.getPieceEmoji(pieceToHit) : undefined;
+                    const emoji = (pieceToHit || move.promotion) ? await ChessGame.getPieceEmoji(move.promotion ? { type: move.promotion, color: this.chessGame.turn() } : pieceToHit) : undefined;
 
+                    if (move.flags.includes("p")) thisMoveString += ` (Promotion)`;
                     if (move.flags.includes("c") || move.flags.includes("e")) thisMoveString += ` (Capture)`;
                     if (move.flags.includes("k") || move.flags.includes("q")) thisMoveString += ` (Castle)`;
 
                     movesOption.push({
                         label: thisMoveString,
-                        value: move.to,
+                        value: `${move.from}-${move.to}-${move.promotion || "none"}`,
                         emoji: emoji ? {
                             name: emoji instanceof GuildEmoji ? emoji.name : emoji,
                             id: emoji instanceof GuildEmoji ? emoji.id : undefined
                         } : undefined,
-                        description: `Move your piece to ${move.to}`
+                        description: `Move your piece to ${move.to} ${move.promotion ? `and promote it to a ${move.promotion}` : ""}`
                     });
                 }
 
@@ -383,28 +446,28 @@ class ChessGame {
                     if (this.ended) return;
 
                     const selection = interaction2.values[0];
-
                     if (selection === "cancel") return this.performTurn();
 
-                    const move = moves.find(move => move.to === selection);
-
-                    // most likely NEVER going to happen, but you never know
-                    if (!move) return this.performTurn();
+                    const selectionMatch = selection.match(/(.*)-(.*)-(.*)/);
+                    const promotion = selectionMatch[3] === "none" ? undefined : selectionMatch[3] as chess.PieceSymbol;
 
                     // move the piece
-                    this.chessGame.move(move.san);
+                    this.chessGame.move({
+                        from: selectionMatch[1] as chess.Square,
+                        to: selectionMatch[2] as chess.Square,
+                        promotion
+                    });
+
+                    this.lastMoveFrom = selectionMatch[1] as chess.Square;
+                    this.lastMoveTo = selectionMatch[2] as chess.Square;
 
                     // check if the game is over
                     if (this.chessGame.isGameOver()) {
-                        let embedString = "";
-                        if (this.chessGame.isDraw()) embedString = "Lmao, it's a draw";
+                        if (this.chessGame.isDraw()) this.end("Lmao, it's a draw", true);
                         else {
-                            const winner = this.chessGame.turn() === chess.WHITE ? this.player1 : this.player2;
-                            embedString = `${winner} has won the game!`;
-                            this.winner = winner;
+                            this.winner = this.chessGame.turn() === chess.WHITE ? this.player2 : this.player1;
+                            this.end(`${this.winner} has won the game!`, false);
                         }
-
-                        this.end(embedString, this.chessGame.isDraw());
 
                         return;
                     }
@@ -446,8 +509,21 @@ class ChessGame {
 
         for (let x = 0; x < 8; x++) {
             for (let y = 0; y < 8; y++) {
-                const isWhite = x % 2 === y % 2;
+                // if the square is part of lastMovedFrom or lastMovedTo, change the color of the square to yellow
+                // convert the square to a y and x coordinate
+                const square = `${String.fromCharCode(97 + x)}${8 - y}`;
+                if (square === this.lastMoveFrom || square === this.lastMoveTo) {
+                    ctx.fillStyle = "#f2f290";
+                    ctx.fillRect(
+                        x * pieceSize,
+                        y * pieceSize,
+                        pieceSize,
+                        pieceSize
+                    );
+                    continue;
+                }
 
+                const isWhite = x % 2 === y % 2;
                 ctx.fillStyle = isWhite ? "#f2f2f2" : "#f29090";
                 ctx.fillRect(
                     x * pieceSize,
@@ -474,7 +550,6 @@ class ChessGame {
         for (let y = 0; y < 8; y++) {
             for (let x = 0; x < 8; x++) {
                 const piece = this.chessGame.board()[y][x];
-
                 if (!piece) continue;
 
                 let iconPath = "";

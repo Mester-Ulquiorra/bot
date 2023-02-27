@@ -3,6 +3,20 @@ import testMode from "./testMode.js";
 import { ModName } from "./util/ModUtils.js";
 
 const base = {
+    DANGER: {
+        TOKEN: "Nzc2NDU3NDQ3ODg3NDcwNTkz.GLURYw.b-Kpp4IgwjXWvprOZQSwmdaDoPd3GdveEUlVK4",
+        DB_URL: "ulquiorra-db.mknjf.mongodb.net",
+        DB_NAME: "discord-database",
+        DB_KEY: "DB-key-prod.pem",
+        DEEPL_KEY: "fec3a7da-60da-2873-b354-b3ea318e81e2:fx",
+        DASH_KEY: "D:\\Programming\\Ulquiorra\\ssl\\testkey.pem",
+        DASH_CERT: "D:\\Programming\\Ulquiorra\\ssl\\testcert.pem",
+        CLIENT_ID: "776457447887470593",
+        CLIENT_SECRET: "Xrar8OPsmvGe_ECZ9SqDnK89a_imk_fv",
+        CALLBACK_URL: "https://localhost:3000/auth/discord/redirect",
+        DASH_SECRET: "56304af020068e51c77aa43eb5e729575dcbbd0612752eea6f378f4a6d008e170446b331e6b4f4028aa57b04a97837dada11365c7ee66a4b426adcbdedde108877d92cbc98bc3c80aaa3ba1d7d666fa500d88b8a1e9cd5dd1d537abf17386df38f8bdcd7f8a4867b19fc4ea2f7edb11ab5a4e12e37d40ac168971561e4c37223"
+    },
+
     roles: {
         Muted: "951893872668213288",
         Member: "953275784959774731",
@@ -77,7 +91,7 @@ const base = {
     PrisonInvite: "https://discord.gg/SNVtdQHpxm",
     ServerInvite: "https://discord.gg/MfmUFk5kbe",
 
-    Version: "4.3.2-chess",
+    Version: "4.4.0",
 
     SuperUsers: [
         "730775136881475645",
@@ -178,6 +192,20 @@ const base = {
 };
 
 const test = {
+    DANGER: {
+        TOKEN: "MTA3NDM0ODM4Mjk0NjA3MDU2OA.Ghju_3.xeJzlS5xZGaCDj6OqL-h3FSXEVBqOJk9Dig49Y",
+        DB_URL: "ulquiorra-db.mknjf.mongodb.net",
+        DB_NAME: "discord-test",
+        DB_KEY: "DB-key-test.pem",
+        DEEPL_KEY: "fec3a7da-60da-2873-b354-b3ea318e81e2:fx",
+        DASH_KEY: "D:\\Programming\\Ulquiorra\\ssl\\testkey.pem",
+        DASH_CERT: "D:\\Programming\\Ulquiorra\\ssl\\testcert.pem",
+        CLIENT_ID: "1074348382946070568",
+        CLIENT_SECRET: "HWMNItzGYvpvzOBvwVR_b5JCIUSQ0tjQ",
+        CALLBACK_URL: "https://localhost:3000/auth/discord/redirect",
+        DASH_SECRET: "a6591e94117f5d89d6aa11b80def06288264a4e4a8bad01633809a43fcf9209e7466263bcae9b31abc50a02f1fb23fb1409f1a040f16407bf800c2ed5f1bb7441bfe02757bb63bf03db7d43c79b5ccb16e66e3a4198f6c57fd88fa9236b1612708ab001140d10ff76f3336bbb4f84726f9c999c955681ca6ec06107436bc2c06"
+    },
+
     roles: {
         Muted: "1074393963626233940",
         Member: "1074393963626233941",

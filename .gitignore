@@ -15,6 +15,9 @@ build
 node_modules
 coverage
 dist/*
+dist/dashboard/*
 logs
 
 !dist/res
+!dist/dashboard
+!dist/dashboard/views

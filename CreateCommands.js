@@ -634,6 +634,28 @@ commands.push(
         )
 );
 
+commands.push(
+    new SlashCommandBuilder()
+        .setName("geo")
+        .setDescription("Interact with the Economy system")
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName("balance")
+                .setDescription("View your or someone else's balance")
+                .addUserOption(option =>
+                    option
+                        .setName("member")
+                        .setDescription("The member to view the balance of")
+                        .setRequired(false)
+                )
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName("explore")
+                .setDescription("Explore with the chance of finding something good")
+        )
+)
+
 commands.forEach(command => command.toJSON());
 for (const command of commands) {
     console.log(JSON.stringify(command) + "\n");

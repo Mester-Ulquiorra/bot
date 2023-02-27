@@ -71,3 +71,22 @@ export interface DBTictactoe {
     gamesLost: number;
     elo: number;
 }
+
+export interface DBDashboard {
+    userId: string;
+    avatar: string;
+}
+
+export interface DBGeo {
+    userId: string;
+    balance: {
+        geo: number;
+        public: number;
+    };
+    explore: {
+        /**
+         * The last time the user explored (in milliseconds)
+         */
+        lastExplore: number;
+    }
+}
