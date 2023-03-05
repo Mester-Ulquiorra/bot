@@ -4,7 +4,7 @@ import { join } from "path";
 import { pathToFileURL } from "url";
 import testMode from "../testMode.js";
 import ConsoleCommand from "../types/ConsoleCommand.js";
-import Event, { EventInvoker } from "../types/Event.js";
+import Event from "../types/Event.js";
 import SlashCommand from "../types/SlashCommand.js";
 import Log, { LogType } from "../util/Log.js";
 
@@ -22,7 +22,7 @@ async function Register(commandPath: string, eventPath: string, consoleCommandPa
     readdir(commandPath, async (err, files) => {
         if (err) throw err;
 
-        const commandFiles = files.filter((file) => file.endsWith(".js"));
+        const commandFiles = files.filter((file) => file.endsWith(".js") && !file.startsWith("#"));
 
         for (const commandFile of commandFiles) {
             const urlPath = pathToFileURL(join(commandPath, commandFile)).toString();
@@ -66,7 +66,12 @@ async function Register(commandPath: string, eventPath: string, consoleCommandPa
                 const module: Event = (await import(urlPath)).default;
 
                 if (testMode) console.log(module);
-                client.on(module.name, EventInvoker.bind(module, module, client));
+                client.on(module.name, (...args) => {
+                    module.run(client, ...args)
+                        .catch((error) => {
+                            Log(`Error while trying to run ${module.name}: ${error.stack}`, LogType.Error);
+                        });
+                });
             } catch (error) {
                 Log(`Error while trying to load ${eventFile}: ${error.stack}`, LogType.Error);
             }

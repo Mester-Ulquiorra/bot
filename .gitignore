@@ -1,15 +1,15 @@
 .test
-.env
-.env.test
 
 .vscode
 .scannerwork
+archive
 
 package-lock.json
 CreateCommands-old.js
 *.pem
 sonar-project.properties
 pnpm-lock.yaml
+src/config.ts
 
 build
 node_modules

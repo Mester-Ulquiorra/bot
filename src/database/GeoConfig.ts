@@ -24,5 +24,24 @@ export default mongoose.model("geo", new mongoose.Schema<IDBGeo>({
             type: SchemaTypes.Number,
             default: 0
         }
+    },
+    inventory: {
+        public: {
+            type: SchemaTypes.Boolean,
+            default: false
+        },
+        items: {
+            type: [{
+                name: {
+                    type: SchemaTypes.String,
+                    required: true
+                },
+                count: {
+                    type: SchemaTypes.Number,
+                    required: true
+                }
+            }],
+            _id: false
+        }
     }
 }));

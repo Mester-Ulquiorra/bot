@@ -14,6 +14,7 @@ const ReadyEvent: Event = {
     name: "ready",
 
     async run(client: Client) {
+        console.log(this);
         // fetch the guild and its channels
         client.guilds.fetch(config.GuildId).then((guild) => {
             guild.channels.fetch();

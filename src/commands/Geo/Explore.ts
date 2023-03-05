@@ -1,8 +1,9 @@
 import { Chance } from "chance";
 import config from "../../config.js";
+import testMode from "../../testMode.js";
 import SlashCommand from "../../types/SlashCommand.js";
 import CreateEmbed, { EmbedColor } from "../../util/CreateEmbed.js";
-import GeoData, { extractWeights, GeoEvent } from "./GeoData.js";
+import GeoData, { extractWeights, GeoEvent, RelicNames } from "./GeoData.js";
 import { GetGeoConfig } from "./Util.js";
 const chance = new Chance();
 
@@ -11,8 +12,8 @@ const ExploreCommand: SlashCommand = {
     async run(interaction, client) {
         const geoConfig = await GetGeoConfig(interaction.user.id);
         // check if user can explore
-        if (Date.now() - geoConfig.explore.lastExplore < GeoData.Explore.Cooldown && config.MesterId !== interaction.user.id) return `Woah not so fast buddy, you can explore again in ${Math.round((GeoData.Explore.Cooldown - (Date.now() - geoConfig.explore.lastExplore)) / 1000)} seconds`;
-        
+        if (Date.now() - geoConfig.explore.lastExplore < GeoData.Explore.Cooldown && !(config.MesterId === interaction.user.id && testMode)) return `Woah not so fast buddy, you can explore again in ${Math.round((GeoData.Explore.Cooldown - (Date.now() - geoConfig.explore.lastExplore)) / 1000)} seconds`;
+
         const exploreEvents = extractWeights(GeoData.Explore.Events);
         const exploreEvent = chance.weighted(exploreEvents.names, exploreEvents.weights);
 
@@ -36,8 +37,24 @@ const ExploreCommand: SlashCommand = {
                 break;
             }
             case "relic": {
-                const embed = CreateEmbed("You found a relic!\nUnfortunately, this feature is not implemented yet.");
-                interaction.reply({ embeds: [embed], ephemeral: true });
+                geoConfig.explore.lastExplore = Date.now();
+                const relicEvents = extractWeights(GeoData.Explore.RelicChances);
+                const relicName = chance.weighted(relicEvents.names, relicEvents.weights);
+                const relicFriendlyName = RelicNames[relicName];
+
+                // check if user already has relic in inventory and if so, add to count
+                const relicIndex = geoConfig.inventory.items.findIndex(item => item.name === relicName);
+                if (relicIndex !== -1) {
+                    geoConfig.inventory.items[relicIndex].count++;
+                } else {
+                    geoConfig.inventory.items.push({
+                        name: relicName,
+                        count: 1
+                    });
+                }
+
+                const embed = CreateEmbed(`You found a(n) ${relicFriendlyName}!`);
+                interaction.reply({ embeds: [embed] });
                 break;
             }
             case "artifact": {

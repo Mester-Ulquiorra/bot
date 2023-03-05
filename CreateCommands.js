@@ -654,6 +654,18 @@ commands.push(
                 .setName("explore")
                 .setDescription("Explore with the chance of finding something good")
         )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName("inventory")
+                .setDescription("View your inventory")
+                .addNumberOption(option =>
+                    option
+                        .setName("page")
+                        .setDescription("The page to view")
+                        .setRequired(false)
+                        .setMinValue(1)
+                )
+        )
 )
 
 commands.forEach(command => command.toJSON());

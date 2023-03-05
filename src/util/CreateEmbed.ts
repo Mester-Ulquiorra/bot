@@ -33,8 +33,9 @@ function getColor(color: EmbedColor): ColorResolvable {
  */
 export default function (description: string, options: EmbedOptions = {}) {
     const embed = new EmbedBuilder()
-        .setDescription(description)
         .setColor(getColor(options?.color ?? EmbedColor.Info));
+
+    if (description) embed.setDescription(description);
 
     if (options.title) embed.setTitle(options.title);
 

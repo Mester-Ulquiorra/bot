@@ -1,5 +1,4 @@
 import { VoiceState } from "discord.js";
-import { killMusic } from "../commands/Music.js";
 import Event from "../types/Event.js";
 import { GetGuild, GetSpecialChannel } from "../util/ClientUtils.js";
 import CreateEmbed from "../util/CreateEmbed.js";
@@ -7,13 +6,14 @@ import CreateEmbed from "../util/CreateEmbed.js";
 const VoiceStateUpdateEvent: Event = {
     name: "voiceStateUpdate",
     async run(_client, oldState: VoiceState, newState: VoiceState) {
+        /*
         // if the oldState had a voice channel and the newState doesn't, check if we're playing music and are in the same channel
         if (oldState.channelId != null && newState.channelId == null && oldState.channelId === GetGuild().members.me.voice?.channelId) {
             // check if there are any members left
             if (GetGuild().members.me.voice?.channel.members.size === 1) {
                 killMusic();
             }
-        }
+        }*/
 
         // create embed for voice channel change logging
         const oldChannel = oldState.channelId ? GetGuild().channels.cache.get(oldState.channelId) : null;

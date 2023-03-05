@@ -8,6 +8,7 @@ const GeoCommand: SlashCommand = {
         switch (interaction.options.getSubcommand()) {
             case "balance": return Commands.Balance.run(interaction, client);
             case "explore": return Commands.Explore.run(interaction, client);
+            case "inventory": return Commands.Inventory.run(interaction, client);
         }
     }
 };

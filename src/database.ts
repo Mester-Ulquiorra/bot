@@ -7,6 +7,7 @@ import Log, { LogType } from "./util/Log.js";
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 Mongoose.set("strictQuery", false);
+Mongoose.set("setDefaultsOnInsert", true);
 Mongoose.connect(`mongodb+srv://${config.DANGER.DB_URL}/${config.DANGER.DB_NAME}`, {
     authMechanism: "MONGODB-X509",
     sslCert: join(__dirname, "..", config.DANGER.DB_KEY),

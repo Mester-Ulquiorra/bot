@@ -2,7 +2,7 @@
  * A function for calculating the maximum pages available for a given amount of elements.
  */
 export function CalculateMaxPage(totalCount: number, pageSize: number) {
-    return Math.floor(Math.max(totalCount - 1, 1) / pageSize) + 1;
+    return Math.ceil(Math.max(totalCount, 1) / pageSize);
 }
 
 /**

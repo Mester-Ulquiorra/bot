@@ -1,3 +1,4 @@
+import { GeoItem } from "../commands/Geo/GeoData.js";
 import { PunishmentType } from "../database/PunishmentConfig.js";
 import { TicketType } from "../database/TicketConfig.js";
 
@@ -81,12 +82,16 @@ export interface DBGeo {
     userId: string;
     balance: {
         geo: number;
-        public: number;
+        public: boolean;
     };
     explore: {
         /**
          * The last time the user explored (in milliseconds)
          */
         lastExplore: number;
+    };
+    inventory: {
+        items: Array<GeoItem>;
+        public: boolean;
     }
 }
