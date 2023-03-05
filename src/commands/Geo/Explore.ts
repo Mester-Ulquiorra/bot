@@ -4,7 +4,8 @@ import testMode from "../../testMode.js";
 import SlashCommand from "../../types/SlashCommand.js";
 import CreateEmbed, { EmbedColor } from "../../util/CreateEmbed.js";
 import GeoData, { extractWeights, GeoEvent, RelicNames } from "./GeoData.js";
-import { GetGeoConfig } from "./Util.js";
+import { GetGeoConfig, GetMultipliers } from "./Util.js";
+import { GuildMember } from "discord.js";
 const chance = new Chance();
 
 const ExploreCommand: SlashCommand = {
@@ -22,7 +23,7 @@ const ExploreCommand: SlashCommand = {
                 geoConfig.explore.lastExplore = Date.now();
                 const amountEvents = extractWeights(GeoData.Explore.GeoAmountEvents);
                 const amountEvent = chance.weighted(amountEvents.names, amountEvents.weights);
-                const amount = GetGeoAmount(amountEvent);
+                const amount = Math.floor(GetGeoAmount(amountEvent) * (await GetMultipliers(interaction.member as GuildMember, geoConfig)).geo);
 
                 geoConfig.balance.geo += amount;
 

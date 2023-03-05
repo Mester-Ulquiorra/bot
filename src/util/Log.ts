@@ -1,6 +1,11 @@
 import { createLogger, format, transports } from "winston";
 import { format as formatDate } from "date-fns";
 import clc from "cli-color";
+import { fileURLToPath } from "url";
+import { join } from "path";
+
+const __dirname = fileURLToPath(new URL(".", import.meta.url));
+const logsFolder = join(__dirname, "..", "..", "logs");
 
 export enum LogType {
     Info = "info",
@@ -31,19 +36,19 @@ const logger = createLogger({
     ),
     transports: [
         new transports.File({
-            filename: "logs/info.log",
+            filename: join(logsFolder, "info.log"),
             level: LogType.Info
         }),
         new transports.File({
-            filename: "logs/warn.log",
+            filename: join(logsFolder, "warn.log"),
             level: LogType.Warn
         }),
         new transports.File({
-            filename: "logs/error.log",
+            filename: join(logsFolder, "error.log"),
             level: LogType.Error
         }),
         new transports.File({
-            filename: "logs/fatal.log",
+            filename: join(logsFolder, "fatal.log"),
             level: LogType.Fatal
         })
     ]

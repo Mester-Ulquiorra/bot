@@ -267,7 +267,7 @@ async function GetLevelConfig(userId: string) {
  * @param message The message that made the member level up.
  * @param newRole The role id that was added to the user.
  */
-async function AlertMember(member: GuildMember, newlevel: number, message: Message, newRole: string) {
+async function AlertMember(member: GuildMember, newlevel: number, message: Message, newRole: string = null) {
     let embedDescription = `**Congratulations <@${member.id}>, you've successfully achieved level ${newlevel}**! ([Jump to level message](${message.url}))`;
 
     // if new_role is not null, get the role name

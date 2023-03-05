@@ -48,7 +48,7 @@ export function extractWeights<T extends WeightedItems>(items: ItemsWithWeight<T
 }
 
 export default {
-    GeoVersion: "0.0.2-alpha",
+    GeoVersion: "0.0.3-alpha",
     GeoIcon,
     Explore: {
         /**
@@ -59,7 +59,7 @@ export default {
         /**
          * Name of events that can occur when exploring
          */
-        Events: [["geo", 1000], ["nothing", 500], ["npc", 200], ["enemy", 200], ["relic", 50], ["artifact", 1]] as ItemsWithWeight<ExploreEvent>,
+        Events: [["geo", 1000], ["nothing", 100], ["npc", 200], ["enemy", 200], ["relic", 50], ["artifact", 1]] as ItemsWithWeight<ExploreEvent>,
         /**
          * The different amounts of Geo that can be found when exploring
          * small = 1-10
@@ -68,7 +68,7 @@ export default {
          * huge = 100-200
          * kinglike = 200-500
          */
-        GeoAmountEvents: [["small", 500], ["medium", 200], ["large", 50], ["huge", 15], ["kinglike", 1]] as ItemsWithWeight<GeoEvent>,
+        GeoAmountEvents: [["small", 500], ["medium", 150], ["large", 40], ["huge", 15], ["kinglike", 1]] as ItemsWithWeight<GeoEvent>,
         GeoPreSentences: [
             `After carefully cutting down some vines and pushing some rocks out of the way, you stumble upon _ ${GeoIcon}!`,
             `As you explore the winding caverns, you spot a glimmering object hidden in the shadows. Upon closer inspection, you discover _ ${GeoIcon}!`,
