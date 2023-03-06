@@ -1,12 +1,10 @@
-import { Chance } from "chance";
 import config from "../../config.js";
 import testMode from "../../testMode.js";
 import SlashCommand from "../../types/SlashCommand.js";
 import CreateEmbed, { EmbedColor } from "../../util/CreateEmbed.js";
-import GeoData, { extractWeights, GeoEvent, RelicNames } from "./GeoData.js";
+import GeoData, { extractWeights, GeoChance, GeoEvent, RelicNames } from "./GeoData.js";
 import { GetGeoConfig, GetMultipliers } from "./Util.js";
 import { GuildMember } from "discord.js";
-const chance = new Chance();
 
 const ExploreCommand: SlashCommand = {
     name: "_",
@@ -16,18 +14,18 @@ const ExploreCommand: SlashCommand = {
         if (Date.now() - geoConfig.explore.lastExplore < GeoData.Explore.Cooldown && !(config.MesterId === interaction.user.id && testMode)) return `Woah not so fast buddy, you can explore again in ${Math.round((GeoData.Explore.Cooldown - (Date.now() - geoConfig.explore.lastExplore)) / 1000)} seconds`;
 
         const exploreEvents = extractWeights(GeoData.Explore.Events);
-        const exploreEvent = chance.weighted(exploreEvents.names, exploreEvents.weights);
+        const exploreEvent = GeoChance.weighted(exploreEvents.names, exploreEvents.weights);
 
         switch (exploreEvent) {
             case "geo": {
                 geoConfig.explore.lastExplore = Date.now();
                 const amountEvents = extractWeights(GeoData.Explore.GeoAmountEvents);
-                const amountEvent = chance.weighted(amountEvents.names, amountEvents.weights);
+                const amountEvent = GeoChance.weighted(amountEvents.names, amountEvents.weights);
                 const amount = Math.floor(GetGeoAmount(amountEvent) * (await GetMultipliers(interaction.member as GuildMember, geoConfig)).geo);
 
                 geoConfig.balance.geo += amount;
 
-                const embed = CreateEmbed(chance.pickone(GeoData.Explore.GeoPreSentences).replace("_", amount.toString()));
+                const embed = CreateEmbed(GeoChance.pickone(GeoData.Explore.GeoPreSentences).replace("_", amount.toString()));
                 interaction.reply({ embeds: [embed] });
                 break;
             }
@@ -40,7 +38,7 @@ const ExploreCommand: SlashCommand = {
             case "relic": {
                 geoConfig.explore.lastExplore = Date.now();
                 const relicEvents = extractWeights(GeoData.Explore.RelicChances);
-                const relicName = chance.weighted(relicEvents.names, relicEvents.weights);
+                const relicName = GeoChance.weighted(relicEvents.names, relicEvents.weights);
                 const relicFriendlyName = RelicNames[relicName];
 
                 // check if user already has relic in inventory and if so, add to count
@@ -88,11 +86,11 @@ const ExploreCommand: SlashCommand = {
 
 function GetGeoAmount(event: GeoEvent) {
     switch (event) {
-        case "small": return chance.integer({ min: 1, max: 10 });
-        case "medium": return chance.integer({ min: 15, max: 30 });
-        case "large": return chance.integer({ min: 50, max: 90 });
-        case "huge": return chance.integer({ min: 100, max: 200 });
-        case "kinglike": return chance.integer({ min: 200, max: 500 });
+        case "small": return GeoChance.integer({ min: 1, max: 10 });
+        case "medium": return GeoChance.integer({ min: 15, max: 30 });
+        case "large": return GeoChance.integer({ min: 50, max: 90 });
+        case "huge": return GeoChance.integer({ min: 100, max: 200 });
+        case "kinglike": return GeoChance.integer({ min: 200, max: 500 });
     }
 }
 

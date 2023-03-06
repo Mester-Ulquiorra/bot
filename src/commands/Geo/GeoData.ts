@@ -1,15 +1,38 @@
+import { Chance } from "chance";
 import testMode from "../../testMode.js";
+
+export const GeoChance = new Chance();
 
 export interface GeoItem {
     name: GeoItems;
     count: number;
 }
 
-export type ExploreEvent = "geo" | "nothing" | "npc" | "enemy" | "relic" | "artifact";
-export type GeoEvent = "small" | "medium" | "large" | "huge" | "kinglike";
-export type RelicItems = "dreamstone_shard" | "kings_idol" | "luminous_ore" | "mothwing_cloak" | "arcane_egg" | "wanderers_journal" | "lifeblood_core";
+// ------- global name types ------- //
+/**
+ * All explore events
+ */
+export const IExploreEvents = <const>["geo", "nothing", "npc", "enemy", "relic", "artifact"];
+export type ExploreEvent = typeof IExploreEvents[number];
 
-export type GeoItems = RelicItems;
+/**
+ * All geo sizes
+ */
+export const IGeoEvents = <const>["small", "medium", "large", "huge", "kinglike"];
+export type GeoEvent = typeof IGeoEvents[number];
+
+/**
+ * All relics
+ */
+export const IRelicItems = <const>["dreamstone_shard", "kings_idol", "luminous_ore", "mothwing_cloak", "arcane_egg", "wanderers_journal", "lifeblood_core"];
+export type RelicItems = typeof IRelicItems[number];
+
+/**
+ * All items
+ */
+export const IGeoItems = [...IRelicItems];
+export type GeoItems = typeof IGeoItems[number];
+// --------------------------------- //
 
 type WeightedItems = ExploreEvent | GeoEvent | RelicItems;
 type ItemsWithWeight<T extends WeightedItems> = Array<[T, number]>;
@@ -29,16 +52,36 @@ export const RelicNames: { [key in RelicItems]: string } = {
 export const ItemNames = Object.assign({}, RelicNames);
 
 export const RelicDescriptions: { [key in RelicItems]: string } = {
-    dreamstone_shard: "A small shard of shimmering crystal that glows with a soft light. It's said to hold fragments of the dreams of ancient beings.",
-    kings_idol: "A small figurine depicting a regal figure. It's said to be a token of the Pale King's favor and is highly sought after by collectors.",
-    luminous_ore: "A rare and valuable ore that glows with a bright light. It's often used in the crafting of powerful magical artifacts.",
-    mothwing_cloak: "A tattered cloak made of delicate moth wings. It allows its wearer to dash through the air and cling to walls.",
-    arcane_egg: "A mysterious egg that hums with arcane energy. Its true purpose is unknown, but many believe it to be a powerful magical artifact.",
-    wanderers_journal: "A worn and tattered journal filled with the notes and observations of a traveler. It's said to hold valuable insights into the world of Hallownest.",
-    lifeblood_core: "A pulsating core that contains the essence of Lifeblood, a rare substance that can heal even the most grievous wounds."
+    dreamstone_shard: "[Common] A small shard of shimmering crystal that glows with a soft light. It's said to hold fragments of the dreams of ancient beings.",
+    kings_idol: "[Uncommon] A small figurine depicting a regal figure. It's said to be a token of the Pale King's favor and is highly sought after by collectors.",
+    luminous_ore: "[Uncommon] A rare and valuable ore that glows with a bright light. It's often used in the crafting of powerful magical artifacts.",
+    mothwing_cloak: "[Rare] A tattered cloak made of delicate moth wings. It allows its wearer to dash through the air and cling to walls.",
+    arcane_egg: "[Rare] A mysterious egg that hums with arcane energy. Its true purpose is unknown, but many believe it to be a powerful magical artifact.",
+    wanderers_journal: "[Common] A worn and tattered journal filled with the notes and observations of a traveler. It's said to hold valuable insights into the world of Hallownest.",
+    lifeblood_core: "[Rare] A pulsating core that contains the essence of Lifeblood, a rare substance that can heal even the most grievous wounds."
 };
 
 export const ItemDescriptions = Object.assign({}, RelicDescriptions);
+
+// ------ Prices ------ //
+const rarityPrices: { [key in "common" | "uncommon" | "rare"]: { min: number, max: number } } = {
+    common: { min: 50, max: 100 },
+    uncommon: { min: 150, max: 200 },
+    rare: { min: 300, max: 350 }
+};
+
+export const RelicPrices: { [key in RelicItems]: { min: number, max: number } } = {
+    dreamstone_shard: rarityPrices.common,
+    kings_idol: rarityPrices.uncommon,
+    luminous_ore: rarityPrices.uncommon,
+    mothwing_cloak: rarityPrices.rare,
+    arcane_egg: rarityPrices.rare,
+    wanderers_journal: rarityPrices.common,
+    lifeblood_core: rarityPrices.rare
+};
+
+export const ItemPrices = Object.assign({}, RelicPrices);
+// -------------------- //
 
 export function extractWeights<T extends WeightedItems>(items: ItemsWithWeight<T>) {
     // extract both the names and weights from the array
@@ -48,7 +91,7 @@ export function extractWeights<T extends WeightedItems>(items: ItemsWithWeight<T
 }
 
 export default {
-    GeoVersion: "0.0.3-alpha",
+    GeoVersion: "0.0.4-alpha",
     GeoIcon,
     Explore: {
         /**

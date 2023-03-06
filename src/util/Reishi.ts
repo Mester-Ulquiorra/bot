@@ -106,15 +106,14 @@ function GetPunishmentReason(type: PunishmentNames) {
  * @returns If the message was punished or not.
  */
 async function PunishMessage(message: Message, type: PunishmentNames, word: string, client: Client): Promise<boolean> {
-    // get the user config
-    const userconfig = await GetUserConfig(message.author.id);
-
-    // check the mod level
-    if (userconfig.mod != 0) {
-        // check if we're in test mode
-        if (testMode) message.react("❌");
+    if (testMode) {
+        if (word === "__delete__") message.react("🗑️");
+        else message.react("❌");
         return false;
     }
+
+    // get the user config
+    const userconfig = await GetUserConfig(message.author.id);
 
     // delete the message
     if (word === "__delete__") {

@@ -7,11 +7,11 @@ import { GetGeoConfig, GetMultipliers } from "./Util.js";
 const BalanceGeoCommand: SlashCommand = {
     name: "_",
     async run(interaction, client) {
-        const target = interaction.options.getUser("member") ?? interaction.user;
+        const target = interaction.options.getUser("member") ?? interaction.member as GuildMember;
         const geoConfig = await GetGeoConfig(target.id);
         if (!geoConfig.balance.public && target.id !== interaction.user.id) return "This user's balance is private";
 
-        const geoMultiplier = (await GetMultipliers(interaction.member as GuildMember, geoConfig)).geo;
+        const geoMultiplier = (await GetMultipliers(target, geoConfig)).geo;
 
         const embed = CreateEmbed(`Balance of ${target}`)
             .addFields(

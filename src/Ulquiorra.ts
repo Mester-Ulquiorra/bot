@@ -1,4 +1,3 @@
-import { generateDependencyReport } from "@discordjs/voice";
 import "canvas";
 import * as deepl from "deepl-node";
 import { Client } from "discord.js";
@@ -10,7 +9,6 @@ import puppeteer from "puppeteer";
 import { createInterface } from "readline";
 import { fileURLToPath } from "url";
 import config from "./config.js";
-import testMode from "./testMode.js";
 import AutoUnpunish from "./util/AutoUnpunish.js";
 import CleanTickets from "./util/CleanTickets.js";
 import { HandleConsoleCommand } from "./util/ConsoleUtils.js";
@@ -18,7 +16,6 @@ import Log, { LogType } from "./util/Log.js";
 import { Register } from "./util/Register.js";
 import ServerStats from "./util/ServerStats.js";
 import "./database.js";
-if (testMode) console.log(generateDependencyReport());
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 

@@ -3,7 +3,7 @@ import config from "../../config.js";
 
 export const DiscordInviteRegExp = /discord(?:app)?\.com\/(?:(friend-)?invite|servers)?\/([a-z0-9-]+)|discord\.gg\/(?:\S+\/)?([a-z0-9-]+)/;
 export const UrlRegExp = /https?:\/\/(?:www\.)?([\w@:%.+~#=]{2,256}\.[a-z]{2,6}\b)*(\/[/\w.-]*)*(?:[?])*(.+)*/i;
-export const DiscordLink = /^https?:\/\/(?:www\.)?(?:(media|canary|ptb|cdn)\.?)(discord(?:app)?\.com|)(?:\/.*|\/?)$/;
+export const DiscordLink = /^https?:\/\/(?:www\.)?(?:(media|canary|ptb|cdn)\.?)(discord(?:app)?\.(?:com|net))(?:\/.*|\/?)$/;
 
 /**
  *

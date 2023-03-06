@@ -1,7 +1,7 @@
 import SlashCommand from "../../types/SlashCommand.js";
 import CreateEmbed from "../../util/CreateEmbed.js";
 import { CalculateMaxPage } from "../../util/MathUtils.js";
-import { ItemDescriptions, ItemNames } from "./GeoData.js";
+import GeoData, { ItemDescriptions, ItemNames, ItemPrices } from "./GeoData.js";
 import { GetGeoConfig } from "./Util.js";
 
 const InventoryCommand: SlashCommand = {
@@ -25,8 +25,13 @@ const InventoryCommand: SlashCommand = {
 
         for (const item of geoConfig.inventory.items.slice((page - 1) * 10, page * 10)) {
             const friendlyName = ItemNames[item.name];
+            const price = ItemPrices[item.name];
+
+            const itemText = `${item.count}x ${friendlyName}`;
+            const sellText = `\n**Sell:** ${price.min}-${price.max} ${GeoData.GeoIcon}`;
+
             embed.addFields({
-                name: `${item.count}x ${friendlyName}`,
+                name: itemText + sellText,
                 value: ItemDescriptions[item.name],
                 inline: false
             });

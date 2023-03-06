@@ -9,6 +9,7 @@ const GeoCommand: SlashCommand = {
             case "balance": return Commands.Balance.run(interaction, client);
             case "explore": return Commands.Explore.run(interaction, client);
             case "inventory": return Commands.Inventory.run(interaction, client);
+            case "sell": return Commands.Sell.run(interaction, client);
         }
     }
 };

@@ -5,11 +5,11 @@
 archive
 
 package-lock.json
-CreateCommands-old.js
 *.pem
 sonar-project.properties
 pnpm-lock.yaml
 src/config.ts
+src/CreateCommands.ts
 
 build
 node_modules

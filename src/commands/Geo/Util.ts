@@ -1,6 +1,7 @@
-import { GuildMember } from "discord.js";
+import { GuildMember, User } from "discord.js";
 import GeoConfig from "../../database/GeoConfig.js";
 import { DBGeo } from "../../types/Database.js";
+import { GeoItems, IGeoItems } from "./GeoData.js";
 
 export async function GetGeoConfig(userId: string) {
     let geoConfig = await GeoConfig.findOne({ userId });
@@ -12,10 +13,12 @@ interface GeoMultipler {
     geo: number;
 }
 
-export async function GetMultipliers(member: GuildMember, geoConfig: DBGeo): Promise<GeoMultipler> {
+export async function GetMultipliers(member: GuildMember | User, geoConfig: DBGeo): Promise<GeoMultipler> {
     const multipliers: GeoMultipler = {
         geo: 1
     };
+
+    if (member instanceof User) return multipliers;
 
     // add 1.5 to geo if the user is a server booster
     if (member.premiumSince != null) {
@@ -23,4 +26,8 @@ export async function GetMultipliers(member: GuildMember, geoConfig: DBGeo): Pro
     }
 
     return multipliers;
+}
+
+export function IsGeoItem(item: string): item is GeoItems {
+    return IGeoItems.includes(item as GeoItems);
 }
