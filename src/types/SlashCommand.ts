@@ -1,4 +1,4 @@
-import { ButtonInteraction, ChatInputCommandInteraction, Client, MentionableSelectMenuInteraction, MessageContextMenuCommandInteraction, ModalSubmitInteraction, RoleSelectMenuInteraction, StringSelectMenuInteraction, UserContextMenuCommandInteraction } from "discord.js";
+import { AutocompleteInteraction, ButtonInteraction, ChatInputCommandInteraction, Client, MentionableSelectMenuInteraction, MessageContextMenuCommandInteraction, ModalSubmitInteraction, RoleSelectMenuInteraction, StringSelectMenuInteraction, UserContextMenuCommandInteraction } from "discord.js";
 
 export type SlashCommandReturnValue = Promise<Error | string | void>;
 
@@ -53,9 +53,13 @@ interface SlashCommand {
     */
     runRoleSelectMenu?: (interaction: RoleSelectMenuInteraction, client: Client) => SlashCommandReturnValue
     /**
-   * The function that executes when a mentionable select menu is clicked
-   */
+    * The function that executes when a mentionable select menu is clicked
+    */
     runMentionableSelectMenu?: (interaction: MentionableSelectMenuInteraction, client: Client) => SlashCommandReturnValue
+    /**
+     * The function that executes when an autocomplete is run
+     */
+    runAutocomplete?: (interaction: AutocompleteInteraction, client: Client) => SlashCommandReturnValue
 }
 
 export default SlashCommand;

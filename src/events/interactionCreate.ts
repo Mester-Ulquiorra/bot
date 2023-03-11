@@ -22,7 +22,7 @@ const InteractionCreateEvent: Event = {
     async run(client: Client, interaction: BaseInteraction) {
         // find the command and store its return value in return_message
         let commandName = null;
-        if (!interaction.isCommand() && !interaction.isMessageComponent() && !interaction.isModalSubmit()) return;
+        if (!interaction.isCommand() && !interaction.isMessageComponent() && !interaction.isModalSubmit() && !interaction.isAutocomplete()) return;
 
         if (interaction.isMessageComponent() || interaction.isModalSubmit()) {
             for (const dontCheck of IgnoredIds) {
@@ -33,7 +33,7 @@ const InteractionCreateEvent: Event = {
 
         // so here we try to get the command name
         // for message components like buttons, the customId is formatted like "<commandName>.<everything else>"
-        if (interaction.isChatInputCommand()) commandName = interaction.commandName;
+        if (interaction.isChatInputCommand() || interaction.isAutocomplete()) commandName = interaction.commandName;
         if (interaction.isMessageComponent() || interaction.isModalSubmit()) commandName = interaction.customId.split(".")[0];
         if (interaction.isCommand() && !interaction.isChatInputCommand()) {
             for (const [name, command] of commands) {
@@ -49,7 +49,7 @@ const InteractionCreateEvent: Event = {
                 title: "ERROR: unregistered command"
             });
 
-            interaction.reply({ embeds: [embed], ephemeral: true });
+            if (interaction.isRepliable()) interaction.reply({ embeds: [embed], ephemeral: true });
             return;
         }
 
@@ -68,6 +68,7 @@ const InteractionCreateEvent: Event = {
             if (interaction.isMentionableSelectMenu()) returnStatus = command.runMentionableSelectMenu(interaction, client);
             if (interaction.isMessageContextMenuCommand()) returnStatus = command.runMessageContextCommand(interaction, client);
             if (interaction.isUserContextMenuCommand()) returnStatus = command.runUserContextCommand(interaction, client);
+            if (interaction.isAutocomplete()) returnStatus = command.runAutocomplete(interaction, client);
             returnMessage = await returnStatus.then(result => { return result; }).catch((error) => { return error; });
         } catch (error) {
             // most likely the command doesn't support that "type" of command we're trying to run
@@ -76,7 +77,7 @@ const InteractionCreateEvent: Event = {
                 title: "ERROR: unregistered interaction type"
             });
 
-            interaction.reply({ embeds: [embed], ephemeral: true });
+            if (interaction.isRepliable()) interaction.reply({ embeds: [embed], ephemeral: true });
             return;
         }
 
@@ -96,6 +97,7 @@ const InteractionCreateEvent: Event = {
             };
 
             // we need to make sure to follow up instead of a simple reply since the command might have already sent a response
+            if (!interaction.isRepliable()) return;
             if (interaction.deferred || interaction.replied) interaction.followUp(options).catch(() => { return; });
             else interaction.reply(options).catch(() => { return; });
         }
@@ -114,6 +116,7 @@ const InteractionCreateEvent: Event = {
                 ephemeral: true
             };
 
+            if (!interaction.isRepliable()) return;
             if (interaction.deferred || interaction.replied) interaction.followUp(options).catch(() => { return; });
             else interaction.reply(options).catch(() => { return; });
         }

@@ -53,7 +53,7 @@ const SetModCommand: SlashCommand = {
  * @param member The member to change the roles of.
  * @param modLevel The modlevel to set the member to.
  */
-async function SetModRole(member: GuildMember, modLevel: number) {
+export async function SetModRole(member: GuildMember, modLevel: number) {
     // remove head and test mod role
     if (modLevel !== ModNameToLevel("Head")) ManageRole(member, ModNameToId("Head"), "Remove");
     if (modLevel !== ModNameToLevel("Test")) ManageRole(member, ModNameToId("Test"), "Remove");
@@ -88,6 +88,5 @@ async function SetModRole(member: GuildMember, modLevel: number) {
             break;
     }
 }
-
 
 export default SetModCommand;
