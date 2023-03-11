@@ -1,81 +1,82 @@
 import config from "../../config.js";
 import testMode from "../../testMode.js";
+import { DBGeo } from "../../types/Database.js";
 import SlashCommand from "../../types/SlashCommand.js";
 import CreateEmbed, { EmbedColor } from "../../util/CreateEmbed.js";
-import GeoData, { extractWeights, GeoChance, GeoEvent, RelicNames } from "./GeoData.js";
-import { GetGeoConfig, GetMultipliers } from "./Util.js";
+import GeoData, { ArtifactNames, GeoChance, GeoEvent, GeoItems, RelicNames } from "./GeoData.js";
+import { GetGeoConfig, GetMultipliers, extractWeights } from "./Util.js";
 import { GuildMember } from "discord.js";
 
 const ExploreCommand: SlashCommand = {
     name: "_",
     async run(interaction, client) {
+        await interaction.deferReply();
         const geoConfig = await GetGeoConfig(interaction.user.id);
-        // check if user can explore
-        if (Date.now() - geoConfig.explore.lastExplore < GeoData.Explore.Cooldown && !(config.MesterId === interaction.user.id && testMode)) return `Woah not so fast buddy, you can explore again in ${Math.round((GeoData.Explore.Cooldown - (Date.now() - geoConfig.explore.lastExplore)) / 1000)} seconds`;
+        const multipliers = await GetMultipliers(interaction.member as GuildMember, geoConfig);
 
-        const exploreEvents = extractWeights(GeoData.Explore.Events);
-        const exploreEvent = GeoChance.weighted(exploreEvents.names, exploreEvents.weights);
+        // check if user can explore
+        if (Date.now() - geoConfig.explore.lastExplore < GeoData.Explore.Cooldown && !(config.MesterId === interaction.user.id && testMode)) return `Woah, not so fast buddy, you can explore again in ${Math.round((GeoData.Explore.Cooldown - (Date.now() - geoConfig.explore.lastExplore)) / 1000)} seconds`;
+
+        const exploreEvent = GeoChance.weighted(...extractWeights(GeoData.Explore.Events, multipliers));
 
         switch (exploreEvent) {
             case "geo": {
                 geoConfig.explore.lastExplore = Date.now();
-                const amountEvents = extractWeights(GeoData.Explore.GeoAmountEvents);
-                const amountEvent = GeoChance.weighted(amountEvents.names, amountEvents.weights);
-                const amount = Math.floor(GetGeoAmount(amountEvent) * (await GetMultipliers(interaction.member as GuildMember, geoConfig)).geo);
+                const amountEvent = GeoChance.weighted(...extractWeights(GeoData.Explore.GeoAmountEvents, multipliers));
+                const amount = Math.floor(GetGeoAmount(amountEvent) * multipliers.geo);
 
                 geoConfig.balance.geo += amount;
 
                 const embed = CreateEmbed(GeoChance.pickone(GeoData.Explore.GeoPreSentences).replace("_", amount.toString()));
-                interaction.reply({ embeds: [embed] });
+                interaction.editReply({ embeds: [embed] });
                 break;
             }
             case "nothing": {
                 geoConfig.explore.lastExplore = Date.now();
                 const embed = CreateEmbed("You looked in every small corner of the area, but unfortunately you found nothing...");
-                interaction.reply({ embeds: [embed] });
+                interaction.editReply({ embeds: [embed] });
                 break;
             }
             case "relic": {
                 geoConfig.explore.lastExplore = Date.now();
-                const relicEvents = extractWeights(GeoData.Explore.RelicChances);
-                const relicName = GeoChance.weighted(relicEvents.names, relicEvents.weights);
-                const relicFriendlyName = RelicNames[relicName];
+                const relicName = GeoChance.weighted(...extractWeights(GeoData.Explore.RelicChances, multipliers));
+                const friendlyName = RelicNames[relicName];
 
-                // check if user already has relic in inventory and if so, add to count
-                const relicIndex = geoConfig.inventory.items.findIndex(item => item.name === relicName);
-                if (relicIndex !== -1) {
-                    geoConfig.inventory.items[relicIndex].count++;
-                } else {
-                    geoConfig.inventory.items.push({
-                        name: relicName,
-                        count: 1
-                    });
-                }
+                addItemToInventory(geoConfig, relicName);
 
-                const embed = CreateEmbed(`You found a(n) ${relicFriendlyName}!`);
-                interaction.reply({ embeds: [embed] });
+                const embed = CreateEmbed(`You found a(n) ${friendlyName}!`);
+                interaction.editReply({ embeds: [embed] });
                 break;
             }
             case "artifact": {
-                const embed = CreateEmbed("You found an artifact!\nUnfortunately, this feature is not implemented yet.");
-                interaction.reply({ embeds: [embed], ephemeral: true });
+                geoConfig.explore.lastExplore = Date.now();
+                const artifactName = GeoChance.weighted(...extractWeights(GeoData.Explore.ArtifactChances, multipliers));
+                const friendlyName = ArtifactNames[artifactName];
+
+                addItemToInventory(geoConfig, artifactName);
+
+                const embed = CreateEmbed(`You found a(n) ${friendlyName}!`);
+                interaction.editReply({ embeds: [embed] });
                 break;
             }
             case "npc": {
                 const embed = CreateEmbed("You found an NPC!\nUnfortunately, this feature is not implemented yet.");
-                interaction.reply({ embeds: [embed], ephemeral: true });
+                await interaction.deleteReply();
+                interaction.followUp({ embeds: [embed], ephemeral: true });
                 break;
             }
             case "enemy": {
                 const embed = CreateEmbed("You found an enemy!\nThank god the fight system doesn't exist yet, you don't even have a weapon!");
-                interaction.reply({ embeds: [embed], ephemeral: true });
+                await interaction.deleteReply();
+                interaction.followUp({ embeds: [embed], ephemeral: true });
                 break;
             }
             default: {
                 const embed = CreateEmbed(`This is weird, you accidentally managed to not find anything, even nothing... perhaps it is not implemented yet?\nEvent you got: ${exploreEvent}`, {
                     color: EmbedColor.Error
                 });
-                interaction.reply({ embeds: [embed], ephemeral: true });
+                await interaction.deleteReply();
+                interaction.followUp({ embeds: [embed], ephemeral: true });
                 break;
             }
         }
@@ -83,6 +84,19 @@ const ExploreCommand: SlashCommand = {
         geoConfig.save();
     }
 };
+
+function addItemToInventory(geoConfig: DBGeo, itemName: GeoItems, count = 1) {
+    // check if user already has that artifact in inventory and if so, add to count
+    const relicIndex = geoConfig.inventory.items.findIndex(item => item.name === itemName);
+    if (relicIndex !== -1) {
+        geoConfig.inventory.items[relicIndex].count++;
+    } else {
+        geoConfig.inventory.items.push({
+            name: itemName,
+            count
+        });
+    }
+}
 
 function GetGeoAmount(event: GeoEvent) {
     switch (event) {

@@ -28,7 +28,7 @@ const InventoryCommand: SlashCommand = {
             const price = ItemPrices[item.name];
 
             const itemText = `${item.count}x ${friendlyName}`;
-            const sellText = `\n**Sell:** ${price.min}-${price.max} ${GeoData.GeoIcon}`;
+            const sellText = price ? `\n**Sell:** ${price.min}-${price.max} ${GeoData.GeoIcon}` : "";
 
             embed.addFields({
                 name: itemText + sellText,

@@ -8,15 +8,15 @@ export const GetUserConfig = async (id: string, reason?: string, create = true) 
     return userConfig ?? (create ? CreateUserConfig(id, reason) : null);
 };
 
-export const CreateUserConfig = async (id: string, reason = "no reason provided") => {
+export const CreateUserConfig = async (userId: string, reason = "no reason provided") => {
     // we assume the user config doesn't exist yet
     const userConfig = await UserConfig.create({
-        userId: id,
-        lastjoined: Math.floor(Date.now() / 1000),
-        firstjoined: Math.floor(Date.now() / 1000)
-    }).catch(() => { return UserConfig.findOne({ userId: id }); });
+        userId,
+        lastjoined: -1,
+        firstjoined: -1
+    }).catch(() => { return UserConfig.findOne({ userId }); });
 
-    if (reason) Log(`Created user config for user ${id}: ${reason}`);
+    if (reason) Log(`Created user config for user ${userId}: ${reason}`);
 
     return userConfig;
 };

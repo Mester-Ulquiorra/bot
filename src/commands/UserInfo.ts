@@ -25,7 +25,9 @@ const UserInfoCommand: SlashCommand = {
 };
 
 async function GenerateUserInfo(interaction: ChatInputCommandInteraction | ButtonInteraction, target: GuildMember | User) {
-    const targetConfig = await GetUserConfig(target.id);
+    const targetConfig = await GetUserConfig(target.id, null, false);
+
+    if (!targetConfig) return "The user has never joined the server.";
 
     // get the member's roles
     const targetRoles = target instanceof GuildMember
@@ -54,12 +56,12 @@ async function GenerateUserInfo(interaction: ChatInputCommandInteraction | Butto
         },
         {
             name: "First joined",
-            value: `<t:${targetConfig.firstjoined}>`,
+            value: targetConfig.firstjoined === -1 ? "never" : `<t:${targetConfig.firstjoined}>`,
             inline: true
         },
         {
             name: "Last joined at",
-            value: `<t:${targetConfig.lastjoined}>`,
+            value: targetConfig.lastjoined === -1 ? "never" : `<t:${targetConfig.lastjoined}>`,
             inline: true
         },
         {

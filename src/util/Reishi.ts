@@ -113,7 +113,9 @@ async function PunishMessage(message: Message, type: PunishmentNames, word: stri
     }
 
     // get the user config
-    const userconfig = await GetUserConfig(message.author.id);
+    const userConfig = await GetUserConfig(message.author.id);
+
+    if (userConfig.mod > 0) return false;
 
     // delete the message
     if (word === "__delete__") {
@@ -144,8 +146,8 @@ async function PunishMessage(message: Message, type: PunishmentNames, word: stri
         "Add",
         `Muted by Ulquiorra - ${GetPunishmentReason(type)}`
     );
-    userconfig.muted = true;
-    await userconfig.save();
+    userConfig.muted = true;
+    await userConfig.save();
 
     // log
     Log(`User ${message.author.id} (${message.author.tag}) has been automatically muted for "${GetPunishmentReason(type)}". ID: ${punishmentId}`);

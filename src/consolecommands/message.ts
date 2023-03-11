@@ -18,13 +18,13 @@ const MessageConsoleCommand: ConsoleCommand = {
         }
 
         // set userid to first argument
-        const userid = args[0] as string;
+        const userId = args[0] as string;
 
         // set message by joining all other arguments
         const consoleMessage = args.slice(1).join(" ");
 
         // try to get the user
-        const user = await client.users.fetch(userid);
+        const user = await client.users.fetch(userId);
 
         // if it doesn't exist, return
         if (!user) {
@@ -44,12 +44,12 @@ const MessageConsoleCommand: ConsoleCommand = {
                 console.log(`[Message] Message sent to ${user.tag}`);
 
                 // check if user is waiting for a response
-                if (waitingForResponse.has(userid))
+                if (waitingForResponse.has(userId))
                     // that's it, we're done
                     return;
 
                 // set user to waiting for a response
-                waitingForResponse.set(userid, true);
+                waitingForResponse.set(userId, true);
 
                 const collector = message.channel.createMessageCollector({
                     filter: (m) => m.author.bot === false,
@@ -97,9 +97,9 @@ const MessageConsoleCommand: ConsoleCommand = {
                     }
 
                     // check if user is still waiting for a response
-                    if (waitingForResponse.has(userid))
+                    if (waitingForResponse.has(userId))
                         // just delete them
-                        waitingForResponse.delete(userid);
+                        waitingForResponse.delete(userId);
                 });
             })
             .catch(() => {

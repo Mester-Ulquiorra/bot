@@ -54,6 +54,7 @@ const GuildMemberAddEvent: Event = {
 
         // set the lastjoined field to the current timestamp and inguild to true
         memberConfig.lastjoined = Math.floor(Date.now() / 1000);
+        if (memberConfig.firstjoined === -1) memberConfig.firstjoined = memberConfig.lastjoined;
         memberConfig.inguild = true;
         await memberConfig.save();
 

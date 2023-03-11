@@ -9,21 +9,23 @@ const ShowModsConsoleCommand: ConsoleCommand = {
         // get every user with a mod not 0
         const mods = await UserConfig.find({ mod: { $ne: 0 } }).sort({ mod: -1 });
 
-        console.log("----------------------------------------------------");
+        const modFetches: Promise<string>[] = [];
 
         // go through every mod
         for (const mod of mods) {
-            // try to get the user
-            await client.users
-                .fetch(mod.id)
+            modFetches.push(client.users.fetch(mod.userId)
                 .then((user) => {
-                    // format: <user's tag> - (<user's id>) - <mod level>
-                    console.log(`[Mod] ${user.tag ?? "Unknown"} - (${mod.id}) - ${mod.mod}`);
+                    return `[Mod] ${user.tag ?? "Unknown"} - (${mod.userId}) - ${mod.mod}`;
                 })
-                .catch(() => { console.log(`[Mod] Couldn't fetch ${mod.id}`); });
+                .catch(() => { return `[Mod] Couldn't fetch ${mod.userId}`; }));
         }
 
-        console.log("----------------------------------------------------");
+        // wait for all the fetches to finish and then log them
+        await Promise.all(modFetches).then((modFetches) => {
+            console.log("----------------------------------------------------");
+            console.log(modFetches.join("\n"));
+            console.log("----------------------------------------------------");
+        });
     }
 };
 

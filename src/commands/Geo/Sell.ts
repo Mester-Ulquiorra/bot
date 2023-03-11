@@ -29,7 +29,7 @@ const SellCommand: SlashCommand = {
         await geoConfig.save();
 
         const embed = CreateEmbed(`You sold ${amount} ${ItemNames[itemName]} for ${total} ${GeoData.GeoIcon}`);
-        interaction.reply({ embeds: [embed], ephemeral: true });
+        interaction.reply({ embeds: [embed] });
     }
 };
 

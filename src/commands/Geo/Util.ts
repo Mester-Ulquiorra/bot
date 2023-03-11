@@ -1,7 +1,7 @@
 import { GuildMember, User } from "discord.js";
 import GeoConfig from "../../database/GeoConfig.js";
 import { DBGeo } from "../../types/Database.js";
-import { GeoItems, IGeoItems } from "./GeoData.js";
+import { GeoItems, GeoMultipler, IGeoItems, ItemsWithWeight, WeightedItems } from "./GeoData.js";
 
 export async function GetGeoConfig(userId: string) {
     let geoConfig = await GeoConfig.findOne({ userId });
@@ -9,8 +9,21 @@ export async function GetGeoConfig(userId: string) {
     return geoConfig;
 }
 
-interface GeoMultipler {
-    geo: number;
+export function extractWeights<T extends WeightedItems>(items: ItemsWithWeight<T>, multipliers: GeoMultipler = null): [T[], number[]] {
+    // check if there is a multiplier for explore events
+    if (multipliers?.exploreEvents) {
+        items = items.map(([name, weight]) => {
+            const multiplier = multipliers.exploreEvents.find(([multiplierName]) => multiplierName === name);
+            if (multiplier) return [name, weight * multiplier[1]];
+            return [name, weight];
+        });
+    }
+
+    // extract both the names and weights from the array
+    const names = items.map(([name]) => name);
+    const weights = items.map(([, weight]) => weight);
+
+    return [ names, weights ];
 }
 
 export async function GetMultipliers(member: GuildMember | User, geoConfig: DBGeo): Promise<GeoMultipler> {
