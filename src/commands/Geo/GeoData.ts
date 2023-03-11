@@ -148,6 +148,9 @@ export default {
          * kinglike = 200-500
          */
         GeoAmountEvents: [["small", 300], ["medium", 150], ["large", 50], ["huge", 15], ["kinglike", 1]] as ItemsWithWeight<GeoEvent>,
+        /**
+         * Sentences that would be broadcasted when finding Geo
+         */
         GeoPreSentences: [
             `After carefully cutting down some vines and pushing some rocks out of the way, you stumble upon _ ${GeoIcon}!`,
             `As you explore the winding caverns, you spot a glimmering object hidden in the shadows. Upon closer inspection, you discover _ ${GeoIcon}!`,
