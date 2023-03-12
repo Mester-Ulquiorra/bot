@@ -9,12 +9,13 @@ import { commands } from "../util/Register.js";
  * The array contains regex patterns.
  */
 const IgnoredIds: Array<RegExp> = [
-    /tictactoe\.acceptgame/,
-    /tictactoe\.board[1-9]/,
-    /chess\..+/,
-    /verify.*/,
-    /trivia.*/,
-    /ticket\.open\.*/
+    /^tictactoe\.acceptgame/,
+    /^tictactoe\.board[1-9]/,
+    /^chess\..+/,
+    /^verify.*/,
+    /^trivia.*/,
+    /^ticket\.open\.*/,
+    /^steam\..+/
 ];
 
 const InteractionCreateEvent: Event = {

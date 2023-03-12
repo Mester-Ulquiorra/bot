@@ -1,14 +1,18 @@
-import { ChatInputCommandInteraction, Client, hyperlink, time } from "discord.js";
-import SlashCommand from "../../types/SlashCommand.js";
+import { ActionRowBuilder, ChatInputCommandInteraction, Client, ComponentType, StringSelectMenuBuilder, hyperlink, time } from "discord.js";
 import SteamAPI from "steamapi";
 import config from "../../config.js";
+import SlashCommand from "../../types/SlashCommand.js";
 import CreateEmbed from "../../util/CreateEmbed.js";
+import { CalculateMaxPage } from "../../util/MathUtils.js";
 import { formatDurationFromMinutes } from "../../util/MiscUtils.js";
+import testMode from "../../testMode.js";
 
 const regionf = new Intl.DisplayNames("en-UK", { type: "region" });
 
 const steam = new SteamAPI(config.DANGER.STEAM_API_KEY);
-const cachedApps = (await steam.getAppList()).filter(app => app.name !== "");
+const cachedApps = (await steam.getAppList())
+    .filter(app => app.name !== "")
+    .sort((a, b) => a.appid - b.appid);
 
 const SteamStatsCommand: SlashCommand = {
     name: "_",
@@ -19,7 +23,11 @@ const SteamStatsCommand: SlashCommand = {
         }
 
         if (interaction.options.getSubcommand() === "user") {
-            return getSteamUser(interaction, client);
+            return getUserProfile(interaction, client);
+        }
+
+        if (interaction.options.getSubcommand() === "achievements") {
+            return getUserAchievements(interaction, client);
         }
     },
 
@@ -29,19 +37,70 @@ const SteamStatsCommand: SlashCommand = {
     }
 };
 
-async function getSteamUser(interaction: ChatInputCommandInteraction, client: Client) {
-    // if user doesn't start with https, assume it's a user name and append it to the url
-    let userURL = interaction.options.getString("user");
-    if (/^\d+/.test(userURL)) userURL = `https://steamcommunity.com/profiles/${userURL}`;
-    else if (!userURL.startsWith("https")) userURL = `https://steamcommunity.com/id/${userURL}`;
+async function getUserAchievements(interaction: ChatInputCommandInteraction, client: Client) {
+    const userId = await getUserID(interaction.options.getString("user"));
+    const appId = interaction.options.getString("app");
 
-    const userId = await steam.resolve(userURL)
-        .then((id) => {
-            return id;
-        })
-        .catch(() => {
-            return new Error("Couldn't find user.");
+    if (userId instanceof Error) {
+        return userId.message;
+    }
+
+    const user = await steam.getUserSummary(userId);
+    const achievements = await steam.getUserAchievements(userId, appId);
+
+    const maxPage = CalculateMaxPage(achievements.achievements.length, 10);
+    const pages = new Array<{ name: string, value: string, inline: boolean }[]>();
+
+    for (let i = 0; i < maxPage; i++) {
+        pages.push(achievements.achievements.slice(i * 10, (i + 1) * 10).map(a => {
+            return { name: a.name, value: a.achieved ? `✅ (${time(a.unlockTime)})` : "❌", inline: false };
+        }));
+    }
+
+    // completed / total
+    const totalText = `\nCompleted achievements: ${achievements.achievements.filter(a => a.achieved).length} / ${achievements.achievements.length}`;
+    const embed = CreateEmbed(`**Achievements of ${user.nickname} for ${achievements.gameName}** ${hyperlink("Steam Profile", user.url)}` + totalText);
+
+    embed.setThumbnail(user.avatar.large);
+    embed.setFields(pages[0]);
+    embed.setFooter({ text: `Page 1/${maxPage}` });
+
+    // set up a component that allows the user to change the page
+    const components = [
+        new ActionRowBuilder<StringSelectMenuBuilder>()
+            .setComponents(
+                new StringSelectMenuBuilder()
+                    .setCustomId("steam.achievements.page")
+                    .setPlaceholder("Select Page")
+                    .setOptions(pages.map((_, i) => { return { label: `Page ${(i + 1).toString()}`, value: i.toString() }; }))
+            )
+    ];
+
+    interaction.reply({ embeds: [embed], components })
+        .then((res) => {
+            // set up a listener for the component
+            res.createMessageComponentCollector({
+                filter: (i) => i.customId === "steam.achievements.page",
+                componentType: ComponentType.StringSelect,
+            })
+                .on("collect", async (i) => {
+                    if (i.user.id !== interaction.user.id) {
+                        i.reply({ content: "You can't change the page, this command was not sent by you!", ephemeral: true });
+                        return;
+                    }
+
+                    const page = parseInt(i.values[0]);
+
+                    embed.setFields(pages[page]);
+                    embed.setFooter({ text: `Page ${page + 1}/${maxPage}` });
+
+                    i.update({ embeds: [embed], components });
+                });
         });
+}
+
+async function getUserProfile(interaction: ChatInputCommandInteraction, client: Client) {
+    const userId = await getUserID(interaction.options.getString("user"));
 
     if (userId instanceof Error) {
         return userId.message;
@@ -86,6 +145,8 @@ async function getSteamApp(interaction: ChatInputCommandInteraction, client: Cli
     const appId = interaction.options.getString("app");
     const details = await steam.getGameDetails(appId);
 
+    if (testMode) console.log(details);
+
     const embed = CreateEmbed(`**Information about ${cachedApps.find(a => a.appid === Number.parseInt(appId)).name}** ${hyperlink("Steam Store", `https://store.steampowered.com/app/${appId}`)}`);
     embed.addFields(
         {
@@ -120,6 +181,15 @@ async function getSteamApp(interaction: ChatInputCommandInteraction, client: Cli
         embed.addFields({ name: "Trailers", value: trailersFinal.join(" ") });
     }
 
+    if (details.dlc instanceof Array<number>) {
+        const dlcFinal = new Array<string>();
+        for (let i = 0; i < details.dlc.length; i++) {
+            const dlc = cachedApps.find(a => a.appid === details.dlc[i]);
+            if (dlc) dlcFinal.push(hyperlink(dlc.name + (i + 1).toString(), `https://store.steampowered.com/app/${details.dlc[i]}`));
+        }
+        embed.addFields({ name: "DLCs", value: dlcFinal.join(" ") });
+    }
+
     if (isReleaseDate(details.release_date)) {
         embed.addFields({ name: "Release Date", value: details.release_date.coming_soon ? "Coming Soon" : details.release_date.date, inline: true });
     }
@@ -135,6 +205,26 @@ async function getSteamApp(interaction: ChatInputCommandInteraction, client: Cli
     if (typeof details.header_image === "string") embed.setImage(details.header_image);
 
     interaction.reply({ embeds: [embed] });
+}
+
+/**
+ * A function for converting raw data into a steam user id
+ * @param data The raw data that should be converted to a steam user id
+ * @returns A promise that resolves to the steam user id or an Error if the user couldn't be found
+ */
+function getUserID(data: string) {
+    // if user doesn't start with https, assume it's a user name and append it to the url
+    let userURL = data;
+    if (/^\d+/.test(userURL)) userURL = `https://steamcommunity.com/profiles/${userURL}`;
+    else if (!userURL.startsWith("https")) userURL = `https://steamcommunity.com/id/${userURL}`;
+
+    return steam.resolve(userURL)
+        .then((id) => {
+            return id;
+        })
+        .catch(() => {
+            return new Error("Couldn't find user.");
+        });
 }
 
 // Helper functions for Steam details
