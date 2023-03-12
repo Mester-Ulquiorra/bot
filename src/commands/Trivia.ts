@@ -2,7 +2,7 @@ import { ActionRowBuilder, APIActionRowComponent, APIButtonComponent, APISelectM
 import { getQuestions, Question } from "open-trivia-db";
 import SlashCommand from "../types/SlashCommand.js";
 import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
-import shuffleArray from "../util/MiscUtils.js";
+import { shuffleArray } from "../util/MiscUtils.js";
 
 const TriviaCommmand: SlashCommand = {
     name: "trivia",
