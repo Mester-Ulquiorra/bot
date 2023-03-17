@@ -4,7 +4,7 @@ import { DBLevel } from "../types/Database.js";
 import SlashCommand from "../types/SlashCommand.js";
 import { GetGuild } from "../util/ClientUtils.js";
 import CreateEmbed from "../util/CreateEmbed.js";
-import { LevelToXP, XPToLevelUp } from "../util/LevelUtils.js";
+import { LevelToXP, XPToLevel, XPToLevelUp } from "../util/LevelUtils.js";
 import { CalculateMaxPage } from "../util/MathUtils.js";
 
 const PageSize = 10;
@@ -130,14 +130,16 @@ async function ReadFromPage(page: number, maxPage: number): Promise<EmbedBuilder
         if (!cachedPage[i]) break; // we have reached the end of the page
 
         const rank = cachedPage[i];
-        const level = rank.level;
+        const levelInfo = rank.level;
+
+        const level = XPToLevel(levelInfo.xp);
 
         // get the relative xp from the level config
-        const relativexp = level.xp - LevelToXP(level.level);
+        const relativexp = levelInfo.xp - LevelToXP(level);
 
         // using some math to figure out the percentage of the relative xp
         let levelpercentage = Number.parseInt(
-            ((relativexp * 100) / XPToLevelUp(level.level)).toFixed(0)
+            ((relativexp * 100) / XPToLevelUp(level)).toFixed(0)
         );
 
         // now we do some serious shit to turn it into a nice string
@@ -154,7 +156,7 @@ async function ReadFromPage(page: number, maxPage: number): Promise<EmbedBuilder
             {
                 // this part figures out the position of the rank in the leaderboard
                 name: `${((page - 1) * PageSize + i + 1).toString()}. ${rank.name}`,
-                value: `Level: ${level.level} | Total XP: ${level.xp}\nNext level: ${levelpercentagestring}`,
+                value: `Level: ${level} | Total XP: ${levelInfo.xp}\nNext level: ${levelpercentagestring}`,
                 inline: false,
             },
         ]);

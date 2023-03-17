@@ -15,7 +15,7 @@ const XpCommand: SlashCommand = {
         const value = interaction.options.getString("value");
 
         // if value ends with L, set levelmode to true, otherwise set it to false
-        const levelmode = value.endsWith("L");
+        const levelMode = value.endsWith("L");
 
         // if the subcommand is set, set setmode to true
         const setmode = interaction.options.getSubcommand() === "set";
@@ -24,15 +24,15 @@ const XpCommand: SlashCommand = {
         // numbervalue is made up with this "formula": (base) * (exponent)
         // base is basically what the user puts into "value" (without the L ending)
         // exponent is based on if we're adding or removing XP (except if we're in setmode, then it's always 1)
-        const numbervalue =
-            Number.parseInt(value.substring(0, value.length - (levelmode ? 1 : 0)), 10) *
+        const numberValue =
+            Number.parseInt(value.substring(0, value.length - (levelMode ? 1 : 0)), 10) *
             ((setmode || interaction.options.getSubcommand() === "add") ? 1 : -1);
 
         // check if value is correct
         if (
             // check if we're in level mode and the value is either one single letter or numbervalue is over 100
-            (levelmode && (value.length == 1 || numbervalue > 100)) ||
-            isNaN(numbervalue)
+            (levelMode && (value.length == 1 || numberValue > 100)) ||
+            isNaN(numberValue)
         )
             return GetError("BadValue", "value");
 
@@ -43,38 +43,23 @@ const XpCommand: SlashCommand = {
         // I really hope this is fairly clear, but basically if we're in set mode, we're taking the value as a constant
         // otherwise we add it to the current level/xp
         let newxp = 0;
-        if (levelmode) {
+        if (levelMode) {
             newxp = setmode
-                ? LevelToXP(numbervalue)
-                : LevelToXP(levelConfig.level + numbervalue);
+                ? LevelToXP(numberValue)
+                : LevelToXP(XPToLevel(levelConfig.xp) + numberValue);
         } else {
-            newxp = setmode ? numbervalue : levelConfig.xp + numbervalue;
+            newxp = setmode ? numberValue : levelConfig.xp + numberValue;
         }
 
         // check if the new xp is valid
         if (newxp < 0 || newxp > MaxXp)
             return GetError("BadValue", "value: not supported");
 
-        // calculate relativexp
-        const relativexp = levelConfig.xp - LevelToXP(levelConfig.level);
-
-        // we either change the xp, then regenerate the level, or the other way around
-        // depends on levelmode
-        if (levelmode) {
-            levelConfig.level = !setmode
-                ? levelConfig.level + numbervalue
-                : numbervalue;
-            if (setmode) levelConfig.xp = LevelToXP(levelConfig.level);
-            else levelConfig.xp = LevelToXP(levelConfig.level) + relativexp;
-        } else {
-            if (setmode) levelConfig.xp = newxp;
-            else levelConfig.xp += numbervalue;
-            levelConfig.level = XPToLevel(levelConfig.xp);
-        }
+        levelConfig.xp = newxp;
         await levelConfig.save();
 
         // log
-        Log(`${interaction.user.tag} (${interaction.user.id}) has changed the level information of ${target.tag} (${target.id}). New level: ${levelConfig.level}, xp: ${levelConfig.xp}`);
+        Log(`${interaction.user.tag} (${interaction.user.id}) has changed the level information of ${target.tag} (${target.id}). New level: ${XPToLevel(levelConfig.xp)}, xp: ${levelConfig.xp}`);
 
         // create the embed
         const embed = CreateEmbed(`New level information of ${target}`, {

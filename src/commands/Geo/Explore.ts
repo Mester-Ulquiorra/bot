@@ -10,7 +10,6 @@ import { GuildMember } from "discord.js";
 const ExploreCommand: SlashCommand = {
     name: "_",
     async run(interaction, client) {
-        await interaction.deferReply();
         const geoConfig = await GetGeoConfig(interaction.user.id);
         const multipliers = await GetMultipliers(interaction.member as GuildMember, geoConfig);
 
@@ -18,6 +17,8 @@ const ExploreCommand: SlashCommand = {
         if (Date.now() - geoConfig.explore.lastExplore < GeoData.Explore.Cooldown && !(config.MesterId === interaction.user.id && testMode)) return `Woah, not so fast buddy, you can explore again in ${Math.round((GeoData.Explore.Cooldown - (Date.now() - geoConfig.explore.lastExplore)) / 1000)} seconds`;
 
         const exploreEvent = GeoChance.weighted(...extractWeights(GeoData.Explore.Events, multipliers));
+
+        await interaction.deferReply();
 
         switch (exploreEvent) {
             case "geo": {

@@ -6,52 +6,9 @@ import { GetGuild, GetSpecialChannel } from "./ClientUtils.js";
 import CreateEmbed, { EmbedColor } from "./CreateEmbed.js";
 import gib_detect from "./GibberishDetector/gib_detect.js";
 import Log, { LogType } from "./Log.js";
-import { ClampNumber } from "./MathUtils.js";
+import ManageRole from "./ManageRole.js";
 
-/**
- * A map to hold all the level roles.
- */
-const levelRoles = new Map(
-    config.LevelRoles.map((object) => {
-        return [object.level, object.id];
-    })
-);
-
-const LevelConf = {
-    /**
-     * the required seconds between each message to gain xp
-     */
-    MessageLimit: 30,
-    /**
-     * the xp of the first level
-     */
-    BaseLevel: 2000,
-    /**
-     * the xp required to get the next level
-     */
-    ExtraLevel: 5000,
-    /**
-     * how much does EXTRA_LEVEL change after each level
-     */
-    LevelMultiplier: 35,
-    /**
-     * the level where things change (xp cap stops decreasing etc.)
-     */
-    EventHorizon: 70,
-    /**
-     * how much should EXTRA_LEVEL decrease after level hits the event horizon
-     */
-    XpDecreaseRate: 0.005,
-    /**
-     * the starting and maximum xp cap (aka. how much xp can be gained max)
-     */
-    MaxXpCap: 2000,
-    /**
-     * how much should the xp cap decrease per level
-     * thanks Finn for the formula
-     */
-    XpCapMultiplier: 70 / (1 - 200 / 2000),
-};
+// https://www.desmos.com/calculator/f3bsamea49?lang=de
 
 /**
  * A map that holds when a user last sent a message.
@@ -65,8 +22,8 @@ const LastMessages = new Map<string, number>();
  * @returns The amount of xp gained from the message.
  */
 async function GetXPFromMessage(message: Message): Promise<number> {
-    // get the content while removing gargabe (only letters and number will remain)
-    const content = message.content.replaceAll(/[^a-zA-Z0-9]|\s/gu, "");
+    // get the content without whitespace
+    const content = message.content.replaceAll(/\s/gu, "");
 
     // get the config from the map
     if (!LastMessages.has(message.author.id))
@@ -81,9 +38,9 @@ async function GetXPFromMessage(message: Message): Promise<number> {
 
     const currTime = Date.now();
 
-    // check if the user has sent a message in this half minute
+    // check if the user has sent a message in this 20 second interval
     if (
-        (currTime - lastMessage < LevelConf.MessageLimit * 1000) &&
+        (currTime - lastMessage < 20 * 1000) &&
         !testMode
     )
         return 0;
@@ -95,8 +52,8 @@ async function GetXPFromMessage(message: Message): Promise<number> {
     if (!gib_detect(content)) return 0;
 
     // calculate the xp gained from the message
-    const xp = LengthToXP(content.length, levelConfig.level);
-    if (xp == 0) return null;
+    const xp = LengthToXP(content.length, XPToLevel(levelConfig.xp));
+    if (xp === 0) return null;
 
     // now add it to the user
     AddXPToUser(levelConfig, xp, message);
@@ -106,42 +63,23 @@ async function GetXPFromMessage(message: Message): Promise<number> {
 
 /**
  * A function for getting the max amount of xp a user can get at a certain level.
- * https://www.desmos.com/calculator/tc0f9d3wiu
  * @param level The level to get the max xp of.
  */
-function MaxXPOfLevel(level: number): number {
-    return ClampNumber(
-        LevelConf.MaxXpCap * (1 - level / LevelConf.XpCapMultiplier),
-        200,
-        LevelConf.MaxXpCap
-    );
+function XPCapOfLevel(level: number) {
+    return Math.floor(-0.045 * (level - 100) ** 2 + 500);
 }
 
 /**
- * https://www.desmos.com/calculator/i2ymzwe0nb
+ * A function for calculating the xp of a level.
  * @param level The level to check
  * @returns the xp required for a level
  */
 function LevelToXP(level: number) {
-    return level == 0
-        ? 0
-        : Math.floor(
-            LevelConf.BaseLevel +
-            LevelConf.ExtraLevel *
-            (level - 1) *
-            (1 +
-                (Math.min(
-                    1 - 0.005 * (level - LevelConf.EventHorizon),
-                    1
-                ) *
-                    level -
-                    1) /
-                LevelConf.LevelMultiplier)
-        );
+    return 1000 * (level - 100) * (level + 100) + 10_000_000;
 }
 
 /**
- *
+ * A function for calculating the required XP to level up.
  * @param {number} level The current level
  * @returns The total xp required to get the next level
  */
@@ -154,29 +92,18 @@ function XPToLevelUp(level: number) {
  * @param xp The xp to convert.
  * @returns The level.
  */
-function XPToLevel(xp: number): number {
-    for (let i = 0; i < 101; i++) {
-        // I don't really know what I was doing here, I guess going through every level and adding its xp
-        // until we hit the xp we're looking for???
-        if (i == 0 && xp < LevelToXP(1)) return i;
-        if (LevelToXP(i + 1) > xp && xp >= LevelToXP(i)) return i;
-    }
-
-    // this shows error if the xp is too high
-    return -1;
+function XPToLevel(xp: number) {
+    return Math.floor(Math.sqrt(xp / 1000));
 }
 
 /**
  * A function for getting the xp gained from a message.
- * https://www.desmos.com/calculator/agujbxkapa
  * @param length The length of the message.
  * @param level The level of the user.
  * @returns The xp gained from the message.
  */
 function LengthToXP(length: number, level: number): number {
-    return Math.floor(
-        ClampNumber(length * (1 + level / 140), 0, MaxXPOfLevel(level))
-    );
+    return Math.floor(Math.min(XPCapOfLevel(level), 0.00025 * length ** 2 + 10));
 }
 
 /**
@@ -187,10 +114,10 @@ function LengthToXP(length: number, level: number): number {
  */
 async function AddXPToUser(levelConfig: IDBLevel, xp: number, message: Message) {
     levelConfig.xp += xp;
-    if (LevelToXP(levelConfig.level + 1) <= levelConfig.xp) {
+    if (XPToLevel(levelConfig.xp) > XPToLevel(levelConfig.xp - xp)) {
         // we leveled up!
-        levelConfig.level = XPToLevel(levelConfig.xp);
-        const newRole = ManageLevelRole(message.member, levelConfig.level);
+        const newLevel = XPToLevel(levelConfig.xp);
+        const newRole = ManageLevelRole(message.member, newLevel);
 
         GetGuild()
             .members
@@ -199,7 +126,7 @@ async function AddXPToUser(levelConfig: IDBLevel, xp: number, message: Message) 
                 // we got the member!
                 AlertMember(
                     member,
-                    levelConfig.level,
+                    newLevel,
                     message,
                     newRole
                 );
@@ -208,6 +135,7 @@ async function AddXPToUser(levelConfig: IDBLevel, xp: number, message: Message) 
                 Log(`Couldn't find user, perhaps they left?`, LogType.Warn)
             );
     }
+
     await levelConfig.save();
 }
 
@@ -217,33 +145,18 @@ async function AddXPToUser(levelConfig: IDBLevel, xp: number, message: Message) 
  * @param memberLevel The level of the user.
  * @return The role id that was added.
  */
-function ManageLevelRole(member: GuildMember, memberLevel: number): string | undefined {
-    // check if level_roles contain memberlevel
-    if (!levelRoles.has(memberLevel)) return;
+function ManageLevelRole(member: GuildMember, memberLevel: number): string {
+    // get the role that the user should have
+    const levelRole = config.LevelRoles.find(role => role.level == memberLevel);
+    if (!levelRole) return;
 
-    // a function to store the current level role of the user
-    let storedRole: string;
+    // get the current level role id that the user has
+    const currRole = config.LevelRoles.filter(role => member.roles.cache.has(role.id)).at(-1);
 
-    // go through level roles and find one that the user has (if there is any)
-    for (const [level, id] of levelRoles) {
-        // check if the user has a role with the id
-        if (member.roles.cache.has(id))
-            // store the role
-            storedRole = id;
+    ManageRole(member, currRole.id, "Remove", "level up");
+    ManageRole(member, levelRole.id, "Add", "level up");
 
-        // check if memberlevel is equal to level
-        if (memberLevel == level) {
-            // if stored_role is not null, remove the role
-            // this thing completely breaks if someone somehow removes level from the user, but seriously, who is gonna do that?
-            if (storedRole) member.roles.remove(storedRole);
-
-            // now add the role
-            member.roles.add(id);
-
-            // and return the id
-            return id;
-        }
-    }
+    return levelRole.id;
 }
 
 /**

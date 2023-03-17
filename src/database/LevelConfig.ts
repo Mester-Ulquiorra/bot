@@ -9,10 +9,6 @@ const LevelConfigSchema = new mongoose.Schema<IDBLevel>({
         unique: true,
         required: true,
     },
-    level: {
-        type: mongoose.SchemaTypes.Number,
-        default: 0,
-    },
     xp: {
         type: mongoose.SchemaTypes.Number,
         default: 0,

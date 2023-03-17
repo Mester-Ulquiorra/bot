@@ -1,6 +1,6 @@
 import { GuildMember, RoleResolvable } from "discord.js";
 
-type RoleResult<T extends string> = T extends "Add" ? Promise<GuildMember> : T extends "Remove" ? Promise<GuildMember> : T extends "Check" ? boolean : never;
+type RoleResult<T extends string> = T extends "Add" ? GuildMember : T extends "Remove" ? GuildMember : T extends "Check" ? boolean : never;
 
 /**
  * A function to manage roles.

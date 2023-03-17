@@ -6,7 +6,7 @@ import { DBLevel } from "../types/Database.js";
 import SlashCommand from "../types/SlashCommand.js";
 import { browser } from "../Ulquiorra.js";
 import CreateEmbed from "../util/CreateEmbed.js";
-import { GetLevelConfig, LevelToXP, XPToLevelUp } from "../util/LevelUtils.js";
+import { GetLevelConfig, LevelToXP, XPToLevel, XPToLevelUp } from "../util/LevelUtils.js";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
@@ -37,8 +37,10 @@ const RankCommand: SlashCommand = {
 
         await interaction.deferReply({ ephemeral: false });
 
-        const relativexp = levelConfig.xp - LevelToXP(levelConfig.level);
-        const levelupPercent = relativexp / XPToLevelUp(levelConfig.level);
+        const userLevel = XPToLevel(levelConfig.xp);
+
+        const relativexp = levelConfig.xp - LevelToXP(userLevel);
+        const levelupPercent = relativexp / XPToLevelUp(userLevel);
 
         const page = await browser.newPage();
 
@@ -50,8 +52,8 @@ const RankCommand: SlashCommand = {
         destination.searchParams.append("progressPercent", (levelupPercent * 100).toString());
         destination.searchParams.append("username", user.tag);
         destination.searchParams.append("totalXp", `Total XP: ${levelConfig.xp}`);
-        destination.searchParams.append("currLevel", `Level ${levelConfig.level}`);
-        destination.searchParams.append("nextLevel", `Level ${levelConfig.level + 1} (${XPToLevelUp(levelConfig.level) - relativexp} XP left)`);
+        destination.searchParams.append("currLevel", `Level ${userLevel}`);
+        destination.searchParams.append("nextLevel", `Level ${userLevel + 1} (${XPToLevelUp(userLevel) - relativexp} XP left)`);
 
         await page.setViewport({ width: 1200, height: 300 });
         await page.goto(destination.toString(), { waitUntil: "networkidle0" });
@@ -77,15 +79,17 @@ const RankCommand: SlashCommand = {
  * @param levelConfig The level config to get the information from.
  */
 export function AddRankFieldEmbeds(embed: EmbedBuilder, levelConfig: DBLevel) {
+    const userLevel = XPToLevel(levelConfig.xp);
+
     /**
      * The xp relative to the user's level.
      */
-    const relativexp = levelConfig.xp - LevelToXP(levelConfig.level);
+    const relativexp = levelConfig.xp - LevelToXP(userLevel);
 
     embed.addFields([
         {
             name: `Level (XP)`,
-            value: `${levelConfig.level} (${relativexp})`,
+            value: `${userLevel} (${relativexp})`,
             inline: true,
         },
         {
@@ -97,9 +101,9 @@ export function AddRankFieldEmbeds(embed: EmbedBuilder, levelConfig: DBLevel) {
             name: `XP until next level (%)`,
 
             // this weird part calculates the percentage of the xp until the next level
-            value: `${XPToLevelUp(levelConfig.level) - relativexp} (${(
+            value: `${XPToLevelUp(userLevel) - relativexp} (${(
                 (100 * relativexp) /
-                XPToLevelUp(levelConfig.level)
+                XPToLevelUp(userLevel)
             ).toFixed(2)}%)`,
 
             inline: true,

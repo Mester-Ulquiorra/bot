@@ -48,7 +48,6 @@ export interface GiveawayFilter {
 
 export interface DBLevel {
     userId: string;
-    level: number;
     xp: number;
 }
 
