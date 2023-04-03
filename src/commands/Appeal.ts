@@ -33,7 +33,7 @@ const AppealCommand: SlashCommand = {
         }
     },
 
-    async runModal(modal, _client) {
+    async runModal(modal, client) {
         if (!/appeal\.appealmodal-\d+/.test(modal.customId)) return;
 
         const punishmentId = modal.customId.match(/appeal\.appealmodal-(\d+)/)[1];
@@ -155,7 +155,7 @@ async function manageAppeal(interaction: ButtonInteraction, accepted: boolean) {
                         inline: false
                     }
                 )
-                .setColor(accepted ? [22, 137, 101] : [237, 56, 36]);
+                .setColor(accepted ? EmbedColor.Success : EmbedColor.Error);
 
             Log(`${interaction.user.tag} (${interaction.user.id}) has ${accepted ? "accepted" : "declined"} the punishment appeal of ${target.tag} (${target.id}). ID: ${punishment.punishmentId}`);
 

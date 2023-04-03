@@ -117,7 +117,7 @@ async function endGiveaway(giveaway: IDBGiveaway) {
                 value: "No winners :(",
                 inline: false
             })
-            .setColor([237, 56, 36]);
+            .setColor(EmbedColor.Error);
 
         // remove the "Ends" and "Winners" fields
         embed.data.fields.shift();
@@ -140,7 +140,7 @@ async function endGiveaway(giveaway: IDBGiveaway) {
             value: winnerString,
             inline: false
         })
-        .setColor([22, 137, 101]);
+        .setColor(EmbedColor.Success);
 
     // remove the "Ends" and "Winners" fields
     embed.data.fields.shift();

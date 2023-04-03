@@ -1,28 +1,18 @@
 import { ColorResolvable, EmbedBuilder, GuildMember, User } from "discord.js";
 
-export enum EmbedColor {
-    Info = "info",
-    Success = "success",
-    Warning = "warning",
-    Error = "error"
-}
+export const EmbedColor: {
+    [key in "Info" | "Success" | "Warning" | "Error"]: ColorResolvable
+} = {
+    Info: [12, 27, 21],
+    Success: [22, 137, 101],
+    Warning: [252, 186, 3],
+    Error: [237, 56, 36]
+};
 
 interface EmbedOptions {
-    color?: EmbedColor,
+    color?: ColorResolvable,
     title?: string,
     author?: GuildMember | User
-}
-
-/**
- * Turn an EmbedColor enum into an RGB array
- */
-function getColor(color: EmbedColor): ColorResolvable {
-    switch (color) {
-        case EmbedColor.Info: return [12, 27, 21];
-        case EmbedColor.Success: return [22, 137, 101];
-        case EmbedColor.Warning: return [252, 186, 3];
-        case EmbedColor.Error: return [237, 56, 36];
-    }
 }
 
 /**
@@ -33,7 +23,7 @@ function getColor(color: EmbedColor): ColorResolvable {
  */
 export default function (description: string, options: EmbedOptions = {}) {
     const embed = new EmbedBuilder()
-        .setColor(getColor(options?.color ?? EmbedColor.Info));
+        .setColor(options?.color ?? EmbedColor.Info);
 
     if (description) embed.setDescription(description);
 

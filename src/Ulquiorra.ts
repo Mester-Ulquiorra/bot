@@ -57,7 +57,6 @@ const DeeplTranslator = new deepl.Translator(config.DANGER.DEEPL_KEY);
 // Set up puppeteer
 const browser = await puppeteer.launch({
     userDataDir: path.join(tmpdir(), "puppeteer"),
-
     args: [
         ...config.puppeteerArgs
     ]

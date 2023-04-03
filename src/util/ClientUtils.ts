@@ -2,7 +2,7 @@ import { GuildTextBasedChannel, TextChannel } from "discord.js";
 import config from "../config.js";
 import Ulquiorra from "../Ulquiorra.js";
 
-type SpecialChannelName = "ModLog" | "MessageLog" | "Welcome" | "LevelUp" | "TestMode" | "Appeal" | "MiscLog";
+type SpecialChannelName = "ModLog" | "MessageLog" | "Welcome" | "LevelUp" | "TestMode" | "Appeal" | "MiscLog" | "Automod";
 
 export const GetSpecialChannel = function (channelName: SpecialChannelName): GuildTextBasedChannel {
     switch (channelName) {
@@ -12,6 +12,7 @@ export const GetSpecialChannel = function (channelName: SpecialChannelName): Gui
         case "LevelUp": return Ulquiorra.channels.cache.get(config.channels.LevelUp) as TextChannel;
         case "Appeal": return Ulquiorra.channels.cache.get(config.channels.Appeal) as TextChannel;
         case "MiscLog": return Ulquiorra.channels.cache.get(config.channels.MiscLog) as TextChannel;
+        case "Automod": return Ulquiorra.channels.cache.get(config.channels.Automod) as TextChannel;
     }
 };
 

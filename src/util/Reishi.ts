@@ -1,15 +1,11 @@
 import { Client, Message } from "discord.js";
+import { InternalMute } from "../commands/Mute.js";
 import config from "../config.js";
-import PunishmentConfig, { PunishmentType } from "../database/PunishmentConfig.js";
 import testMode from "../testMode.js";
-import { DBPunishment } from "../types/Database.js";
-import { SnowFlake } from "../Ulquiorra.js";
-import { GetSpecialChannel } from "./ClientUtils.js";
+import { GetGuild } from "./ClientUtils.js";
 import { GetUserConfig } from "./ConfigHelper.js";
-import Log from "./Log.js";
-import ManageRole from "./ManageRole.js";
-import { CreateModEmbed } from "./ModUtils.js";
 import CheckFlood from "./Reishi/CheckFlood.js";
+import CheckInsult from "./Reishi/CheckInsult.js";
 import CheckLink from "./Reishi/CheckLink.js";
 import CheckProfanity from "./Reishi/CheckProfanity.js";
 import CheckProtectedPing from "./Reishi/CheckProtectedPing.js";
@@ -50,16 +46,19 @@ export const CheckMessage = async function (message: Message, client: Client): P
     result = await CheckProtectedPing(message);
     if (result) return PunishMessage(message, "ProtectedPing", result, client);
 
+    result = await CheckInsult(message);
+    if (result) return PunishMessage(message, "Insult", result, client);
+
     return true;
 };
 
-type PunishmentNames = "RepeatedText" | "BlacklistedWord" | "MassMention" | "Link" | "ProtectedPing";
+type PunishmentNames = "RepeatedText" | "BlacklistedWord" | "MassMention" | "Link" | "ProtectedPing" | "Insult";
 
 /**
- *
+ * Get the punishment length of a punishment type.
  * @param type The type to get the punishment length of.
  */
-function GetPunishmentLength(type: PunishmentNames) {
+export function GetPunishmentLength(type: PunishmentNames) {
     switch (type) {
         case "BlacklistedWord":
             return 30 * 60; // 30 minutes
@@ -77,23 +76,25 @@ function GetPunishmentLength(type: PunishmentNames) {
 }
 
 /**
- *
+ * Get the reason of a punishment type.
  * @param type The type to get the reason of.
  */
-function GetPunishmentReason(type: PunishmentNames) {
+export function GetPunishmentReason(type: PunishmentNames) {
     switch (type) {
         case "BlacklistedWord":
-            return "Message containing blacklisted word";
+            return "Message contains a blacklisted word";
         case "RepeatedText":
-            return "Message containing repeated text";
+            return "Message contains repeated text";
         case "MassMention":
-            return "Message containing mass mention";
+            return "Message contains mass mention";
         case "Link":
-            return "Message containing link";
+            return "Message contains a link";
         case "ProtectedPing":
             return "Pinging protected member(s)";
+        case "Insult":
+            return "Message flagged by automod";
         default:
-            return "Default autopunish message (most likely an error)";
+            return "Default autopunish message";
     }
 }
 
@@ -124,56 +125,8 @@ async function PunishMessage(message: Message, type: PunishmentNames, word: stri
     }
     if (!(type === "RepeatedText" && message.mentions.members.size !== 0)) message.delete();
 
-    // get a punishment id
-    const punishmentId = SnowFlake.getUniqueID().toString();
-
-    // create the punishment
-    const punishment = await PunishmentConfig.create({
-        punishmentId: punishmentId,
-        user: message.author.id,
-        mod: client.user.id,
-        type: PunishmentType.Mute,
-        reason: GetPunishmentReason(type),
-        at: Math.floor(Date.now() / 1000),
-        until: Math.floor(Date.now() / 1000) + GetPunishmentLength(type),
-        automated: true,
-    });
-
-    // give the user the muted role, + save their config
-    ManageRole(
-        message.member,
-        config.roles.Muted,
-        "Add",
-        `Muted by Ulquiorra - ${GetPunishmentReason(type)}`
-    );
-    userConfig.muted = true;
-    await userConfig.save();
-
-    // log
-    Log(`User ${message.author.id} (${message.author.tag}) has been automatically muted for "${GetPunishmentReason(type)}". ID: ${punishmentId}`);
-
-    const punishmentObject = punishment.toObject() as DBPunishment;
-
-    // create the embeds
-    const userEmbed = CreateModEmbed(
-        client.user,
-        message.author,
-        punishmentObject,
-        { userEmbed: true }
-    );
-
-    const modEmbed = CreateModEmbed(
-        client.user,
-        message.author,
-        punishmentObject,
-        { detail: word }
-    );
-
-    // send the embeds
-    message.author.send({ embeds: [userEmbed.embed], components: userEmbed.components }).catch(() => {
-        return null;
-    });
-    GetSpecialChannel("ModLog").send({ embeds: [modEmbed] });
+    // call the internal mute function
+    InternalMute(await GetGuild().members.fetchMe(), message.member, GetPunishmentLength(type), GetPunishmentReason(type), word);
 
     return true;
 }
