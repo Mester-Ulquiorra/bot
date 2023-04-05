@@ -10,7 +10,7 @@ export const DiscordLink = /^https?:\/\/(?:www\.)?(?:(media|canary|ptb|cdn)\.?)(
  * @param message The message to check.
  * @returns The link that was found (if none, it's null).
  */
-export default function (message: Message) {
+export default function (message: Message<true>) {
     // check if we have a discord link
     if (DiscordLink.test(message.content)) return "__delete__";
 

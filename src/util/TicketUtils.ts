@@ -118,7 +118,7 @@ export const CreateTicket = async function (
  * Get the name of the ticket type
  * @param ticketType The ticket type to get the name of
  */
-export function TicketTypeToName(ticketType: TicketType): string {
+export function TicketTypeToName(ticketType: TicketType) {
     switch (ticketType) {
         case TicketType.General:
             return "General help";
@@ -140,9 +140,9 @@ export function TicketTypeToName(ticketType: TicketType): string {
  * @param channelName The channel name we want to check.
  * @returns Wheter the channel is a ticket channel or not.
  */
-export const ChannelIsTicket = function (channelName: string): boolean {
+export function ChannelIsTicket(channelName: string) {
     return /ticket-.+-\d{4}/.test(channelName);
-};
+}
 
 /**
  * A function to check if the user can manage the ticket
@@ -286,7 +286,7 @@ export const ReloadTicketPermissions = async function (channel: TextChannel, tic
     }
 };
 
-function WaitingforFromType(ticketType: TicketType): number {
+function WaitingforFromType(ticketType: TicketType) {
     switch (ticketType) {
         case TicketType.Private:
             return 0;

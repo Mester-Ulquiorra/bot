@@ -152,7 +152,7 @@ async function endGiveaway(giveaway: IDBGiveaway) {
     await giveaway.save();
 }
 
-function getWinners(users: Array<User>, winners: number, filter: GiveawayFilter): Array<User> {
+function getWinners(users: Array<User>, winners: number, filter: GiveawayFilter) {
     if (users.length <= winners) return users;
 
     // split up the users into groups

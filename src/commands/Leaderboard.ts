@@ -1,4 +1,4 @@
-import { ActionRowBuilder, APISelectMenuOption, Client, EmbedBuilder, StringSelectMenuBuilder } from "discord.js";
+import { ActionRowBuilder, APISelectMenuOption, Client, StringSelectMenuBuilder } from "discord.js";
 import LevelConfig from "../database/LevelConfig.js";
 import { DBLevel } from "../types/Database.js";
 import SlashCommand from "../types/SlashCommand.js";
@@ -110,7 +110,7 @@ function GetPageFromCache(page: number, force = false, values: Array<PageCache> 
  * @param page The page to read from.
  * @param maxPage The max page available.
  */
-async function ReadFromPage(page: number, maxPage: number): Promise<EmbedBuilder | string> {
+async function ReadFromPage(page: number, maxPage: number) {
     if (!PageInCache(page)) return "That page is not cached, which should NOT happen";
 
     // get page from cache
@@ -170,7 +170,7 @@ async function ReadFromPage(page: number, maxPage: number): Promise<EmbedBuilder
  * A function to get the max level page.
  * @returns The highest page number.
  */
-async function GetMaxPage(): Promise<number> {
+async function GetMaxPage() {
     const levelcount = await LevelConfig.countDocuments();
 
     return CalculateMaxPage(levelcount, PageSize);

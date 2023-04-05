@@ -17,6 +17,4 @@ const StatsCommand: SlashCommand = {
     }
 };
 
-
-
 export default StatsCommand;

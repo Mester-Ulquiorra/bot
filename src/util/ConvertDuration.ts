@@ -7,7 +7,7 @@ const DURATION_REGEX = /([1-9]\d{0,2})(s|mo|m|hr?|d|yr?|w)/g;
  * @param stringDuration The duration string.
  * @returns The duration in seconds. Returns NaN if the format is incorrect
  */
-export default function ConvertDuration(stringDuration: string): number {
+export default function ConvertDuration(stringDuration: string) {
     // if string_duration is null or empty, return -1
     if (stringDuration == null || stringDuration == "")
         return -1;

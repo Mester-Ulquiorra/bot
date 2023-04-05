@@ -762,7 +762,7 @@ class ChessGame {
      * @param piece The piece to get the emoji for
      * @returns An emoji representing the piece
      */
-    static async getPieceEmoji(piece: chess.Piece): Promise<"❓" | GuildEmoji> {
+    static async getPieceEmoji(piece: chess.Piece) {
         const rawEmoji = config.ChessPieceEmojis.get(piece.color + piece.type) ?? "❓";
         if (rawEmoji === "❓") return rawEmoji;
         else return await GetGuild().emojis.fetch(rawEmoji);

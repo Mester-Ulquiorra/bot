@@ -19,35 +19,40 @@ const MassMentionThreshold = 5;
  * @param client The bot client.
  * @returns If the message is clean.
  */
-export const CheckMessage = async function (message: Message, client: Client): Promise<boolean> {
-    // check if message author is a bot
+export const CheckMessage = async function (message: Message, client: Client) {
+    // check if the message's author is a bot
     if (message.author.bot) return true;
+
+    // check if the message is actually in a guild
+    if (!message.inGuild()) return true;
+
+    // check if the user is a mod
+    const userConfig = await GetUserConfig(message.author.id);
+    if (userConfig.mod > 0) return false;
 
     // check if the message's channel is an absolute no search channel
     if (config.channels.AbsoluteNoSearch.includes(message.channel.id)) return true;
-
-    if (message.channel.isDMBased()) return true;
 
     // check if we're in a ticket
     if (ChannelIsTicket(message.channel.name)) return true;
 
     let result = CheckProfanity(message);
-    if (result) return PunishMessage(message, "BlacklistedWord", result, client);
+    if (result) return PunishMessage(message, "BlacklistedWord", result);
 
     result = CheckFlood(message);
-    if (result) return PunishMessage(message, "RepeatedText", result, client);
+    if (result) return PunishMessage(message, "RepeatedText", result);
 
     result = CheckLink(message);
-    if (result) return PunishMessage(message, "Link", result, client);
+    if (result) return PunishMessage(message, "Link", result);
 
     if (message.mentions.members?.size >= MassMentionThreshold)
-        return PunishMessage(message, "MassMention", null, client);
+        return PunishMessage(message, "MassMention", null);
 
     result = await CheckProtectedPing(message);
-    if (result) return PunishMessage(message, "ProtectedPing", result, client);
+    if (result) return PunishMessage(message, "ProtectedPing", result);
 
     result = await CheckInsult(message);
-    if (result) return PunishMessage(message, "Insult", result, client);
+    if (result) return PunishMessage(message, "Insult", result);
 
     return true;
 };
@@ -106,17 +111,12 @@ export function GetPunishmentReason(type: PunishmentNames) {
  * @param client The bot client.
  * @returns If the message was punished or not.
  */
-async function PunishMessage(message: Message, type: PunishmentNames, word: string, client: Client): Promise<boolean> {
+async function PunishMessage(message: Message, type: PunishmentNames, word: string) {
     if (testMode) {
         if (word === "__delete__") message.react("🗑️");
         else message.react("❌");
         return false;
     }
-
-    // get the user config
-    const userConfig = await GetUserConfig(message.author.id);
-
-    if (userConfig.mod > 0) return false;
 
     // delete the message
     if (word === "__delete__") {

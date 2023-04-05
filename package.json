@@ -35,7 +35,7 @@
         "zlib-sync": "^0.1.8"
     },
     "name": "ulquiorra",
-    "version": "4.5.0",
+    "version": "4.5.1",
     "type": "module",
     "exports": "./dist/Ulquiorra",
     "devDependencies": {

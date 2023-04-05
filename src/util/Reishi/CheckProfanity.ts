@@ -7,9 +7,9 @@ import blacklist from "./blacklist.js";
  * @param message The message to check.
  * @returns The word that was found (if none, it's null).
  */
-export default function (message: Message): string {
+export default function (message: Message<true>) {
     // run the function with new lines removed
-    return DetectProfanity(message.content.replaceAll(/\n/g, " "));
+    return DetectProfanity(message.content);
 }
 
 /**

@@ -1,4 +1,4 @@
-import { ChannelType, Message } from "discord.js";
+import { Message } from "discord.js";
 import config from "../../config.js";
 import { GetUserConfig } from "../ConfigHelper.js";
 
@@ -18,9 +18,7 @@ interface ProtectionMemory {
  */
 const protectionCache = new Map<string, ProtectionMemory>();
 
-export default async function (message: Message): Promise<string> {
-    if (message.channel.type === ChannelType.DM) return;
-
+export default async function (message: Message<true>) {
     // check if the user is a mod or they have the protected role
     const userConfig = await GetUserConfig(message.author.id);
     if (userConfig.mod !== 0 || message.member.roles.cache.has(config.roles.Protected)) return null;

@@ -21,7 +21,7 @@ const LastMessages = new Map<string, number>();
  * @param message The message to extract the xp from.
  * @returns The amount of xp gained from the message.
  */
-async function GetXPFromMessage(message: Message): Promise<number> {
+async function GetXPFromMessage(message: Message) {
     // get the content without whitespace
     const content = message.content.replaceAll(/\s/gu, "");
 
@@ -38,9 +38,9 @@ async function GetXPFromMessage(message: Message): Promise<number> {
 
     const currTime = Date.now();
 
-    // check if the user has sent a message in this 20 second interval
+    // check if the user has sent a message in this 10 second interval
     if (
-        (currTime - lastMessage < 20 * 1000) &&
+        (currTime - lastMessage < 10 * 1000) &&
         !testMode
     )
         return 0;
@@ -102,7 +102,7 @@ function XPToLevel(xp: number) {
  * @param level The level of the user.
  * @returns The xp gained from the message.
  */
-function LengthToXP(length: number, level: number): number {
+function LengthToXP(length: number, level: number) {
     return Math.floor(Math.min(XPCapOfLevel(level), 0.00025 * length ** 2 + 10));
 }
 
@@ -145,7 +145,7 @@ async function AddXPToUser(levelConfig: IDBLevel, xp: number, message: Message) 
  * @param memberLevel The level of the user.
  * @return The role id that was added.
  */
-function ManageLevelRole(member: GuildMember, memberLevel: number): string {
+function ManageLevelRole(member: GuildMember, memberLevel: number) {
     // get the role that the user should have
     const levelRole = config.LevelRoles.find(role => role.level == memberLevel);
     if (!levelRole) return;

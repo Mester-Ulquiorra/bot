@@ -631,7 +631,7 @@ function GetPageFromCache(page: number, force = false, values?: PageCache[]) {
  * @param page The page to read from.
  * @param maxPage The max page available.
  */
-async function ReadPage(page: number, maxPage: number): Promise<EmbedBuilder | string> {
+async function ReadPage(page: number, maxPage: number) {
     if (!PageInCache(page))
         return "That page is not cached, which should NOT happen";
 

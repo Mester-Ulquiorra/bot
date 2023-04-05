@@ -26,7 +26,7 @@ export function extractWeights<T extends WeightedItems>(items: ItemsWithWeight<T
     return [ names, weights ];
 }
 
-export async function GetMultipliers(member: GuildMember | User, geoConfig: DBGeo): Promise<GeoMultipler> {
+export async function GetMultipliers(member: GuildMember | User, geoConfig: DBGeo) {
     const multipliers: GeoMultipler = {
         geo: 1
     };

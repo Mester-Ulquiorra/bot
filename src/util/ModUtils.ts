@@ -21,7 +21,7 @@ export type ModName = "Base" | "Level 1" | "Level 2" | "Level 3" | "Head" | "Adm
  * @param level The level of the mod as a number
  * @returns The string representation of that mod level
  */
-export const ModLevelToName = function (level: ModLevel): string {
+export function ModLevelToName(level: ModLevel) {
     switch (true) {
         case level === ModLevel.Test: return "Test mod";
         case level >= ModLevel.Level1 && level <= ModLevel.Level3: return "Mod";
@@ -30,12 +30,12 @@ export const ModLevelToName = function (level: ModLevel): string {
         case level === ModLevel.Owner: return "Owner";
         default: return "Member";
     }
-};
+}
 
 /**
  * A function to convert a mod name to a level as a number
  */
-export const ModNameToLevel = function (name: ModName): number {
+export function ModNameToLevel(name: ModName) {
     switch (name) {
         case "Base":
         case "Level 1": return 1;
@@ -46,23 +46,23 @@ export const ModNameToLevel = function (name: ModName): number {
         case "Owner": return 6;
         case "Test": return -1;
     }
-};
+}
 
 /**
  * A function to convert a mod name to the role id
  */
-export const ModNameToId = function (name: ModName): string {
+export function ModNameToId(name: ModName) {
     return config.ModRoleIds.get(name);
-};
+}
 
-export const CanManageUser = function (user: DBUser, target: DBUser): boolean {
+export function CanManageUser(user: DBUser, target: DBUser) {
     if (user.mod === 0) return false;
     if (user.userId == target.userId) return false;
     if (target.mod !== 0 && user.mod < ModNameToLevel("Head")) return false;
     if (user.mod <= target.mod) return false;
 
     return true;
-};
+}
 
 /**
  * A map to hold all the max mutes.

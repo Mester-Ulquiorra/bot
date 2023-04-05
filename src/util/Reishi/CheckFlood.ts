@@ -29,7 +29,7 @@ const NewLineThreshold = 10;
 /**
  * @returns The word that was found (if none, it's null).
  */
-export default function (message: Message) {
+export default function (message: Message<true>) {
     return DetectFlood(message.content);
 }
 
@@ -55,7 +55,7 @@ export function DetectFlood(string: string) {
  * @param string The string to check
  * @returns If the string contains repeated text.
  */
-function CheckRepeatedText(string: string): string {
+function CheckRepeatedText(string: string) {
     // remove characters like - _ and so on + split the string into words
     const words = StripString(string).map(s => ReverseLeetSpeak(s));
 
@@ -97,7 +97,7 @@ function CheckRepeatedText(string: string): string {
  * @param word The word to check
  * @returns The repeated letter (if none, it's null).
  */
-function CheckLetters(word: string): string {
+function CheckLetters(word: string) {
     // variables used to check if there are multiple letters in a row
     let lettersInRow = 0;
     let tempLetter = "";

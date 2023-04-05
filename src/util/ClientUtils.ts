@@ -1,10 +1,10 @@
-import { GuildTextBasedChannel, TextChannel } from "discord.js";
+import { TextChannel } from "discord.js";
 import config from "../config.js";
 import Ulquiorra from "../Ulquiorra.js";
 
 type SpecialChannelName = "ModLog" | "MessageLog" | "Welcome" | "LevelUp" | "TestMode" | "Appeal" | "MiscLog" | "Automod";
 
-export const GetSpecialChannel = function (channelName: SpecialChannelName): GuildTextBasedChannel {
+export const GetSpecialChannel = function (channelName: SpecialChannelName) {
     switch (channelName) {
         case "ModLog": return Ulquiorra.channels.cache.get(config.channels.ModLog) as TextChannel;
         case "MessageLog": return Ulquiorra.channels.cache.get(config.channels.MessageLog) as TextChannel;
