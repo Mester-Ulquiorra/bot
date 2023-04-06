@@ -4,7 +4,7 @@ import Ulquiorra from "../Ulquiorra.js";
 
 type SpecialChannelName = "ModLog" | "MessageLog" | "Welcome" | "LevelUp" | "TestMode" | "Appeal" | "MiscLog" | "Automod";
 
-export const GetSpecialChannel = function (channelName: SpecialChannelName) {
+export function GetSpecialChannel(channelName: SpecialChannelName) {
     switch (channelName) {
         case "ModLog": return Ulquiorra.channels.cache.get(config.channels.ModLog) as TextChannel;
         case "MessageLog": return Ulquiorra.channels.cache.get(config.channels.MessageLog) as TextChannel;
@@ -14,8 +14,8 @@ export const GetSpecialChannel = function (channelName: SpecialChannelName) {
         case "MiscLog": return Ulquiorra.channels.cache.get(config.channels.MiscLog) as TextChannel;
         case "Automod": return Ulquiorra.channels.cache.get(config.channels.Automod) as TextChannel;
     }
-};
+}
 
-export const GetGuild = function (prisonServer = false) {
+export function GetGuild(prisonServer = false) {
     return prisonServer ? Ulquiorra.guilds.cache.get(config.PrisonId) : Ulquiorra.guilds.cache.get(config.GuildId);
-};
+}

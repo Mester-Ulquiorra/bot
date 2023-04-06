@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, codeBlock, GuildMember, User } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, GuildMember, User } from "discord.js";
 import PunishmentConfig from "../database/PunishmentConfig.js";
 import SlashCommand from "../types/SlashCommand.js";
 import { GetGuild } from "../util/ClientUtils.js";
@@ -34,10 +34,10 @@ async function GenerateUserInfo(interaction: ChatInputCommandInteraction | Butto
         ? target.roles.cache
             // sort the roles so it represents the hierarchy
             .sort((a, b) => b.position - a.position)
-            .map((r) => r.name)
+            .map((r) => r.toString())
             // remove @everyone
             .slice(0, target.roles.cache.size - 1)
-            .join(", ")
+            .join(" ")
         : "Not found";
 
     const latestPunishment = await PunishmentConfig.findOne({
@@ -66,7 +66,7 @@ async function GenerateUserInfo(interaction: ChatInputCommandInteraction | Butto
         },
         {
             name: "Roles",
-            value: codeBlock(targetRoles)
+            value: targetRoles
         },
         {
             name: "Mod?",

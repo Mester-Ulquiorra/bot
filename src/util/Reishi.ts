@@ -1,4 +1,4 @@
-import { Client, Message } from "discord.js";
+import { Message } from "discord.js";
 import { InternalMute } from "../commands/Mute.js";
 import config from "../config.js";
 import testMode from "../testMode.js";
@@ -13,13 +13,18 @@ import { ChannelIsTicket } from "./TicketUtils.js";
 
 const MassMentionThreshold = 5;
 
+export interface ReishiEvaluation {
+    comment: string;
+    requestID?: string;
+}
+
 /**
  * The main function of Reishi.
  * @param message The message to check.
  * @param client The bot client.
  * @returns If the message is clean.
  */
-export const CheckMessage = async function (message: Message, client: Client) {
+export async function CheckMessage(message: Message) {
     // check if the message's author is a bot
     if (message.author.bot) return true;
 
@@ -28,7 +33,7 @@ export const CheckMessage = async function (message: Message, client: Client) {
 
     // check if the user is a mod
     const userConfig = await GetUserConfig(message.author.id);
-    if (userConfig.mod > 0) return false;
+    if (userConfig.mod > 0 && !testMode) return false;
 
     // check if the message's channel is an absolute no search channel
     if (config.channels.AbsoluteNoSearch.includes(message.channel.id)) return true;
@@ -37,25 +42,24 @@ export const CheckMessage = async function (message: Message, client: Client) {
     if (ChannelIsTicket(message.channel.name)) return true;
 
     let result = CheckProfanity(message);
-    if (result) return PunishMessage(message, "BlacklistedWord", result);
+    if (result?.comment) return PunishMessage(message, "BlacklistedWord", result);
 
     result = CheckFlood(message);
-    if (result) return PunishMessage(message, "RepeatedText", result);
+    if (result?.comment) return PunishMessage(message, "RepeatedText", result);
 
     result = CheckLink(message);
-    if (result) return PunishMessage(message, "Link", result);
+    if (result?.comment) return PunishMessage(message, "Link", result);
 
-    if (message.mentions.members?.size >= MassMentionThreshold)
-        return PunishMessage(message, "MassMention", null);
+    if (message.mentions.members?.size >= MassMentionThreshold) return PunishMessage(message, "MassMention", null);
 
     result = await CheckProtectedPing(message);
-    if (result) return PunishMessage(message, "ProtectedPing", result);
+    if (result?.comment) return PunishMessage(message, "ProtectedPing", result);
 
     result = await CheckInsult(message);
-    if (result) return PunishMessage(message, "Insult", result);
+    if (result?.comment) return PunishMessage(message, "Insult", result);
 
     return true;
-};
+}
 
 type PunishmentNames = "RepeatedText" | "BlacklistedWord" | "MassMention" | "Link" | "ProtectedPing" | "Insult";
 
@@ -107,26 +111,26 @@ export function GetPunishmentReason(type: PunishmentNames) {
  * A function to automatically punish a member
  * @param message The message to punish.
  * @param type The punishment type.
- * @param word The word that was caught.
+ * @param result The word that was caught.
  * @param client The bot client.
  * @returns If the message was punished or not.
  */
-async function PunishMessage(message: Message, type: PunishmentNames, word: string) {
+async function PunishMessage(message: Message, type: PunishmentNames, result: ReishiEvaluation) {
     if (testMode) {
-        if (word === "__delete__") message.react("🗑️");
+        if (result.comment === "__delete__") message.react("🗑️");
         else message.react("❌");
         return false;
     }
 
     // delete the message
-    if (word === "__delete__") {
+    if (result.comment === "__delete__") {
         message.delete();
         return false;
     }
     if (!(type === "RepeatedText" && message.mentions.members.size !== 0)) message.delete();
 
     // call the internal mute function
-    InternalMute(await GetGuild().members.fetchMe(), message.member, GetPunishmentLength(type), GetPunishmentReason(type), word);
+    InternalMute(await GetGuild().members.fetchMe(), message.member, GetPunishmentLength(type), GetPunishmentReason(type), result.comment, result.requestID);
 
     return true;
 }

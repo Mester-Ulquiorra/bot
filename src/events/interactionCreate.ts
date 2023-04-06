@@ -16,7 +16,8 @@ const IgnoredIds: Array<RegExp> = [
     /^trivia.*/,
     /^ticket\.open\.*/,
     /^steam\..+/,
-    /automod\..+/
+    /automod\.approve/,
+    /automod\.deny/,
 ];
 
 const InteractionCreateEvent: Event = {

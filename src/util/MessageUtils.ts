@@ -4,7 +4,7 @@
  * @param string The string to reverse.
  * @returns The reversed string.
  */
-export const ReverseLeetSpeak = function (string: string) {
+export function ReverseLeetSpeak(string: string) {
     // this is going to try to reverse leet speak as good as it can
     return string
         .replaceAll(/1/g, "i")
@@ -14,7 +14,7 @@ export const ReverseLeetSpeak = function (string: string) {
         .replaceAll(/#/g, "h")
         .replaceAll(/[+7]/g, "t")
         .replaceAll(/0/g, "o");
-};
+}
 
 /**
  * Lowercses string, removes special characters and unnecessary whitespace from a string and returns it as an array of words

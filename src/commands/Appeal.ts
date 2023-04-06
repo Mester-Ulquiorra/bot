@@ -122,7 +122,7 @@ async function manageAppeal(interaction: ButtonInteraction, accepted: boolean) {
 
     // get the reason for the action
     const reasonMessage = await interaction.reply({
-        embeds: [CreateEmbed(`**Please give a reason for your action by __replying__ to this message.** (Max. length = 500 characters)\n**Type ${inlineCode("cancel")} to cancel.**`)],
+        embeds: [CreateEmbed(`**Please give a reason for your action by __replying__ to this message.** (Max. length: 500 characters)\n**Type ${inlineCode("cancel")} to cancel.**`)],
         fetchReply: true
     });
 
@@ -229,7 +229,7 @@ async function manageAppeal(interaction: ButtonInteraction, accepted: boolean) {
                 .catch(() => { return; })
                 .finally(async () => {
                     // kick the member from the prison
-                    const member = await GetGuild(true).members.fetch(target.id);
+                    const member = await GetGuild(true)?.members.fetch(target.id);
                     member.kick("appealed punishment").catch(() => { return; });
                 });
             GetSpecialChannel("ModLog").send({ embeds: [modEmbed] });

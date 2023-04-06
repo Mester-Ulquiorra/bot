@@ -19,8 +19,9 @@ const MessageUpdateEvent: Event = {
         )
             return;
 
-        // this is a funny one, if the message just got (un)pinned, return
+        // check if the message actually changed
         if (oldMessage.pinned !== newMessage.pinned) return;
+        if ((oldMessage.attachments.size === newMessage.attachments.size) && (oldMessage.content === newMessage.content)) return;
 
         let oldMessageContent = oldMessage.content != "" ? oldMessage.content : "[nothing]";
         if (oldMessage.content.length > MaxContentLength) oldMessageContent = `${oldMessage.content.substring(0, MaxContentLength)}...`;
@@ -52,7 +53,6 @@ const MessageUpdateEvent: Event = {
         // create the field for attachments
         // message.attachments is a collection, so we need to convert it to an array
         const oldAttachments = oldMessage.attachments.map((attachment) => attachment.url);
-
         const newAttachments = newMessage.attachments.map((attachment) => attachment.url);
 
         // if there are attachments and the new and old attachments aren't the same, add the fields
@@ -87,7 +87,7 @@ const MessageUpdateEvent: Event = {
         // now let's check again for profanity, links etc.
         if (oldMessage.content === newMessage.content) return;
 
-        CheckMessage(newMessage, client);
+        CheckMessage(newMessage);
     }
 };
 

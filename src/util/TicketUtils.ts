@@ -8,7 +8,7 @@ import { GetUserConfig } from "./ConfigHelper.js";
 import CreateEmbed, { EmbedColor } from "./CreateEmbed.js";
 import { ModName, ModNameToId, ModNameToLevel } from "./ModUtils.js";
 
-export const CreateTicket = async function (
+export async function CreateTicket(
     ticketOwner: GuildMember,
     reason = "no reason provided",
     interaction: ModalSubmitInteraction | UserContextMenuCommandInteraction = null,
@@ -112,7 +112,7 @@ export const CreateTicket = async function (
     );
 
     interaction.reply({ embeds: [embed], ephemeral: true });
-};
+}
 
 /**
  * Get the name of the ticket type
@@ -149,7 +149,7 @@ export function ChannelIsTicket(channelName: string) {
  * @param ticketConfig the ticket config
  * @param userConfig the user config
  */
-export const CanManageTicket = function (ticketConfig: DBTicket, userConfig: DBUser) {
+export function CanManageTicket(ticketConfig: DBTicket, userConfig: DBUser) {
     // if the user is an admin or higher, return true
     if (userConfig.mod >= ModNameToLevel("Admin")) return true;
 
@@ -172,7 +172,7 @@ export const CanManageTicket = function (ticketConfig: DBTicket, userConfig: DBU
     if (ticketConfig.creator === userConfig.userId) return true;
 
     return false;
-};
+}
 
 /**
  *
@@ -180,7 +180,7 @@ export const CanManageTicket = function (ticketConfig: DBTicket, userConfig: DBU
  * @param reason The reason for the waiting.
  * @param showcancel Whether or not to show the cancel button.
  */
-export const CreateWaitingforMessage = function (
+export function CreateWaitingforMessage(
     modlevel: number,
     reason = "no reason",
     showcancel = true
@@ -207,14 +207,14 @@ export const CreateWaitingforMessage = function (
         ]);
 
     return [returnembed, components.toJSON()];
-};
+}
 
 /**
  * A function for reloading a ticket channel's permissions to match its mod level
  * @param channel The ticket channel.
  * @param ticketConfig
  */
-export const ReloadTicketPermissions = async function (channel: TextChannel, ticketConfig: DBTicket) {
+export async function ReloadTicketPermissions(channel: TextChannel, ticketConfig: DBTicket) {
     // if waitingfor is 0, set modlevel to the modlevel of the ticket, otherwise set it to waitingfor
     const modlevel: number =
         ticketConfig.waitingfor === 0
@@ -284,7 +284,7 @@ export const ReloadTicketPermissions = async function (channel: TextChannel, tic
                 return;
             });
     }
-};
+}
 
 function WaitingforFromType(ticketType: TicketType) {
     switch (ticketType) {

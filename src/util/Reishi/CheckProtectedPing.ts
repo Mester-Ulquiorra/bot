@@ -1,6 +1,7 @@
 import { Message } from "discord.js";
 import config from "../../config.js";
 import { GetUserConfig } from "../ConfigHelper.js";
+import { ReishiEvaluation } from "../Reishi.js";
 
 enum ProtectionDecision {
     Yes = "yes",
@@ -18,7 +19,7 @@ interface ProtectionMemory {
  */
 const protectionCache = new Map<string, ProtectionMemory>();
 
-export default async function (message: Message<true>) {
+export default async function (message: Message<true>): Promise<ReishiEvaluation> {
     // check if the user is a mod or they have the protected role
     const userConfig = await GetUserConfig(message.author.id);
     if (userConfig.mod !== 0 || message.member.roles.cache.has(config.roles.Protected)) return null;
@@ -32,7 +33,7 @@ export default async function (message: Message<true>) {
 
     if (protectedPings.length === 0) return null;
     // if there are more than 1 protected users pinged, just mute
-    if (protectedPings.length >= 2) return `Pinged the following protected members: ${protectedPings.map(member => member.toString()).join(", ")}`;
+    if (protectedPings.length >= 2) return { comment: `Pinged the following protected members: ${protectedPings.map(member => member.toString()).join(", ")}` };
 
     const now = Date.now();
 
@@ -47,7 +48,7 @@ export default async function (message: Message<true>) {
         // collection to array
         .map(x => x);
 
-    if (freshMessages.length === 0) return `Pinged the following protected member: ${user}`;
+    if (freshMessages.length === 0) return { comment: `Pinged the following protected member: ${user}` };
 
     let protDecision = protectionCache.get(user.id);
 
@@ -57,7 +58,7 @@ export default async function (message: Message<true>) {
         protDecision = null;
     }
 
-    if (protDecision && protDecision.decision === ProtectionDecision.Yes) return `Pinged the following protected member: ${user}`;
+    if (protDecision && protDecision.decision === ProtectionDecision.Yes) return { comment: `Pinged the following protected member: ${user}` };
     else if (protDecision) return null;
 
     // ask the user if they want to mute
@@ -84,7 +85,7 @@ export default async function (message: Message<true>) {
                 time: Date.now(),
                 userId: user.id
             });
-            return `Pinged the following protected member: ${user}`;
+            return { comment: `Pinged the following protected member: ${user}` };
         }
 
         protectionCache.set(user.id, {
@@ -94,7 +95,7 @@ export default async function (message: Message<true>) {
         });
         return null;
     }).catch(() => {
-        return `Pinged the following protected member: ${user}`;
+        return { comment: `Pinged the following protected member: ${user}` };
     }).finally(() => {
         inputMessage.delete();
     });

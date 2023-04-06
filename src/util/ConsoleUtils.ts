@@ -6,7 +6,7 @@ import { consoleCommands } from "./Register.js";
  * @param {string} line The line to process.
  * @param {Client} client The bot client.
  */
-export const HandleConsoleCommand = function (line: string, client: Client) {
+export function HandleConsoleCommand(line: string, client: Client) {
     // get the command name by getting the first words from the command
     // then get the argument by splitting the command by spaces
     const args = line.trim().split(" ");
@@ -38,4 +38,4 @@ export const HandleConsoleCommand = function (line: string, client: Client) {
     consoleCommands.get(commandName).run(args, client).catch((error) => {
         console.error(error);
     });
-};
+}

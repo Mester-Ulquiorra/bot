@@ -40,7 +40,7 @@ const MuteCommand: SlashCommand = {
  * @param duration The duration of the mute
  * @param reason The reason for the mute
  */
-export async function InternalMute(mod: GuildMember, target: GuildMember, duration: number, reason: string, detail: string = undefined) {
+export async function InternalMute(mod: GuildMember, target: GuildMember, duration: number, reason: string, detail: string = undefined, requestID: string = undefined) {
     if (!target) return GetError("UserUnavailable");
 
     const userConfig = await GetUserConfig(mod.user.id);
@@ -72,7 +72,7 @@ export async function InternalMute(mod: GuildMember, target: GuildMember, durati
     Log(`${target.user.tag} (${target.id}) has been muted by ${mod.user.tag} (${mod.user.id}): ${reason}. ID: ${punishmentId}`);
 
     const modEmbed = CreateModEmbed(mod.user, target.user, punishment, { detail });
-    const userEmbed = CreateModEmbed(mod.user, target.user, punishment, { userEmbed: true });
+    const userEmbed = CreateModEmbed(mod.user, target.user, punishment, { userEmbed: true, requestID });
 
     target.send({ embeds: [userEmbed.embed], components: userEmbed.components }).catch(() => { return; });
     GetSpecialChannel("ModLog").send({ embeds: [modEmbed] });

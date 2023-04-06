@@ -82,7 +82,7 @@ const maxBans = new Map(
     })
 );
 
-export const CanPerformPunishment = function (user: DBUser, punishmentType: PunishmentType, duration: number) {
+export function CanPerformPunishment(user: DBUser, punishmentType: PunishmentType, duration: number) {
     if (user.mod >= ModNameToLevel("Head") || user.mod === ModNameToLevel("Test")) return true;
 
     if (punishmentType === PunishmentType.Kick || punishmentType === PunishmentType.Warn) return true;
@@ -91,14 +91,15 @@ export const CanPerformPunishment = function (user: DBUser, punishmentType: Puni
 
     const checkDuration = punishmentType === PunishmentType.Mute ? maxMutes.get(user.mod) : maxBans.get(user.mod);
     return (checkDuration !== 0 && checkDuration >= duration);
-};
+}
 
 interface CreateModEmbedOptions<T extends boolean, U extends boolean> {
     anti?: U,
     backupType?: number,
     userEmbed?: T,
     detail?: string,
-    reason?: string
+    reason?: string,
+    requestID?: string,
 }
 
 /**
@@ -128,7 +129,7 @@ function addDurationField(embed: EmbedBuilder, punishmentType: number, actionNam
     });
 }
 
-type ModEmbed<T extends boolean, U extends boolean> = T extends true ? (U extends false ? { embed: EmbedBuilder, components: [APIActionRowComponent<APIButtonComponent>] } : EmbedBuilder) : EmbedBuilder;
+type ModEmbed<T extends boolean, U extends boolean> = T extends true ? (U extends false ? { embed: EmbedBuilder, components: APIActionRowComponent<APIButtonComponent>[] } : EmbedBuilder) : EmbedBuilder;
 /**
  * A function for creating an universal mod embed
  */
@@ -179,11 +180,15 @@ export function CreateModEmbed<T extends boolean = false, U extends boolean = fa
     if (options.detail && !options.userEmbed)
         embed.addFields({ name: "Details", value: options.detail, inline: false });
 
-    if (options.userEmbed) return <ModEmbed<T, U>>{ embed, components: [CreateAppealButton(punishment.type === PunishmentType.Ban)] };
+    const components = [CreateAppealButton(punishment.type === PunishmentType.Ban)];
+    if (options.userEmbed) {
+        if(options.requestID) components.push(CreateAutomodReasonButton(options.requestID));
+        return <ModEmbed<T, U>>{ embed, components };
+    }
     else return <ModEmbed<T, U>>embed;
 }
 
-export const CreateAppealButton = function (isBan = false) {
+export function CreateAppealButton(isBan = false) {
     return !isBan ?
         new ActionRowBuilder<ButtonBuilder>().addComponents(
             new ButtonBuilder()
@@ -198,4 +203,13 @@ export const CreateAppealButton = function (isBan = false) {
                 .setStyle(ButtonStyle.Link)
                 .setURL(config.PrisonInvite)
         ).toJSON();
-};
+}
+
+function CreateAutomodReasonButton(requestID) {
+    return new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
+            .setCustomId(`automod.reason-${requestID}`)
+            .setLabel("Show reason")
+            .setStyle(ButtonStyle.Primary)
+    ).toJSON();
+}

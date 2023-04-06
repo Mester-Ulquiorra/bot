@@ -1,15 +1,16 @@
 import { Message } from "discord.js";
 import { ReverseLeetSpeak, StripString } from "../MessageUtils.js";
 import blacklist from "./blacklist.js";
+import { ReishiEvaluation } from "../Reishi.js";
 
 /**
  * The main function for profanity checking.
  * @param message The message to check.
  * @returns The word that was found (if none, it's null).
  */
-export default function (message: Message<true>) {
+export default function (message: Message<true>): ReishiEvaluation {
     // run the function with new lines removed
-    return DetectProfanity(message.content);
+    return { comment: DetectProfanity(message.content) };
 }
 
 /**
