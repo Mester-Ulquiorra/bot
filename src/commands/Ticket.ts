@@ -159,21 +159,21 @@ async function manageUser(interaction: ChatInputCommandInteraction, target: Guil
         return GetError("BadUser");
 
     // get ticket config
-    const ticketConfig = await TicketConfig.findOne({
+    const ticket = await TicketConfig.findOne({
         channel: interaction.channelId,
     });
 
-    if (!ticketConfig) return GetError("Database");
-    if (ticketConfig.closed) return "This ticket is closed.";
+    if (!ticket) return GetError("Database");
+    if (ticket.closed) return "This ticket is closed.";
 
     // check if user can manage ticket
-    if (!CanManageTicket(ticketConfig, userConfig))
+    if (!CanManageTicket(ticket, userConfig))
         return GetError("Permission");
 
     const ticketChannel = interaction.channel as TextChannel;
 
     // get the users
-    const ticketUsers = ticketConfig.users;
+    const ticketUsers = ticket.users;
 
     // if type is REMOVE
     if (type === "REMOVE") {
@@ -223,10 +223,10 @@ async function manageUser(interaction: ChatInputCommandInteraction, target: Guil
     }
 
     // save the ticket config
-    await ticketConfig.save();
+    await ticket.save();
 
     // reload ticket permissions + ping the member (if it was an ADD type)
-    ReloadTicketPermissions(ticketChannel, ticketConfig).then(() => {
+    ReloadTicketPermissions(ticketChannel, ticket).then(() => {
         if (type !== "ADD") return;
         ticketChannel.send(target.toString()).then((message) => {
             message.delete();
@@ -244,14 +244,14 @@ async function close(interaction: ChatInputCommandInteraction, userConfig: DBUse
     const reason = interaction.options.getString("reason") ?? "no reason provided";
 
     // get the ticket config
-    const ticketConfig = await TicketConfig.findOne({
+    const ticket = await TicketConfig.findOne({
         channel: interaction.channelId,
     });
-    if (!ticketConfig) return GetError("Database");
-    if (ticketConfig.closed) return "This ticket is already closed.";
+    if (!ticket) return GetError("Database");
+    if (ticket.closed) return "This ticket is already closed.";
 
     // check if user can manage ticket
-    if (!CanManageTicket(ticketConfig, userConfig))
+    if (!CanManageTicket(ticket, userConfig))
         return GetError("Permission");
 
     // get the ticket channel
@@ -265,9 +265,9 @@ async function close(interaction: ChatInputCommandInteraction, userConfig: DBUse
     });
 
     // set ticket to closed
-    ticketConfig.closed = true;
-    ticketConfig.closedat = Math.floor(Date.now() / 1000);
-    await ticketConfig.save();
+    ticket.closed = true;
+    ticket.closedat = Math.floor(Date.now() / 1000);
+    await ticket.save();
 
     // create the close embed
     const embed = CreateEmbed(
@@ -294,7 +294,7 @@ async function close(interaction: ChatInputCommandInteraction, userConfig: DBUse
     interaction.reply({ embeds: [embed], components });
 
     // reload ticket permissions
-    ReloadTicketPermissions(ticketChannel, ticketConfig);
+    ReloadTicketPermissions(ticketChannel, ticket);
 }
 
 /**
@@ -304,14 +304,14 @@ async function close(interaction: ChatInputCommandInteraction, userConfig: DBUse
  */
 async function deleteTicket(interaction: ChatInputCommandInteraction | ButtonInteraction, userConfig: DBUser) {
     // get ticket config
-    const ticketConfig = await TicketConfig.findOne({
+    const ticket = await TicketConfig.findOne({
         channel: interaction.channelId,
     });
 
-    if (!ticketConfig) return GetError("Database");
+    if (!ticket) return GetError("Database");
 
     // check if user can manage ticket
-    if (!CanManageTicket(ticketConfig, userConfig))
+    if (!CanManageTicket(ticket, userConfig))
         return GetError("Permission");
 
     // get the ticket channel
@@ -327,7 +327,7 @@ async function deleteTicket(interaction: ChatInputCommandInteraction | ButtonInt
     });
 
     // delete the ticket config
-    await ticketConfig.delete();
+    await ticket.delete();
 }
 
 /**
@@ -337,13 +337,13 @@ async function deleteTicket(interaction: ChatInputCommandInteraction | ButtonInt
  */
 async function sendto(interaction: ChatInputCommandInteraction, userConfig: DBUser) {
     // get ticket config
-    const ticketConfig = await TicketConfig.findOne({
+    const ticket = await TicketConfig.findOne({
         channel: interaction.channelId,
     });
-    if (!ticketConfig) return GetError("Database");
+    if (!ticket) return GetError("Database");
 
     // check if user can manage ticket
-    if (!CanManageTicket(ticketConfig, userConfig))
+    if (!CanManageTicket(ticket, userConfig))
         return GetError("Permission");
 
     // get the mod level and reason
@@ -352,7 +352,7 @@ async function sendto(interaction: ChatInputCommandInteraction, userConfig: DBUs
 
     // check if the ticket is already waiting for a moderator (head mods and higher bypass this check)
     if (
-        ticketConfig.waitingfor != 0 &&
+        ticket.waitingfor != 0 &&
         userConfig.mod < ModNameToLevel("Head")
     )
         return "This ticket is already waiting for a moderator.";
@@ -368,8 +368,8 @@ async function sendto(interaction: ChatInputCommandInteraction, userConfig: DBUs
     if (modLevel === 0) return GetError("BadValue", "modlevel");
 
     // change the ticket's waitingfor to the mod level
-    ticketConfig.waitingfor = modLevel;
-    await ticketConfig.save();
+    ticket.waitingfor = modLevel;
+    await ticket.save();
 
     // send the waitingfor message
     const [embed, components] = CreateWaitingforMessage(
@@ -384,15 +384,15 @@ async function sendto(interaction: ChatInputCommandInteraction, userConfig: DBUs
 
 async function reopen(interaction: ButtonInteraction, userConfig: DBUser) {
     // get ticket config
-    const ticketConfig = await TicketConfig.findOne({
+    const ticket = await TicketConfig.findOne({
         channel: interaction.channelId,
     });
 
-    if (!ticketConfig) return GetError("Database");
-    if (!ticketConfig.closed) return "The ticket is not closed.";
+    if (!ticket) return GetError("Database");
+    if (!ticket.closed) return "The ticket is not closed.";
 
     // check if user can manage ticket
-    if (!CanManageTicket(ticketConfig, userConfig))
+    if (!CanManageTicket(ticket, userConfig))
         return GetError("Permission");
 
     // get the ticket channel
@@ -406,9 +406,9 @@ async function reopen(interaction: ButtonInteraction, userConfig: DBUser) {
     });
 
     // set ticket to opened
-    ticketConfig.closed = false;
-    ticketConfig.closedat = -1;
-    await ticketConfig.save();
+    ticket.closed = false;
+    ticket.closedat = -1;
+    await ticket.save();
 
     // send the embed
     const embed = CreateEmbed(
@@ -421,30 +421,30 @@ async function reopen(interaction: ButtonInteraction, userConfig: DBUser) {
     interaction.update({ components: [] });
 
     // reload ticket permissions
-    ReloadTicketPermissions(ticketChannel, ticketConfig);
+    ReloadTicketPermissions(ticketChannel, ticket);
 }
 
 async function accept(interaction: ButtonInteraction, userConfig: DBUser) {
     // get ticket config
-    const ticketConfig = await TicketConfig.findOne({
+    const ticket = await TicketConfig.findOne({
         channel: interaction.channelId,
     });
 
-    if (!ticketConfig) return GetError("Database");
+    if (!ticket) return GetError("Database");
 
     // check if user's mod is lower than the ticket's waitingfor
-    if (userConfig.mod < ticketConfig.waitingfor)
+    if (userConfig.mod < ticket.waitingfor)
         return GetError("Permission");
 
     // set the ticket's mod to the user's id
-    ticketConfig.mod = interaction.user.id;
+    ticket.mod = interaction.user.id;
 
     // set the ticket's modlevel to waitingfor
-    ticketConfig.modlevel = ticketConfig.waitingfor;
+    ticket.modlevel = ticket.waitingfor;
 
     // set the ticket's waitingfor to 0
-    ticketConfig.waitingfor = 0;
-    await ticketConfig.save();
+    ticket.waitingfor = 0;
+    await ticket.save();
 
     // edit the interaction
     interaction.update({
@@ -457,28 +457,28 @@ async function accept(interaction: ButtonInteraction, userConfig: DBUser) {
     });
 
     // reload ticket permissions
-    ReloadTicketPermissions(interaction.channel as TextChannel, ticketConfig);
+    ReloadTicketPermissions(interaction.channel as TextChannel, ticket);
 }
 
 async function cancelSendTo(interaction: ButtonInteraction, userConfig: DBUser) {
     // get ticket config
-    const ticketConfig = await TicketConfig.findOne({
+    const ticket = await TicketConfig.findOne({
         channel: interaction.channelId,
     });
 
-    if (!ticketConfig) return GetError("Database");
+    if (!ticket) return GetError("Database");
 
     // check if user can actually cancel the sendto
     if (
-        interaction.user.id != ticketConfig.mod &&
+        interaction.user.id != ticket.mod &&
         // head mods and higher bypass this check
         userConfig.mod < ModNameToLevel("Head")
     )
         return GetError("Permission");
 
     // set the ticket's waitingfor to 0
-    ticketConfig.waitingfor = 0;
-    await ticketConfig.save();
+    ticket.waitingfor = 0;
+    await ticket.save();
 
     // edit the original message
     interaction.update({

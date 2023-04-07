@@ -26,7 +26,7 @@ export async function CreateTicket(
         reason: `Ticket created by ${ticketOwner.displayName}: ${reason}`
     }).catch((error) => { throw error; });
 
-    const ticketConfig = await TicketConfig.create({
+    const ticket = await TicketConfig.create({
         ticketId: ticketId,
         channel: ticketChannel.id,
         creator: ticketOwner.id,
@@ -38,11 +38,11 @@ export async function CreateTicket(
     });
 
     // add the users to the ticket config
-    usersToAdd.forEach((user) => ticketConfig.users.set(user, "automatic"));
-    await ticketConfig.save();
+    usersToAdd.forEach((user) => ticket.users.set(user, "automatic"));
+    await ticket.save();
 
     // reload ticket permissions
-    ReloadTicketPermissions(ticketChannel, ticketConfig);
+    ReloadTicketPermissions(ticketChannel, ticket);
 
     // create welcome embed
     const welcomeEmbed = CreateEmbed(
@@ -92,7 +92,7 @@ export async function CreateTicket(
     // if userstoadd is empty, create a waitingfor message
     if (usersToAdd.length === 0) {
         const [waitingembed, components] = CreateWaitingforMessage(
-            ticketConfig.waitingfor,
+            ticket.waitingfor,
             "new ticket",
             false
         );
@@ -146,17 +146,17 @@ export function ChannelIsTicket(channelName: string) {
 
 /**
  * A function to check if the user can manage the ticket
- * @param ticketConfig the ticket config
+ * @param ticket the ticket
  * @param userConfig the user config
  */
-export function CanManageTicket(ticketConfig: DBTicket, userConfig: DBUser) {
+export function CanManageTicket(ticket: DBTicket, userConfig: DBUser) {
     // if the user is an admin or higher, return true
     if (userConfig.mod >= ModNameToLevel("Admin")) return true;
 
     // if the user is a head mod, and the ticket's type is not a head mod report, return true
     if (
         userConfig.mod === ModNameToLevel("Head") &&
-        ticketConfig.type < TicketType.HeadModReport
+        ticket.type < TicketType.HeadModReport
     )
         return true;
 
@@ -164,12 +164,12 @@ export function CanManageTicket(ticketConfig: DBTicket, userConfig: DBUser) {
     if (
         userConfig.mod < ModNameToLevel("Head") &&
         userConfig.mod != 0 &&
-        ticketConfig.type < TicketType.ModReport
+        ticket.type < TicketType.ModReport
     )
         return true;
 
     // if the id of the user is the same as the creator of ticketconfig, return true
-    if (ticketConfig.creator === userConfig.userId) return true;
+    if (ticket.creator === userConfig.userId) return true;
 
     return false;
 }
@@ -211,24 +211,24 @@ export function CreateWaitingforMessage(
 
 /**
  * A function for reloading a ticket channel's permissions to match its mod level
- * @param channel The ticket channel.
- * @param ticketConfig
+ * @param channel The ticket channel
+ * @param ticket The ticket's config
  */
-export async function ReloadTicketPermissions(channel: TextChannel, ticketConfig: DBTicket) {
+export async function ReloadTicketPermissions(channel: TextChannel, ticket: DBTicket) {
     // if waitingfor is 0, set modlevel to the modlevel of the ticket, otherwise set it to waitingfor
     const modlevel: number =
-        ticketConfig.waitingfor === 0
-            ? ticketConfig.modlevel
-            : ticketConfig.waitingfor;
+        ticket.waitingfor === 0
+            ? ticket.modlevel
+            : ticket.waitingfor;
 
     // give every user access permission (send message if the ticket is not closed)
-    for (const [user, reason] of ticketConfig.users) {
+    for (const [user, reason] of ticket.users) {
         channel.permissionOverwrites
             .create(
                 user,
                 {
                     ViewChannel: true,
-                    SendMessages: !ticketConfig.closed,
+                    SendMessages: !ticket.closed,
                 },
                 {
                     reason: `user is part of ticket: ${reason}`,
@@ -241,20 +241,20 @@ export async function ReloadTicketPermissions(channel: TextChannel, ticketConfig
 
     // add view permission to the creator
     channel.permissionOverwrites
-        .create(ticketConfig.creator, {
+        .create(ticket.creator, {
             ViewChannel: true,
-            SendMessages: !ticketConfig.closed,
+            SendMessages: !ticket.closed,
         })
         .catch(() => {
             return;
         });
 
     // if ticketconfig's mod is not -1, give the mod access permission
-    if (ticketConfig.mod !== "-1") {
+    if (ticket.mod !== "-1") {
         channel.permissionOverwrites
-            .create(ticketConfig.mod, {
+            .create(ticket.mod, {
                 ViewChannel: true,
-                SendMessages: !ticketConfig.closed,
+                SendMessages: !ticket.closed,
             })
             .catch(() => {
                 return;

@@ -82,14 +82,21 @@ const maxBans = new Map(
     })
 );
 
-export function CanPerformPunishment(user: DBUser, punishmentType: PunishmentType, duration: number) {
-    if (user.mod >= ModNameToLevel("Head") || user.mod === ModNameToLevel("Test")) return true;
+/**
+ * A function to check if a mod can perform a punishment
+ * @param mod The moderator who is performing the action
+ * @param punishmentType The type of the punishment
+ * @param duration The duration of the punishment
+ * @returns true/false if the mod can perform the punishment
+ */
+export function CanPerformPunishment(mod: DBUser, punishmentType: PunishmentType, duration: number) {
+    if (mod.mod >= ModNameToLevel("Head") || mod.mod === ModNameToLevel("Test")) return true;
 
     if (punishmentType === PunishmentType.Kick || punishmentType === PunishmentType.Warn) return true;
 
     if (duration === -1) return false;
 
-    const checkDuration = punishmentType === PunishmentType.Mute ? maxMutes.get(user.mod) : maxBans.get(user.mod);
+    const checkDuration = punishmentType === PunishmentType.Mute ? maxMutes.get(mod.mod) : maxBans.get(mod.mod);
     return (checkDuration !== 0 && checkDuration >= duration);
 }
 
@@ -132,6 +139,10 @@ function addDurationField(embed: EmbedBuilder, punishmentType: number, actionNam
 type ModEmbed<T extends boolean, U extends boolean> = T extends true ? (U extends false ? { embed: EmbedBuilder, components: APIActionRowComponent<APIButtonComponent>[] } : EmbedBuilder) : EmbedBuilder;
 /**
  * A function for creating an universal mod embed
+ * @param mod The mod who performed the action
+ * @param target The target of the action
+ * @param punishment The punishment that was performed
+ * @param options The options for the embed
  */
 export function CreateModEmbed<T extends boolean = false, U extends boolean = false>(mod: User, target: User | string, punishment: DBPunishment, options: CreateModEmbedOptions<T, U> = {}): ModEmbed<T, U> {
     // first get a string representation of the action
@@ -205,7 +216,7 @@ export function CreateAppealButton(isBan = false) {
         ).toJSON();
 }
 
-function CreateAutomodReasonButton(requestID) {
+function CreateAutomodReasonButton(requestID: string) {
     return new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
             .setCustomId(`automod.reason-${requestID}`)

@@ -10,6 +10,7 @@ import CheckLink from "./Reishi/CheckLink.js";
 import CheckProfanity from "./Reishi/CheckProfanity.js";
 import CheckProtectedPing from "./Reishi/CheckProtectedPing.js";
 import { ChannelIsTicket } from "./TicketUtils.js";
+import CheckLanguage from "./Reishi/CheckLanguage.js";
 
 const MassMentionThreshold = 5;
 
@@ -29,7 +30,7 @@ export async function CheckMessage(message: Message) {
     if (message.author.bot) return true;
 
     // check if the message is actually in a guild
-    if (!message.inGuild()) return true;
+    if (!message.inGuild()) return false;
 
     // check if the user is a mod
     const userConfig = await GetUserConfig(message.author.id);
@@ -55,13 +56,16 @@ export async function CheckMessage(message: Message) {
     result = await CheckProtectedPing(message);
     if (result?.comment) return PunishMessage(message, "ProtectedPing", result);
 
+    result = await CheckLanguage(message);
+    if (result?.comment) return false;
+
     result = await CheckInsult(message);
     if (result?.comment) return PunishMessage(message, "Insult", result);
 
     return true;
 }
 
-type PunishmentNames = "RepeatedText" | "BlacklistedWord" | "MassMention" | "Link" | "ProtectedPing" | "Insult";
+type PunishmentNames = "RepeatedText" | "BlacklistedWord" | "MassMention" | "Link" | "ProtectedPing" | "Insult" | "Language";
 
 /**
  * Get the punishment length of a punishment type.
@@ -109,13 +113,13 @@ export function GetPunishmentReason(type: PunishmentNames) {
 
 /**
  * A function to automatically punish a member
- * @param message The message to punish.
- * @param type The punishment type.
- * @param result The word that was caught.
- * @param client The bot client.
- * @returns If the message was punished or not.
+ * @param message The message to punish
+ * @param type The punishment type
+ * @param result The word that was caught
+ * @param client The bot client
+ * @returns If the message is clean (always false)
  */
-async function PunishMessage(message: Message, type: PunishmentNames, result: ReishiEvaluation) {
+async function PunishMessage(message: Message, type: PunishmentNames, result: ReishiEvaluation): Promise<false> {
     if (testMode) {
         if (result.comment === "__delete__") message.react("🗑️");
         else message.react("❌");
@@ -132,5 +136,5 @@ async function PunishMessage(message: Message, type: PunishmentNames, result: Re
     // call the internal mute function
     InternalMute(await GetGuild().members.fetchMe(), message.member, GetPunishmentLength(type), GetPunishmentReason(type), result.comment, result.requestID);
 
-    return true;
+    return false;
 }
