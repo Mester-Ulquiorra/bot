@@ -4,7 +4,7 @@ import { DBTictactoe } from "../types/Database.js";
 import SlashCommand from "../types/SlashCommand.js";
 import { SnowFlake } from "../Ulquiorra.js";
 import { GetGuild } from "../util/ClientUtils.js";
-import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
+import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import { CalculateMaxPage } from "../util/MathUtils.js";
 
@@ -85,7 +85,7 @@ async function play(interaction: ChatInputCommandInteraction) {
     // create an embed to wait for the user to accept the game
     const waitEmbed = CreateEmbed(
         `**${member}, ${interaction.member} has invited you to play tictactoe! \n Click on the button to accept!**`,
-        { title: `Tictactoe game invitation`, color: EmbedColor.Success }
+        { title: `Tictactoe game invitation`, color: "success" }
     ).setFooter({ text: "You have 15 seconds to accept the game!" });
 
     // create the accept button
@@ -139,7 +139,7 @@ async function play(interaction: ChatInputCommandInteraction) {
         .catch(() => {
             const embed = CreateEmbed(
                 `You haven't accepted the game in time!`,
-                { color: EmbedColor.Error, title: "Tictactoe game invitation" }
+                { color: "error", title: "Tictactoe game invitation" }
             );
 
             interaction.editReply({ embeds: [embed], components: [] });
@@ -409,7 +409,7 @@ class TicTacToeGame {
 
         const embed = CreateEmbed(winnerString, {
             title: `${this.player1.username} vs ${this.player2.username}`,
-            color: winner !== 3 ? EmbedColor.Success : EmbedColor.Warning,
+            color: winner !== 3 ? "success" : "warning",
         });
         this.message.edit({ embeds: [embed] });
 
@@ -550,7 +550,7 @@ class TicTacToeGame {
         await this.stats[1].save();
 
         if (reason != null) {
-            const embed = CreateEmbed(`**${reason}**`, { color: EmbedColor.Error });
+            const embed = CreateEmbed(`**${reason}**`, { color: "error" });
 
             this.message.edit({ embeds: [embed] });
         }

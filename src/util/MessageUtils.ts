@@ -17,7 +17,7 @@ export function ReverseLeetSpeak(string: string) {
 }
 
 /**
- * Lowercses string, removes special characters and unnecessary whitespace from a string and returns it as an array of words
+ * Lowercases string, removes special characters and unnecessary whitespace from a string and returns it as an array of words
  * @param string The string to strip
  */
 export function StripString(string: string) {

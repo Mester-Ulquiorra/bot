@@ -1,12 +1,12 @@
 import { ChatInputCommandInteraction, EmbedBuilder, GuildMember, PermissionsBitField, TextChannel, User } from "discord.js";
+import { SnowFlake } from "../Ulquiorra.js";
 import config from "../config.js";
 import GiveawayConfig, { IDBGiveaway } from "../database/GiveawayConfig.js";
 import { GiveawayFilter } from "../types/Database.js";
 import SlashCommand from "../types/SlashCommand.js";
-import { SnowFlake } from "../Ulquiorra.js";
 import { GetGuild } from "../util/ClientUtils.js";
 import ConvertDuration from "../util/ConvertDuration.js";
-import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
+import CreateEmbed, { EmbedColors } from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import Log from "../util/Log.js";
 
@@ -57,7 +57,7 @@ async function startGiveaway(interaction: ChatInputCommandInteraction) {
     const giveawayId = SnowFlake.getUniqueID().toString();
 
     const embed = CreateEmbed(`Giveaway hosted by ${interaction.user}!\nReach with ${GiveawayEmoji} to enter!`, {
-        color: EmbedColor.Success,
+        color: "success",
         title: name
     })
         .addFields(
@@ -117,7 +117,7 @@ async function endGiveaway(giveaway: IDBGiveaway) {
                 value: "No winners :(",
                 inline: false
             })
-            .setColor(EmbedColor.Error);
+            .setColor(EmbedColors.error);
 
         // remove the "Ends" and "Winners" fields
         embed.data.fields.shift();
@@ -140,7 +140,7 @@ async function endGiveaway(giveaway: IDBGiveaway) {
             value: winnerString,
             inline: false
         })
-        .setColor(EmbedColor.Success);
+        .setColor(EmbedColors.success);
 
     // remove the "Ends" and "Winners" fields
     embed.data.fields.shift();

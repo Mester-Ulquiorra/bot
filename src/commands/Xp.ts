@@ -1,5 +1,5 @@
 import SlashCommand from "../types/SlashCommand.js";
-import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
+import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import { GetLevelConfig, LevelToXP, XPToLevel } from "../util/LevelUtils.js";
 import Log from "../util/Log.js";
@@ -63,7 +63,7 @@ const XpCommand: SlashCommand = {
 
         // create the embed
         const embed = CreateEmbed(`New level information of ${target}`, {
-            color: EmbedColor.Success,
+            color: "success",
             title: `Successfully changed level information of ${target.tag}`,
         });
 

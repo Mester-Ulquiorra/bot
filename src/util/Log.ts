@@ -7,21 +7,16 @@ import { join } from "path";
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const logsFolder = join(__dirname, "..", "..", "logs");
 
-export enum LogType {
-    Info = "info",
-    Warn = "warn",
-    Error = "error",
-    Fatal = "fatal"
-}
+export type LogType = "info" | "warn" | "error" | "fatal";
 
 const dateFormat = "yyyy-MM-dd HH:mm:ss.SSS";
 
 function getColoredType(type: LogType) {
     switch (type) {
-        case LogType.Info: return clc.blue("INFO");
-        case LogType.Warn: return clc.xterm(208)("WARN");
-        case LogType.Error: return clc.xterm(196)("ERROR");
-        case LogType.Fatal: return clc.xterm(196).bgXterm(160).bold("FATAL");
+        case "info": return clc.blue("INFO");
+        case "warn": return clc.xterm(208)("WARN");
+        case "error": return clc.xterm(196)("ERROR");
+        case "fatal": return clc.xterm(196).bgXterm(160).bold("FATAL");
     }
 }
 
@@ -37,19 +32,19 @@ const logger = createLogger({
     transports: [
         new transports.File({
             filename: join(logsFolder, "info.log"),
-            level: LogType.Info
+            level: "info"
         }),
         new transports.File({
             filename: join(logsFolder, "warn.log"),
-            level: LogType.Warn
+            level: "warn"
         }),
         new transports.File({
             filename: join(logsFolder, "error.log"),
-            level: LogType.Error
+            level: "error"
         }),
         new transports.File({
             filename: join(logsFolder, "fatal.log"),
-            level: LogType.Fatal
+            level: "fatal"
         })
     ]
 });
@@ -59,7 +54,7 @@ const logger = createLogger({
  * @param {string} message The message to log.
  * @param {LogType} type The type of the message.
  */
-export default function (message: string, type: LogType = LogType.Info) {
+export default function (message: string, type: LogType = "info") {
     logger.log({
         level: type,
         message: message

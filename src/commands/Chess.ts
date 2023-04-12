@@ -8,7 +8,7 @@ import config from "../config.js";
 import SlashCommand from "../types/SlashCommand.js";
 import { SnowFlake } from "../Ulquiorra.js";
 import { GetGuild } from "../util/ClientUtils.js";
-import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
+import CreateEmbed from "../util/CreateEmbed.js";
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 const ChessCommand: SlashCommand = {
@@ -32,7 +32,7 @@ const ChessCommand: SlashCommand = {
                 // create an embed to wait for the user to accept the game
                 const waitEmbed = CreateEmbed(
                     `**${member}, ${interaction.member} has invited you to play chess! \n Click on the button to accept!**`,
-                    { title: `Chess game invitation`, color: EmbedColor.Success }
+                    { title: `Chess game invitation`, color: "success" }
                 ).setFooter({ text: "You have 15 seconds to accept the game!" });
 
                 // create the accept button
@@ -67,7 +67,7 @@ const ChessCommand: SlashCommand = {
                             embeds: [
                                 CreateEmbed(
                                     `You haven't accepted the game in time!`,
-                                    { color: EmbedColor.Error, title: "Chess game invitation" }
+                                    { color: "error", title: "Chess game invitation" }
                                 )], components: []
                         });
                     });
@@ -200,7 +200,7 @@ class ChessGame {
                 embeds: [
                     CreateEmbed(
                         `Are you sure you want to forfeit the game?`,
-                        { color: EmbedColor.Warning, title: "Chess game" }
+                        { color: "warning", title: "Chess game" }
                     )],
                 components: [
                     new ActionRowBuilder<ButtonBuilder>().addComponents([
@@ -229,7 +229,7 @@ class ChessGame {
                         embeds: [
                             CreateEmbed(
                                 `You have forfeited the game!`,
-                                { color: EmbedColor.Success, title: "Chess game" }
+                                { color: "success", title: "Chess game" }
                             )],
                         components: []
                     });
@@ -245,7 +245,7 @@ class ChessGame {
                         embeds: [
                             CreateEmbed(
                                 `You have cancelled the forfeit!`,
-                                { color: EmbedColor.Error, title: "Chess game" }
+                                { color: "error", title: "Chess game" }
                             )],
                         components: []
                     });
@@ -255,7 +255,7 @@ class ChessGame {
                     embeds: [
                         CreateEmbed(
                             `You have not confirmed the forfeit!`,
-                            { color: EmbedColor.Error, title: "Chess game" }
+                            { color: "error", title: "Chess game" }
                         )],
                     components: []
                 });
@@ -270,7 +270,7 @@ class ChessGame {
         if (button.customId === "chess.requestdraw") {
             // send a message to the other player
             const drawembed = CreateEmbed(`${button.user} has requested a draw!\nYou have 60 seconds to accept/deny`,
-                { color: EmbedColor.Warning, });
+                { color: "warning", });
 
             const drawcomponents = [
                 new ActionRowBuilder<ButtonBuilder>().addComponents([
@@ -686,7 +686,7 @@ class ChessGame {
 
         const originalDescription = await this.message.fetch(true);
 
-        const embed = CreateEmbed(`${originalDescription.embeds[0].description.split("\n")[0]}\n\n**${reason}**\n\nThe PGN file of this game has been attached for you.\nFEN: ${this.chessGame.fen()}`, { color: this.chessGame.isDraw() || isDraw ? EmbedColor.Warning : EmbedColor.Success });
+        const embed = CreateEmbed(`${originalDescription.embeds[0].description.split("\n")[0]}\n\n**${reason}**\n\nThe PGN file of this game has been attached for you.\nFEN: ${this.chessGame.fen()}`, { color: (this.chessGame.isDraw() || isDraw) ? "warning" : "success" });
 
         // redraw board
         const board = this.generateGameBoard();

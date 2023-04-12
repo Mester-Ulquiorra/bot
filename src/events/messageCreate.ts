@@ -1,34 +1,19 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, Message, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, TextChannel } from "discord.js";
+import { shutdown } from "../Ulquiorra.js";
 import config from "../config.js";
 import Event from "../types/Event.js";
-import { shutdown } from "../Ulquiorra.js";
 import { GetGuild } from "../util/ClientUtils.js";
-import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
+import CreateEmbed from "../util/CreateEmbed.js";
 import { GetXPFromMessage } from "../util/LevelUtils.js";
 import { CreateAppealButton } from "../util/ModUtils.js";
 import { CheckMessage } from "../util/Reishi.js";
 import { CreateTicket, TicketTypeToName } from "../util/TicketUtils.js";
-
-const HelpMessage =
-    "**Our xp system works based on mathematical formulas.** \n\n When you send a message, its length is sent through this formula: \n `clamp(length * (1 + user's_current_level / 140), 0, maximum_xp_of_level)` \n\n The maximum xp of a level (aka. the xp cap) is calculated using the following formula: \n `clamp(2000 * (1 - user's_current_level / xp_cap_multiplier), 200, 2000)` \n\n The xp cap multiplier is `70 / (1 - 200 / 2000)` \n\n The xp it takes to reach a certain level is calculated using this formula: \n `floor(2000 + 5000 * (level - 1) * (1 + (min(1 - 0.005 * (level - 70), 1) * level - 1) / 35))` \n\n Nice, isn't it? \n\n If you want to get a visual representation of the different formulas, here are the Desmos links: [[Level to XP]](https://www.desmos.com/calculator/966mlsftxg) - [[Length to XP]](https://www.desmos.com/calculator/lshbxdm5sn) - [[XP cap]](https://www.desmos.com/calculator/bdxwovexie)";
 
 const MessageCreateEvent: Event = {
     name: "messageCreate",
     async run(client: Client, message: Message) {
         if (config.SuperUsers.includes(message.author.id))
             handleSuperuserCommand(client, message);
-
-        // check if the message is the help command
-        if (message.content === client.user.toString() + " " + "help") {
-            message.author.send({
-                embeds: [
-                    CreateEmbed(HelpMessage, {
-                        title: `How the xp system in ${message.guild.name} works in 2 minutes:`,
-                        color: EmbedColor.Success,
-                    }),
-                ],
-            });
-        }
 
         // only continue to xp if the message is not blocked by Reishi
         CheckMessage(message).then((clean) => {
@@ -74,7 +59,7 @@ async function handleSuperuserCommand(client: Client, message: Message) {
 
         const embed = CreateEmbed(
             `**To open a new ticket, simply select a button that works best for you!\nAfter clicking a button, you have 2 minutes to fill out the details.**`,
-            { color: EmbedColor.Success },
+            { color: "success" },
         ).setFooter({ text: "Remember: abusing this system can lead to punishments" });
 
         GetGuild().channels.fetch(config.channels.Tickets).then((channel: TextChannel) => {
@@ -93,12 +78,12 @@ async function handleSuperuserCommand(client: Client, message: Message) {
         ];
 
         const embed = CreateEmbed(
-            `**In order to access the rest of the server, you must verify yourself first.\nThis is to prevent bots from accessing the server and potentially causing harm.**\n\nVerifying yourself is stupidly easy, just click on the button, complete the captcha sent in dms, and you're good to go.`,
+            `**In order to access the rest of the server, you must verify yourself first.\nThis is to prevent bots from accessing the server and potentially causing harm.**\n\nVerifying yourself is stupidly easy, just click on the button, complete the captcha, and you're good to go.`,
             {
                 title: "Verify yourself",
-                color: EmbedColor.Success,
+                color: "success",
             }
-        ).setFooter({ text: "Watch out, there's a 2 minute cooldown!" });
+        ).setFooter({ text: "Watch out, there's a 30 seconds cooldown!" });
 
         const verifyChannel = await GetGuild().channels.fetch(config.channels.Verify) as TextChannel;
 

@@ -1,10 +1,10 @@
 import { GuildMember } from "discord.js";
+import Ulquiorra from "../Ulquiorra.js";
 import config from "../config.js";
 import PunishmentConfig, { PunishmentType } from "../database/PunishmentConfig.js";
 import UserConfig from "../database/UserConfig.js";
-import Ulquiorra from "../Ulquiorra.js";
 import { GetGuild, GetSpecialChannel } from "./ClientUtils.js";
-import Log, { LogType } from "./Log.js";
+import Log from "./Log.js";
 import ManageRole from "./ManageRole.js";
 import { CreateModEmbed } from "./ModUtils.js";
 
@@ -24,7 +24,7 @@ export default async function () {
 
             // if userConfig is null, log a warning and skip
             if (userConfig == null) {
-                Log(`User config for user ${punishment.user} not found, skipping punishment ${punishment.punishmentId}`, LogType.Warn);
+                Log(`User config for user ${punishment.user} not found, skipping punishment ${punishment.punishmentId}`, "warn");
                 return;
             }
 
@@ -36,9 +36,7 @@ export default async function () {
             // try to get the member from the guild (might return null if the member is not in the guild)
             const member: GuildMember = await GetGuild().members
                 .fetch(punishment.user)
-                .catch(() => {
-                    return null;
-                });
+                .catch(() => { return null; });
 
             switch (punishment.type) {
                 case PunishmentType.Mute: {
@@ -109,6 +107,6 @@ export default async function () {
             GetSpecialChannel("ModLog").send({ embeds: [embed] });
         })
     ).catch((error) => {
-        Log(`Something has went wrong while invalidating punishments: ${error.stack}`, LogType.Warn);
+        Log(`Something has gone wrong while invalidating punishments: ${error.stack}`, "warn");
     });
 }

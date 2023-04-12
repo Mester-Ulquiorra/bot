@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction, Client, GuildMember } from "discord.js";
 import SlashCommand from "../types/SlashCommand.js";
 import { GetUserConfig } from "../util/ConfigHelper.js";
-import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
+import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import Log from "../util/Log.js";
 import ManageRole from "../util/ManageRole.js";
@@ -35,12 +35,12 @@ const SetModCommand: SlashCommand = {
 
         const returnEmbed = CreateEmbed(
             `**${target}'s mod level has been set to ${modLevel}**`,
-            { color: EmbedColor.Success }
+            { color: "success" }
         ).addFields([{ name: "Reason", value: reason, inline: true }]);
 
         const userEmbed = CreateEmbed(
             `**Your mod level has been set to ${modLevel} by ${interaction.user}**`,
-            { color: EmbedColor.Success }
+            { color: "success" }
         ).addFields([{ name: "Reason", value: reason, inline: true }]);
 
         interaction.reply({ embeds: [returnEmbed], ephemeral: true });

@@ -1,16 +1,18 @@
 import { ColorResolvable, EmbedBuilder, GuildMember, User } from "discord.js";
 
-export const EmbedColor: {
-    [key in "Info" | "Success" | "Warning" | "Error"]: ColorResolvable
+export type EmbedColor = "info" | "success" | "warning" | "error";
+
+export const EmbedColors: {
+    [key in EmbedColor]: ColorResolvable
 } = {
-    Info: [12, 27, 21],
-    Success: [22, 137, 101],
-    Warning: [252, 186, 3],
-    Error: [237, 56, 36]
+    info: [12, 27, 21],
+    success: [22, 137, 101],
+    warning: [252, 186, 3],
+    error: [237, 56, 36]
 };
 
 interface EmbedOptions {
-    color?: ColorResolvable,
+    color?: EmbedColor,
     title?: string,
     author?: GuildMember | User
 }
@@ -23,7 +25,7 @@ interface EmbedOptions {
  */
 export default function (description: string, options: EmbedOptions = {}) {
     const embed = new EmbedBuilder()
-        .setColor(options?.color ?? EmbedColor.Info);
+        .setColor(EmbedColors[options?.color ?? "info"]);
 
     if (description) embed.setDescription(description);
 

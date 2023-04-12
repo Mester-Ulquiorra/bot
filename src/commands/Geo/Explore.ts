@@ -1,11 +1,11 @@
+import { GuildMember } from "discord.js";
 import config from "../../config.js";
 import testMode from "../../testMode.js";
 import { DBGeo } from "../../types/Database.js";
 import SlashCommand from "../../types/SlashCommand.js";
-import CreateEmbed, { EmbedColor } from "../../util/CreateEmbed.js";
+import CreateEmbed from "../../util/CreateEmbed.js";
 import GeoData, { ArtifactNames, GeoChance, GeoEvent, GeoItems, RelicNames } from "./GeoData.js";
 import { GetGeoConfig, GetMultipliers, extractWeights } from "./Util.js";
-import { GuildMember } from "discord.js";
 
 const ExploreCommand: SlashCommand = {
     name: "_",
@@ -74,7 +74,7 @@ const ExploreCommand: SlashCommand = {
             }
             default: {
                 const embed = CreateEmbed(`This is weird, you accidentally managed to not find anything, even nothing... perhaps it is not implemented yet?\nEvent you got: ${exploreEvent}`, {
-                    color: EmbedColor.Error
+                    color: "error"
                 });
                 await interaction.deleteReply();
                 interaction.followUp({ embeds: [embed], ephemeral: true });

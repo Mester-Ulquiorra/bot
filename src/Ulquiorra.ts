@@ -9,19 +9,19 @@ import puppeteer from "puppeteer";
 import { createInterface } from "readline";
 import { fileURLToPath } from "url";
 import config from "./config.js";
+import "./database.js";
 import AutoUnpunish from "./util/AutoUnpunish.js";
 import CleanTickets from "./util/CleanTickets.js";
 import { HandleConsoleCommand } from "./util/ConsoleUtils.js";
-import Log, { LogType } from "./util/Log.js";
+import Log from "./util/Log.js";
 import { Register } from "./util/Register.js";
 import ServerStats from "./util/ServerStats.js";
-import "./database.js";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 // this is a really bad way of avoiding errors, but it is what it is
 process.on("uncaughtException", (error) => {
-    Log(`An uncaught exception has occured, ignoring, but may cause issues...\n${error.stack}`, LogType.Warn);
+    Log(`An uncaught exception has occured, ignoring, but may cause issues...\n${error.stack}`, "warn");
 });
 
 process.on("exit", () => {
@@ -47,8 +47,6 @@ const Ulquiorra = new Client({
         parse: ["roles", "users"]
     }
 });
-
-
 // ------------------------------------------
 
 const SnowFlake = new Snowflake({ custom_epoch: config.SnowflakeEpoch });
@@ -63,7 +61,7 @@ const browser = await puppeteer.launch({
 });
 
 function shutdown(reason: string) {
-    Log(`Shutting down client: ${reason}`, LogType.Fatal);
+    Log(`Shutting down client: ${reason}`, "fatal");
     Ulquiorra.destroy();
     Mongoose.disconnect();
     process.exit(1);

@@ -3,7 +3,7 @@ import config from "../config.js";
 import SlashCommand from "../types/SlashCommand.js";
 import { GetGuild } from "../util/ClientUtils.js";
 import { GetUserConfig } from "../util/ConfigHelper.js";
-import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
+import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import Log from "../util/Log.js";
 import { ModNameToLevel } from "../util/ModUtils.js";
@@ -82,7 +82,7 @@ async function lockOne(channel: TextChannel, lock: boolean, reason: string, inte
     const embed = CreateEmbed(
         `🔒 The channel has been ${!lock ? "un" : ""}locked by ${interaction.user
         }: **${reason}**`,
-        { color: lock ? EmbedColor.Error : EmbedColor.Success }
+        { color: lock ? "error" : "success" }
     );
 
     // send the embed

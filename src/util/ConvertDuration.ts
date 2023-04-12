@@ -1,7 +1,5 @@
 import config from "../config.js";
 
-const DURATION_REGEX = /([1-9]\d{0,2})(s|mo|m|hr?|d|yr?|w)/g;
-
 /**
  * A function used to convert a string duration (like 2h) to seconds using the ms library.
  * @param stringDuration The duration string.
@@ -15,8 +13,7 @@ export default function ConvertDuration(stringDuration: string) {
     let duration = 0;
 
     // find every regex match on the string
-    const matches = stringDuration.matchAll(DURATION_REGEX);
-    DURATION_REGEX.lastIndex = 0;
+    const matches = stringDuration.matchAll(/([1-9]\d{0,2})(s|mo|m|hr?|d|yr?|w)/g);
 
     for (const match of matches) {
         const number = Number.parseInt(match[1]);

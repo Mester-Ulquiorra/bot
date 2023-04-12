@@ -5,7 +5,7 @@ import TicketConfig, { TicketType } from "../database/TicketConfig.js";
 import { DBUser } from "../types/Database.js";
 import SlashCommand from "../types/SlashCommand.js";
 import { GetUserConfig } from "../util/ConfigHelper.js";
-import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
+import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import { CanManageUser, ModNameToLevel } from "../util/ModUtils.js";
 import { CanManageTicket, ChannelIsTicket, CreateTicket, CreateWaitingforMessage, ReloadTicketPermissions, TicketTypeToName } from "../util/TicketUtils.js";
@@ -193,7 +193,7 @@ async function manageUser(interaction: ChatInputCommandInteraction, target: Guil
         const embed = CreateEmbed(
             `**${target} has been removed from the ticket by ${interaction.user}: __${reason}__**`,
             {
-                color: EmbedColor.Success,
+                color: "success",
             }
         );
 
@@ -214,7 +214,7 @@ async function manageUser(interaction: ChatInputCommandInteraction, target: Guil
         const embed = CreateEmbed(
             `**${target}, you have been added to the ticket by ${interaction.user}: __${reason}__**`,
             {
-                color: EmbedColor.Success,
+                color: "success",
             }
         );
 
@@ -273,7 +273,7 @@ async function close(interaction: ChatInputCommandInteraction, userConfig: DBUse
     const embed = CreateEmbed(
         `**Ticket closed by ${interaction.user}: __${reason}__**`,
         {
-            color: EmbedColor.Success,
+            color: "success",
         }
     ).setFooter({ text: "The ticket is going to be deleted in a day." });
 
@@ -413,7 +413,7 @@ async function reopen(interaction: ButtonInteraction, userConfig: DBUser) {
     // send the embed
     const embed = CreateEmbed(
         `**Ticket reopened by ${interaction.user}**`,
-        { color: EmbedColor.Success }
+        { color: "success" }
     );
     ticketChannel.send({ embeds: [embed] });
 
@@ -450,7 +450,7 @@ async function accept(interaction: ButtonInteraction, userConfig: DBUser) {
     interaction.update({
         embeds: [
             CreateEmbed(`**Ticket claimed by ${interaction.user}**`, {
-                color: EmbedColor.Success,
+                color: "success",
             }),
         ],
         components: [],

@@ -3,9 +3,9 @@ import config from "../config.js";
 import LevelConfig, { IDBLevel } from "../database/LevelConfig.js";
 import testMode from "../testMode.js";
 import { GetGuild, GetSpecialChannel } from "./ClientUtils.js";
-import CreateEmbed, { EmbedColor } from "./CreateEmbed.js";
+import CreateEmbed from "./CreateEmbed.js";
 import gib_detect from "./GibberishDetector/gib_detect.js";
-import Log, { LogType } from "./Log.js";
+import Log from "./Log.js";
 import ManageRole from "./ManageRole.js";
 
 // https://www.desmos.com/calculator/f3bsamea49?lang=de
@@ -132,7 +132,7 @@ async function AddXPToUser(levelConfig: IDBLevel, xp: number, message: Message) 
                 );
             })
             .catch(() =>
-                Log(`Couldn't find user, perhaps they left?`, LogType.Warn)
+                Log(`Couldn't find user, perhaps they left?`, "warn")
             );
     }
 
@@ -195,7 +195,7 @@ async function AlertMember(member: GuildMember, newlevel: number, message: Messa
 
     // create embed
     const alertembed = CreateEmbed(embedDescription, {
-        color: EmbedColor.Success,
+        color: "success",
     }).addFields([
         {
             name: `Achieved at`,

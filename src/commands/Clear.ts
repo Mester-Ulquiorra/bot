@@ -1,12 +1,12 @@
 import { format } from "date-fns";
+import { Message } from "discord.js";
 import SlashCommand from "../types/SlashCommand.js";
 import { GetSpecialChannel } from "../util/ClientUtils.js";
 import { GetUserConfig } from "../util/ConfigHelper.js";
-import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
+import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import Log from "../util/Log.js";
 import { ModNameToLevel } from "../util/ModUtils.js";
-import { Message } from "discord.js";
 
 const ClearCommmand: SlashCommand = {
     name: "clear",
@@ -40,7 +40,7 @@ const ClearCommmand: SlashCommand = {
 
         interaction.channel.bulkDelete(messagesToDelete);
 
-        const embed = CreateEmbed(`Successfully deleted ${messagesToDelete.length} messages!`, { color: EmbedColor.Success });
+        const embed = CreateEmbed(`Successfully deleted ${messagesToDelete.length} messages!`, { color: "success" });
         const logEmbed = CreateEmbed(`**${interaction.user} has deleted ${messagesToDelete.length} messages in ${interaction.channel}**`);
 
         Log(`${interaction.user.tag} (${interaction.user.id}) has deleted ${messagesToDelete.length} messages in ${interaction.channel.name} (${interaction.channelId})`);

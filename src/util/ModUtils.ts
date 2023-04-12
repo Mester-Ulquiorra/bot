@@ -2,7 +2,7 @@ import { ActionRowBuilder, APIActionRowComponent, APIButtonComponent, ButtonBuil
 import config from "../config.js";
 import { PunishmentType } from "../database/PunishmentConfig.js";
 import { DBPunishment, DBUser } from "../types/Database.js";
-import CreateEmbed, { EmbedColor } from "./CreateEmbed.js";
+import CreateEmbed from "./CreateEmbed.js";
 
 enum ModLevel {
     Level1 = 1,
@@ -155,7 +155,7 @@ export function CreateModEmbed<T extends boolean = false, U extends boolean = fa
         options.userEmbed
             ? `**You have been ${modActionName} by ${mod}!**`
             : `**${targetString} has been ${modActionName} by ${mod}!**`,
-        { color: options.userEmbed ? EmbedColor.Info : EmbedColor.Success }
+        { color: options.userEmbed ? "info" : "success" }
     );
 
     // if this is an anti punishment, and there is an explicit reason given, add it
@@ -193,7 +193,7 @@ export function CreateModEmbed<T extends boolean = false, U extends boolean = fa
 
     const components = [CreateAppealButton(punishment.type === PunishmentType.Ban)];
     if (options.userEmbed) {
-        if(options.requestID) components.push(CreateAutomodReasonButton(options.requestID));
+        if (options.requestID) components.push(CreateAutomodReasonButton(options.requestID));
         return <ModEmbed<T, U>>{ embed, components };
     }
     else return <ModEmbed<T, U>>embed;

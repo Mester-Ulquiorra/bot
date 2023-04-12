@@ -1,11 +1,13 @@
-import openAI from "openai";
-import config from "../../config.js";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, Message, bold, hyperlink } from "discord.js";
-import CreateEmbed, { EmbedColor } from "../CreateEmbed.js";
-import { GetGuild, GetSpecialChannel } from "../ClientUtils.js";
-import { InternalMute } from "../../commands/Mute.js";
-import { GetPunishmentLength, GetPunishmentReason, ReishiEvaluation } from "../Reishi.js";
+import openAI from "openai";
 import { SnowFlake } from "../../Ulquiorra.js";
+import { InternalMute } from "../../commands/Mute.js";
+import config from "../../config.js";
+import { GetGuild, GetSpecialChannel } from "../ClientUtils.js";
+import CreateEmbed, { EmbedColors } from "../CreateEmbed.js";
+import { GetPunishmentLength, GetPunishmentReason, ReishiEvaluation } from "../Reishi.js";
+
+const AIModel = "gpt-3.5-turbo";
 
 const requests = new Array<{ request: string[], response: string, id: string; }>();
 
@@ -39,7 +41,7 @@ interface InsultEvaluation {
 async function CheckInsult(rawRequest: string[]): Promise<InsultEvaluation> {
     const request = rawRequest.join("\n");
     const response = await openAIClient.createChatCompletion({
-        model: "gpt-3.5-turbo",
+        model: AIModel,
         messages: [
             { role: "system", content: SystemMessage },
             { role: "user", content: request }
@@ -71,8 +73,8 @@ export default async function DetectInsult(message: Message<true>): Promise<Reis
     if (!response) return null;
 
     if (response.type === "insult") {
-        // punish if level is over 80%
-        if (response.level >= 80) {
+        // punish if level is over 90%
+        if (response.level >= 90) {
             return { comment: response.comment, requestID: response.requestID };
         } else {
             SendWarningEmbed(message, response);
@@ -110,7 +112,7 @@ function SendWarningEmbed(message: Message<true>, response: InsultEvaluation) {
     // create a message preview, if it's over 1024 characters long, add 3 dots at the end (make sure the total length is 1024)
     const messagePreview = message.content.length > 1024 ? message.content.substring(0, 1021) + "..." : message.content;
     const embed = CreateEmbed(`**A ${hyperlink("message", message.url)} from ${message.author} in ${message.channel} has been flagged by automod**`, {
-        color: EmbedColor.Warning, title: "Automod Warning", author: message.author
+        color: "warning", title: "Automod Warning", author: message.author
     })
         .addFields(
             { name: "Message", value: messagePreview, inline: false },
@@ -129,7 +131,7 @@ function SendWarningEmbed(message: Message<true>, response: InsultEvaluation) {
                 .setStyle(ButtonStyle.Danger),
             new ButtonBuilder()
                 .setCustomId("automod.deny")
-                .setLabel("Mark as false positive")
+                .setLabel("Mark as safe")
                 .setStyle(ButtonStyle.Success)
         )];
 
@@ -146,14 +148,14 @@ function SendWarningEmbed(message: Message<true>, response: InsultEvaluation) {
 
                         const embed = EmbedBuilder.from(msg.embeds[0]);
                         embed.setDescription(embed.data.description + `\n**[Approved by ${interaction.user}]**`);
-                        embed.setColor(EmbedColor.Error);
+                        embed.setColor(EmbedColors.error);
                         interaction.update({ embeds: [embed], components: [] });
                     }
 
                     if (interaction.customId === "automod.deny") {
                         const embed = EmbedBuilder.from(msg.embeds[0]);
-                        embed.setDescription(embed.data.description + `\n**[Marked as false positive by ${interaction.user}]**`);
-                        embed.setColor(EmbedColor.Success);
+                        embed.setDescription(embed.data.description + `\n**[Marked as safe by ${interaction.user}]**`);
+                        embed.setColor(EmbedColors.success);
                         interaction.update({ embeds: [embed], components: [] });
                     }
                 });
@@ -166,7 +168,7 @@ export async function AskForReason(requestID: string) {
     requests.splice(requests.indexOf(request), 1);
 
     const response = await openAIClient.createChatCompletion({
-        model: "gpt-3.5-turbo",
+        model: AIModel,
         messages: [
             { role: "system", content: SystemMessage },
             { role: "user", content: request.request.join("\n") },

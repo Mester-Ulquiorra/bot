@@ -5,7 +5,7 @@ import SlashCommand from "../types/SlashCommand.js";
 import Ulquiorra from "../Ulquiorra.js";
 import { GetGuild, GetSpecialChannel } from "../util/ClientUtils.js";
 import { GetUserConfig } from "../util/ConfigHelper.js";
-import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
+import CreateEmbed, { EmbedColors } from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import Log from "../util/Log.js";
 import ManageRole from "../util/ManageRole.js";
@@ -110,7 +110,7 @@ const AppealCommand: SlashCommand = {
         await punishment.save();
 
         modal.reply({
-            embeds: [CreateEmbed(`Your punishment appeal has been sent!`, { color: EmbedColor.Success })],
+            embeds: [CreateEmbed(`Your punishment appeal has been sent!`, { color: "success" })],
             ephemeral: true
         });
     }
@@ -155,7 +155,7 @@ async function manageAppeal(interaction: ButtonInteraction, accepted: boolean) {
                         inline: false
                     }
                 )
-                .setColor(accepted ? EmbedColor.Success : EmbedColor.Error);
+                .setColor(accepted ? EmbedColors.success : EmbedColors.error);
 
             Log(`${interaction.user.tag} (${interaction.user.id}) has ${accepted ? "accepted" : "declined"} the punishment appeal of ${target.tag} (${target.id}). ID: ${punishment.punishmentId}`);
 
@@ -164,7 +164,7 @@ async function manageAppeal(interaction: ButtonInteraction, accepted: boolean) {
             if (!accepted) {
                 target.send({
                     embeds: [
-                        CreateEmbed(`**Your punishment appeal has been declined by ${interaction.user}**`, { color: EmbedColor.Error })
+                        CreateEmbed(`**Your punishment appeal has been declined by ${interaction.user}**`, { color: "error" })
                             .addFields({
                                 name: "Reason",
                                 value: reason,

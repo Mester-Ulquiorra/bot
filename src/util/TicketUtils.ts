@@ -5,7 +5,7 @@ import { DBTicket, DBUser } from "../types/Database.js";
 import { SnowFlake } from "../Ulquiorra.js";
 import { GetGuild } from "./ClientUtils.js";
 import { GetUserConfig } from "./ConfigHelper.js";
-import CreateEmbed, { EmbedColor } from "./CreateEmbed.js";
+import CreateEmbed from "./CreateEmbed.js";
 import { ModName, ModNameToId, ModNameToLevel } from "./ModUtils.js";
 
 export async function CreateTicket(
@@ -48,7 +48,7 @@ export async function CreateTicket(
     const welcomeEmbed = CreateEmbed(
         `**Ticket __${channelName}__ created by ${ticketOwner}**`,
         {
-            color: EmbedColor.Success,
+            color: "success",
         }
     )
         .addFields([
@@ -108,7 +108,7 @@ export async function CreateTicket(
     // create the return embed
     const embed = CreateEmbed(
         `**Ticket __${channelName}__ created in ${ticketChannel}**`,
-        { color: EmbedColor.Success }
+        { color: "success" }
     );
 
     interaction.reply({ embeds: [embed], ephemeral: true });
@@ -291,7 +291,6 @@ function WaitingforFromType(ticketType: TicketType) {
         case TicketType.Private:
             return 0;
         case TicketType.General:
-            return 1;
         case TicketType.MemberReport:
             return 1;
         case TicketType.ModReport:

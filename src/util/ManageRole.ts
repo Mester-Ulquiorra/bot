@@ -9,19 +9,19 @@ type RoleResult<T extends string> = T extends "Add" ? GuildMember : T extends "R
  * @param mode How the role should be managed. (Add, Remove, Check) [Default: Check]
  * @param reason The reason for the role change. (Optional)
  */
-export default async function (
+export default async function<T extends string = "Check"> (
     member: GuildMember,
     role: RoleResolvable,
     mode: "Add" | "Remove" | "Check" = "Check",
     reason = ""
-): Promise<RoleResult<typeof mode>> {
+): Promise<RoleResult<T>> {
     const roleID = typeof role === "string" ? role : role.id;
     switch (mode) {
         case "Add":
-            return member.roles.add(roleID, reason);
+            return <Promise<RoleResult<T>>>member.roles.add(roleID, reason);
         case "Remove":
-            return member.roles.remove(roleID, reason);
+            return <Promise<RoleResult<T>>>member.roles.remove(roleID, reason);
         case "Check":
-            return member.roles.cache.has(roleID);
+            return <RoleResult<T>>member.roles.cache.has(roleID);
     }
 }

@@ -2,7 +2,7 @@ import Mongoose from "mongoose";
 import { join } from "path";
 import { fileURLToPath } from "url";
 import config from "./config.js";
-import Log, { LogType } from "./util/Log.js";
+import Log from "./util/Log.js";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
@@ -15,7 +15,7 @@ Mongoose.connect(`mongodb+srv://${config.DANGER.DB_URL}/${config.DANGER.DB_NAME}
     retryWrites: true,
     w: "majority"
 }).catch((err) => {
-    Log("An error has happened while trying to connect to the database, which is a fatal issue. Terminating...", LogType.Fatal);
-    Log(err, LogType.Fatal);
+    Log("An error has happened while trying to connect to the database, which is a fatal issue. Terminating...", "fatal");
+    Log(err, "fatal");
     process.exit();
 });

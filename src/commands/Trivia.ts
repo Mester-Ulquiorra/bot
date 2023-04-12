@@ -79,7 +79,7 @@ class TriviaGame {
                         // show summary
                         const embed = CreateEmbed("Here are your results!", {
                             title: "Summary",
-                            color: EmbedColor.Success,
+                            color: "success",
                         });
 
                         embed.addFields([
@@ -302,8 +302,8 @@ class TriviaGame {
 
         if (isCorrect != null && reason != null) description = reason;
 
-        let color = EmbedColor.Info;
-        if (isCorrect != null) color = isCorrect ? EmbedColor.Success : EmbedColor.Error;
+        let color: EmbedColor = "info";
+        if (isCorrect != null) color = isCorrect ? "success" : "error";
 
         const embed = CreateEmbed(description, {
             title: `Trivia game (Question ${this.turn + 1}/${this.questions.length})`,
@@ -395,7 +395,7 @@ class TriviaGame {
         if (didQuit) {
             const embed = CreateEmbed(reason ? reason : "You quit the game!", {
                 title: `Trivia game (Question ${this.turn + 1}/${this.questions.length})`,
-                color: EmbedColor.Error,
+                color: "error",
             });
             this.message.edit({ embeds: [embed], components: [] });
         }

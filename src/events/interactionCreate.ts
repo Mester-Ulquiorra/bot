@@ -1,8 +1,8 @@
 import { BaseInteraction, Client, InteractionReplyOptions } from "discord.js";
 import Event from "../types/Event.js";
 import { SlashCommandReturnValue } from "../types/SlashCommand.js";
-import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
-import Log, { LogType } from "../util/Log.js";
+import CreateEmbed from "../util/CreateEmbed.js";
+import Log from "../util/Log.js";
 import { commands } from "../util/Register.js";
 /**
  * A list of custom ids the interaction manager should ignore.
@@ -48,7 +48,7 @@ const InteractionCreateEvent: Event = {
         // now we can see if such command exists
         if (!commands.has(commandName)) {
             const embed = CreateEmbed(`Mester has not registered the command you tried to run. What an idiot.`, {
-                color: EmbedColor.Warning,
+                color: "warning",
                 title: "ERROR: unregistered command"
             });
 
@@ -76,7 +76,7 @@ const InteractionCreateEvent: Event = {
         } catch (error) {
             // most likely the command doesn't support that "type" of command we're trying to run
             const embed = CreateEmbed(`Mester has not registered this type of interaction. What an idiot`, {
-                color: EmbedColor.Error,
+                color: "error",
                 title: "ERROR: unregistered interaction type"
             });
 
@@ -90,7 +90,7 @@ const InteractionCreateEvent: Event = {
         // oops
         if (typeof returnMessage === "string") {
             const embed = CreateEmbed(returnMessage, {
-                color: EmbedColor.Warning,
+                color: "warning",
                 title: "The command couldn't complete successfully"
             });
 
@@ -107,11 +107,11 @@ const InteractionCreateEvent: Event = {
 
         // bigger oops
         if (returnMessage instanceof Error) {
-            Log(returnMessage.stack, LogType.Error);
+            Log(returnMessage.stack, "error");
 
             const embed = CreateEmbed(`Something has gone terribly wrong, ask your Console buddy for more info.\nDetails: **${returnMessage.message}**`, {
                 title: "Unexpected error",
-                color: EmbedColor.Error
+                color: "error"
             });
 
             const options: InteractionReplyOptions = {
