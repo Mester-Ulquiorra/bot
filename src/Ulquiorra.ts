@@ -44,7 +44,8 @@ const Ulquiorra = new Client({
         "MessageContent",
     ],
     allowedMentions: {
-        parse: ["roles", "users"]
+        parse: ["roles", "users"],
+        repliedUser: true
     }
 });
 // ------------------------------------------

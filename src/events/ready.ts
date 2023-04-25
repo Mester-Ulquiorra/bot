@@ -1,6 +1,7 @@
 import { Client, ComponentType, TextChannel } from "discord.js";
 import Ulquiorra from "../Ulquiorra.js";
 import config from "../config.js";
+import testMode from "../testMode.js";
 import Event from "../types/Event.js";
 import AutoUnpunish from "../util/AutoUnpunish.js";
 import { GetGuild } from "../util/ClientUtils.js";
@@ -8,7 +9,6 @@ import CreateEmbed from "../util/CreateEmbed.js";
 import Log from "../util/Log.js";
 import ManageRole from "../util/ManageRole.js";
 import ServerStats from "../util/ServerStats.js";
-import testMode from "../testMode.js";
 
 const ReadyEvent: Event = {
     name: "ready",
@@ -80,7 +80,7 @@ async function SetupVerifyListener() {
 
             // send the captcha to the channel and mention the user
             const botMessage = await interaction.channel.send({
-                content: `${interaction.user}, you have 30 seconds to solve this math question: \n ${captcha.prompt}`
+                content: `${interaction.user}, you have 30 seconds to solve this math question (you have to type the answer as a number): \n ${captcha.prompt}`
             });
 
             // set up a listener for the user
@@ -145,7 +145,7 @@ async function SetupVerifyListener() {
                 botMessage.edit({
                     embeds: [
                         CreateEmbed(
-                            `The answer you entered was incorrect.`,
+                            `The answer you entered was incorrect.\nThe correct answer was: ${captcha.answer}`,
                             { color: "error" }
                         ),
                     ],
@@ -169,9 +169,9 @@ function GenerateCaptchaPrompt() {
                 .split("")
                 .map((c) => {
                     // chance to capitalize
-                    if (Math.random() < 0.4) c = c.toUpperCase();
+                    if (Math.random() < 0.45) c = c.toUpperCase();
                     // chance to add underscore
-                    if (Math.random() < 0.2) c = `_${c}`;
+                    if (Math.random() < 0.15) c = `_${c}`;
                     return c;
                 })
                 .join("");

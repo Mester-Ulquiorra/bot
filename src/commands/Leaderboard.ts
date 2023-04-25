@@ -1,4 +1,4 @@
-import { ActionRowBuilder, APISelectMenuOption, Client, StringSelectMenuBuilder } from "discord.js";
+import { ActionRowBuilder, APISelectMenuOption, Client, GuildMember, StringSelectMenuBuilder } from "discord.js";
 import LevelConfig from "../database/LevelConfig.js";
 import { DBLevel } from "../types/Database.js";
 import SlashCommand from "../types/SlashCommand.js";
@@ -6,6 +6,10 @@ import { GetGuild } from "../util/ClientUtils.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import { LevelToXP, XPToLevel, XPToLevelUp } from "../util/LevelUtils.js";
 import { CalculateMaxPage } from "../util/MathUtils.js";
+import Localisatior, { GetMemberLanguage, LocLanguage } from "../util/Localisatior.js";
+import langs from "../lang/commands/leaderboard.js";
+
+const loc = new Localisatior(langs);
 
 const PageSize = 10;
 /**
@@ -17,6 +21,8 @@ const LeaderboardCommand: SlashCommand = {
     name: "leaderboard",
 
     async run(interaction, client) {
+        const userLang = await GetMemberLanguage(interaction.member as GuildMember);
+
         // defer the interaction, since caching might take some time
         await interaction.deferReply({ ephemeral: true });
 
@@ -29,26 +35,28 @@ const LeaderboardCommand: SlashCommand = {
         // get max page
         const maxPage = await GetMaxPage();
 
-        if (levels.length === 0) return "Don't know how, but there are no people with a rank.";
+        if (levels.length === 0) return loc.get(userLang, "error.noLevels");
 
         // check if page is valid
-        if (page != 1 && page > maxPage) return "That page is not available.";
+        if (page != 1 && page > maxPage) return loc.get(userLang, "error.invalidPage");
 
         // check if the page is cached
         if (!PageInCache(page)) await CachePage(levels, page, client);
 
         // we should now have the page in cache
-        const embed = await ReadFromPage(page, maxPage);
+        const embed = await ReadFromPage(page, maxPage, userLang);
         if (typeof embed === "string") return embed;
 
         // show embed
         interaction.editReply({
             embeds: [embed],
-            components: [GetPageSelector(maxPage)],
+            components: [GetPageSelector(maxPage, userLang)],
         });
     },
 
     async runStringSelectMenu(interaction, client) {
+        const userLang = await GetMemberLanguage(interaction.member as GuildMember);
+
         // get page
         const page = Number.parseInt(interaction.values[0]);
 
@@ -57,7 +65,7 @@ const LeaderboardCommand: SlashCommand = {
 
         // check if page is valid
         if (page != 1 && page > maxPage)
-            return "For some super bizarre reason, that page is not available.";
+            return loc.get(userLang, "error.invalidPage");
 
         // get levels
         const levels = await LevelConfig.find().sort({ xp: -1 });
@@ -66,7 +74,7 @@ const LeaderboardCommand: SlashCommand = {
         if (!PageInCache(page)) await CachePage(levels, page, client);
 
         // now let's read it
-        const embed = await ReadFromPage(page, maxPage);
+        const embed = await ReadFromPage(page, maxPage, userLang);
         if (typeof embed === "string") return embed;
 
         // edit the interaction
@@ -110,19 +118,19 @@ function GetPageFromCache(page: number, force = false, values: Array<PageCache> 
  * @param page The page to read from.
  * @param maxPage The max page available.
  */
-async function ReadFromPage(page: number, maxPage: number) {
-    if (!PageInCache(page)) return "That page is not cached, which should NOT happen";
+async function ReadFromPage(page: number, maxPage: number, lang: LocLanguage) {
+    if (!PageInCache(page)) return loc.get(lang, "error.uncachedPage");
 
     // get page from cache
     const cachedPage = GetPageFromCache(page) as Array<PageCache>;
 
     const embed = CreateEmbed(
-        `**Rank leaderboard of ${GetGuild().name}**`,
+        loc.get(lang, "embed.desc", GetGuild().name),
         {
-            title: `Rank leaderboard (page ${page} / ${maxPage})`,
+            title: loc.get(lang, "embed.title", page.toString(), maxPage.toString()),
         }
     ).setFooter({
-        text: "The leaderboard is cached, it refreshes every 15 minutes.",
+        text: loc.get(lang, "embed.footer"),
     });
 
     // read from the page
@@ -148,7 +156,7 @@ async function ReadFromPage(page: number, maxPage: number) {
         if (isNaN(levelpercentage)) levelpercentage = 0;
 
         // preview: [####x.....]
-        const levelpercentagestring = `[${"#".repeat(
+        const levelPercentageString = `[${"#".repeat(
             levelpercentage
         )}x${".".repeat(9 - levelpercentage)}]`;
 
@@ -156,7 +164,7 @@ async function ReadFromPage(page: number, maxPage: number) {
             {
                 // this part figures out the position of the rank in the leaderboard
                 name: `${((page - 1) * PageSize + i + 1).toString()}. ${rank.name}`,
-                value: `Level: ${level} | Total XP: ${levelInfo.xp}\nNext level: ${levelpercentagestring}`,
+                value: loc.get(lang, "embed.rank_value", level.toString(), levelInfo.xp.toString(), levelPercentageString),
                 inline: false,
             },
         ]);
@@ -181,14 +189,14 @@ async function GetMaxPage() {
  * @param maxPage The max page available.
  * @returns The pageselector component.
  */
-function GetPageSelector(maxPage: number) {
+function GetPageSelector(maxPage: number, lang: LocLanguage) {
     const options = new Array<APISelectMenuOption>();
 
     for (let i = 1; i <= maxPage; i++) {
         options.push({
-            label: `Page ${i}`,
+            label: loc.get(lang, "selector.label", i.toString()),
             value: i.toString(),
-            description: `Show page ${i}`,
+            description: loc.get(lang, "selector.description", i.toString())
         });
     }
 

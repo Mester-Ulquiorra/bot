@@ -26,10 +26,13 @@ const MuteCommand: SlashCommand = {
         if (typeof punishment === "string") return punishment;
 
         const channelEmbed = CreateEmbed(`${target} has been muted: **${reason}**`);
+        const replyEmbed = CreateModEmbed(interaction.user, target.user, punishment);
 
         interaction.channel.sendTyping().then(() => {
             interaction.channel.send({ embeds: [channelEmbed] });
         });
+
+        interaction.reply({ embeds: [replyEmbed], ephemeral: true });
     }
 };
 

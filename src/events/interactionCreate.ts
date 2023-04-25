@@ -1,9 +1,14 @@
-import { BaseInteraction, Client, InteractionReplyOptions } from "discord.js";
+import { BaseInteraction, Client, GuildMember, InteractionReplyOptions } from "discord.js";
 import Event from "../types/Event.js";
 import { SlashCommandReturnValue } from "../types/SlashCommand.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import Log from "../util/Log.js";
 import { commands } from "../util/Register.js";
+import Localisatior, { GetMemberLanguage } from "../util/Localisatior.js";
+import langs from "../lang/events/interactionCreate.js";
+import { GetGuild } from "../util/ClientUtils.js";
+
+const loc = new Localisatior(langs);
 /**
  * A list of custom ids the interaction manager should ignore.
  * The array contains regex patterns.
@@ -23,6 +28,9 @@ const IgnoredIds: Array<RegExp> = [
 const InteractionCreateEvent: Event = {
     name: "interactionCreate",
     async run(client: Client, interaction: BaseInteraction) {
+        const member = interaction.inCachedGuild() ? interaction.member as GuildMember : await GetGuild().members.fetch(interaction.user.id);
+        const userLang = await GetMemberLanguage(member);
+
         // find the command and store its return value in return_message
         let commandName = null;
         if (!interaction.isCommand() && !interaction.isMessageComponent() && !interaction.isModalSubmit() && !interaction.isAutocomplete()) return;
@@ -47,9 +55,9 @@ const InteractionCreateEvent: Event = {
 
         // now we can see if such command exists
         if (!commands.has(commandName)) {
-            const embed = CreateEmbed(`Mester has not registered the command you tried to run. What an idiot.`, {
+            const embed = CreateEmbed(loc.get(userLang, "error.unloaded"), {
                 color: "warning",
-                title: "ERROR: unregistered command"
+                title: loc.get(userLang, "error.unloaded_short")
             });
 
             if (interaction.isRepliable()) interaction.reply({ embeds: [embed], ephemeral: true });
@@ -75,9 +83,9 @@ const InteractionCreateEvent: Event = {
             returnMessage = await returnStatus.then(result => { return result; }).catch((error) => { return error; });
         } catch (error) {
             // most likely the command doesn't support that "type" of command we're trying to run
-            const embed = CreateEmbed(`Mester has not registered this type of interaction. What an idiot`, {
+            const embed = CreateEmbed(loc.get(userLang, "error.unregistered"), {
                 color: "error",
-                title: "ERROR: unregistered interaction type"
+                title: loc.get(userLang, "error.unregistered_short")
             });
 
             if (interaction.isRepliable()) interaction.reply({ embeds: [embed], ephemeral: true });
@@ -91,7 +99,7 @@ const InteractionCreateEvent: Event = {
         if (typeof returnMessage === "string") {
             const embed = CreateEmbed(returnMessage, {
                 color: "warning",
-                title: "The command couldn't complete successfully"
+                title: loc.get(userLang, "warning.uncompleted")
             });
 
             const options: InteractionReplyOptions = {
@@ -109,8 +117,8 @@ const InteractionCreateEvent: Event = {
         if (returnMessage instanceof Error) {
             Log(returnMessage.stack, "error");
 
-            const embed = CreateEmbed(`Something has gone terribly wrong, ask your Console buddy for more info.\nDetails: **${returnMessage.message}**`, {
-                title: "Unexpected error",
+            const embed = CreateEmbed(loc.get(userLang, "error.uncompleted", returnMessage.message), {
+                title: loc.get(userLang, "error.uncompleted_short"),
                 color: "error"
             });
 

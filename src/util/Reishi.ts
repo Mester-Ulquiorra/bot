@@ -10,7 +10,6 @@ import CheckLink from "./Reishi/CheckLink.js";
 import CheckProfanity from "./Reishi/CheckProfanity.js";
 import CheckProtectedPing from "./Reishi/CheckProtectedPing.js";
 import { ChannelIsTicket } from "./TicketUtils.js";
-import CheckLanguage from "./Reishi/CheckLanguage.js";
 
 const MassMentionThreshold = 5;
 
@@ -42,6 +41,8 @@ export async function CheckMessage(message: Message) {
     // check if we're in a ticket
     if (ChannelIsTicket(message.channel.name)) return true;
 
+    if (message.content.toLowerCase() === "hmm") return PunishMessage(message, "BlacklistedWord", { comment: "__delete__" });
+
     let result = CheckProfanity(message);
     if (result?.comment) return PunishMessage(message, "BlacklistedWord", result);
 
@@ -55,9 +56,6 @@ export async function CheckMessage(message: Message) {
 
     result = await CheckProtectedPing(message);
     if (result?.comment) return PunishMessage(message, "ProtectedPing", result);
-
-    result = await CheckLanguage(message);
-    if (result?.comment) return false;
 
     result = await CheckInsult(message);
     if (result?.comment) return PunishMessage(message, "Insult", result);

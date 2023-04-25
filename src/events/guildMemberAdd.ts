@@ -1,4 +1,4 @@
-import { GuildMember, spoiler } from "discord.js";
+import { GuildMember } from "discord.js";
 import config from "../config.js";
 import Event from "../types/Event.js";
 import { GetSpecialChannel } from "../util/ClientUtils.js";
@@ -28,7 +28,7 @@ const GuildMemberAddEvent: Event = {
         ManageRole(member, config.roles.Unverified, "Add", "new member");
 
         // create the embed
-        const embed = CreateEmbed(`**Let's welcome our new member, ${member}!**`)
+        const embed = CreateEmbed(undefined)
             .addFields([
                 {
                     // field for when the member joined
@@ -43,7 +43,10 @@ const GuildMemberAddEvent: Event = {
             .setFooter({ text: `ID: ${member.id}` });
 
         // get the welcome channel and send the embed
-        GetSpecialChannel("Welcome").send({ content: spoiler(member.user.toString()), embeds: [embed] });
+        GetSpecialChannel("Welcome").send({
+            content: `${member.user}, welcome to Mester's Hub! Please take a moment to verify yourself in <#${config.channels.Verify}> to unlock the rest of the server!`,
+            embeds: [embed]
+        });
     }
 };
 
