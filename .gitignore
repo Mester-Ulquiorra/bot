@@ -12,13 +12,12 @@ src/config.ts
 src/CreateCommands.ts
 src/CleanCommands.ts
 
-build
 node_modules
 coverage
-dist/*
-dist/dashboard/*
 logs
 
-!dist/res
-!dist/dashboard
-!dist/dashboard/views
+build/*
+!build/res/
+
+bunfig.toml
+bun.lockb

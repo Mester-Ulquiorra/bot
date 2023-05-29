@@ -1,10 +1,9 @@
+import { logger } from "../Ulquiorra.js";
 import TicketConfig from "../database/TicketConfig.js";
 import { GetGuild } from "./ClientUtils.js";
-import Log from "./Log.js";
-
 const TicketExpirationTime = 60 * 60 * 24; // 1 day
 
-export default async function() {
+export default async function () {
     // get every closed ticket
     const tickets = await TicketConfig.find({ closed: true }).sort({
         closedat: 1,
@@ -28,9 +27,9 @@ export default async function() {
                     channel.delete(`Ticket deleted - passed expiration time`);
                 });
 
-            ticket.delete();
-        } catch(error) {
-            Log(`Couldn't automatically delete ticket: ${error.stack}`, "warn");
+            ticket.deleteOne();
+        } catch (error) {
+            logger.log(`Couldn't automatically delete ticket: ${error.stack}`, "warn");
         }
     }
 }

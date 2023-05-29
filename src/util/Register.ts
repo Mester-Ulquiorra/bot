@@ -2,12 +2,11 @@ import { Client } from "discord.js";
 import { readdir } from "fs";
 import { join } from "path";
 import { pathToFileURL } from "url";
+import { logger } from "../Ulquiorra.js";
 import testMode from "../testMode.js";
 import ConsoleCommand from "../types/ConsoleCommand.js";
 import Event from "../types/Event.js";
 import SlashCommand from "../types/SlashCommand.js";
-import Log from "../util/Log.js";
-
 const commands = new Map<string, SlashCommand>();
 const consoleCommands = new Map<string, ConsoleCommand>();
 
@@ -32,7 +31,7 @@ async function Register(commandPath: string, eventPath: string, consoleCommandPa
                 if (testMode) console.log(module);
                 commands.set(module.name, module);
             } catch (error) {
-                Log(`Error while trying to load ${commandFile}: ${error.stack}`, "error");
+                logger.log(`Error while trying to load ${commandFile}: ${error.stack}`, "error");
             }
         }
     });
@@ -50,7 +49,7 @@ async function Register(commandPath: string, eventPath: string, consoleCommandPa
                 if (testMode) console.log(module);
                 consoleCommands.set(module.name, module);
             } catch (error) {
-                Log(`Error while trying to load ${consoleCommandFile}: ${error.stack}`, "error");
+                logger.log(`Error while trying to load ${consoleCommandFile}: ${error.stack}`, "error");
             }
         }
     });
@@ -69,19 +68,18 @@ async function Register(commandPath: string, eventPath: string, consoleCommandPa
                 client.on(module.name, (...args) => {
                     module.run(client, ...args)
                         .catch((error) => {
-                            Log(`Error while trying to run ${module.name}: ${error.stack}`, "error");
+                            logger.log(`Error while trying to run ${module.name}: ${error.stack}`, "error");
                         });
                 });
             } catch (error) {
-                Log(`Error while trying to load ${eventFile}: ${error.stack}`, "error");
+                logger.log(`Error while trying to load ${eventFile}: ${error.stack}`, "error");
             }
         }
     });
 }
 
 export {
-    commands,
-    consoleCommands,
-    Register,
+    Register, commands,
+    consoleCommands
 };
 

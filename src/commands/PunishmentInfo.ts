@@ -1,6 +1,6 @@
+import { DBPunishment, PunishmentTypeToName } from "@mester-ulquiorra/commonlib";
 import { ActionRowBuilder, ButtonInteraction, ChatInputCommandInteraction, SelectMenuComponentOptionData, SelectMenuInteraction, StringSelectMenuBuilder, User } from "discord.js";
-import PunishmentConfig, { PunishmentTypeToName } from "../database/PunishmentConfig.js";
-import { DBPunishment } from "../types/Database.js";
+import PunishmentConfig from "../database/PunishmentConfig.js";
 import SlashCommand from "../types/SlashCommand.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";

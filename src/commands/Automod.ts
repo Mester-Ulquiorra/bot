@@ -1,6 +1,6 @@
 import SlashCommand from "../types/SlashCommand.js";
 import CreateEmbed from "../util/CreateEmbed.js";
-import { AskForReason, ProcessRawRequest } from "../util/Reishi/CheckInsult.js";
+import { AskForReason, RequestToEmbed } from "../util/Reishi/CheckInsult.js";
 
 const AutomodCommand: SlashCommand = {
     name: "automod",
@@ -14,7 +14,7 @@ const AutomodCommand: SlashCommand = {
             return;
         }
 
-        const request = ProcessRawRequest(reason.request);
+        const request = RequestToEmbed(reason.request);
 
         const embed = CreateEmbed(`**Reason for the automod evaluation**`)
             .addFields(

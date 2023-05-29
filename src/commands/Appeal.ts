@@ -1,17 +1,16 @@
-import { ActionRowBuilder, bold, ButtonBuilder, ButtonInteraction, ButtonStyle, EmbedBuilder, inlineCode, MessageMentions, ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
+import { PunishmentType, PunishmentTypeToName } from "@mester-ulquiorra/commonlib";
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, EmbedBuilder, MessageMentions, ModalBuilder, TextInputBuilder, TextInputStyle, bold, inlineCode } from "discord.js";
+import Ulquiorra, { logger } from "../Ulquiorra.js";
 import config from "../config.js";
-import PunishmentConfig, { PunishmentType, PunishmentTypeToName } from "../database/PunishmentConfig.js";
+import PunishmentConfig from "../database/PunishmentConfig.js";
 import SlashCommand from "../types/SlashCommand.js";
-import Ulquiorra from "../Ulquiorra.js";
 import { GetGuild, GetSpecialChannel } from "../util/ClientUtils.js";
 import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed, { EmbedColors } from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
-import Log from "../util/Log.js";
 import ManageRole from "../util/ManageRole.js";
 import { CreateModEmbed } from "../util/ModUtils.js";
 import { DetectProfanity } from "../util/Reishi/CheckProfanity.js";
-
 const AppealCommand: SlashCommand = {
     name: "appeal",
 
@@ -157,7 +156,7 @@ async function manageAppeal(interaction: ButtonInteraction, accepted: boolean) {
                 )
                 .setColor(accepted ? EmbedColors.success : EmbedColors.error);
 
-            Log(`${interaction.user.tag} (${interaction.user.id}) has ${accepted ? "accepted" : "declined"} the punishment appeal of ${target.tag} (${target.id}). ID: ${punishment.punishmentId}`);
+            logger.log(`${interaction.user.tag} (${interaction.user.id}) has ${accepted ? "accepted" : "declined"} the punishment appeal of ${target.tag} (${target.id}). ID: ${punishment.punishmentId}`);
 
             interaction.message.edit({ embeds: [appealEmbed], components: [] });
 
@@ -229,7 +228,9 @@ async function manageAppeal(interaction: ButtonInteraction, accepted: boolean) {
                 .catch(() => { return; })
                 .finally(async () => {
                     // kick the member from the prison
-                    const member = await GetGuild(true)?.members.fetch(target.id);
+                    const member = await GetGuild(true)?.members.fetch(target.id)
+                        .catch(() => { return; });
+                    if (!member) return;
                     member.kick("appealed punishment").catch(() => { return; });
                 });
             GetSpecialChannel("ModLog").send({ embeds: [modEmbed] });

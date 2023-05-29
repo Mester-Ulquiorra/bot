@@ -3,7 +3,6 @@ import SlashCommand from "../../types/SlashCommand.js";
 import CreateEmbed from "../../util/CreateEmbed.js";
 import GeoData, { GeoChance, ItemNames, ItemPrices } from "./GeoData.js";
 import { GetGeoConfig, GetMultipliers, IsGeoItem } from "./Util.js";
-
 const SellCommand: SlashCommand = {
     name: "_",
     async run(interaction, client) {

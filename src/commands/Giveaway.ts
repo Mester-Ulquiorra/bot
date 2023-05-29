@@ -1,15 +1,13 @@
+import { GiveawayFilter, IDBGiveaway } from "@mester-ulquiorra/commonlib";
 import { ChatInputCommandInteraction, EmbedBuilder, GuildMember, PermissionsBitField, TextChannel, User } from "discord.js";
-import { SnowFlake } from "../Ulquiorra.js";
+import { SnowFlake, logger } from "../Ulquiorra.js";
 import config from "../config.js";
-import GiveawayConfig, { IDBGiveaway } from "../database/GiveawayConfig.js";
-import { GiveawayFilter } from "../types/Database.js";
+import GiveawayConfig from "../database/GiveawayConfig.js";
 import SlashCommand from "../types/SlashCommand.js";
 import { GetGuild } from "../util/ClientUtils.js";
 import ConvertDuration from "../util/ConvertDuration.js";
 import CreateEmbed, { EmbedColors } from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
-import Log from "../util/Log.js";
-
 const GiveawayEmoji = "✅";
 
 const listf = new Intl.ListFormat("en-us");
@@ -88,7 +86,7 @@ async function startGiveaway(interaction: ChatInputCommandInteraction) {
         winners,
     });
 
-    Log(`${interaction.user.tag} (${interaction.user.id}) has created a new giveaway. ID: ${giveaway.giveawayId}`);
+    logger.log(`${interaction.user.tag} (${interaction.user.id}) has created a new giveaway. ID: ${giveaway.giveawayId}`);
 }
 
 async function endGiveaway(giveaway: IDBGiveaway) {
@@ -99,7 +97,7 @@ async function endGiveaway(giveaway: IDBGiveaway) {
 
     if (!message) {
         // this is weird
-        giveaway.delete();
+        giveaway.deleteOne();
         return;
     }
 

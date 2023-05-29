@@ -2,11 +2,10 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuild
 import openAI from "openai";
 import { SnowFlake } from "../../Ulquiorra.js";
 import { InternalMute } from "../../commands/Mute.js";
-import config from "../../config.js";
 import { GetGuild, GetSpecialChannel } from "../ClientUtils.js";
 import CreateEmbed, { EmbedColors } from "../CreateEmbed.js";
 import { GetPunishmentLength, GetPunishmentReason, ReishiEvaluation } from "../Reishi.js";
-
+import config from "../../config.js";
 const AIModel = "gpt-3.5-turbo";
 
 const requests = new Array<{ request: string[], response: string, id: string; }>();
@@ -17,17 +16,16 @@ const openAIClient = new openAI.OpenAIApi(new openAI.Configuration({
 }));
 
 const SystemMessage = `You are ModGPT, your job is to analyse each message that gets sent to you and return with a response that shows how likely the message is to have an insult. Our community encourages people not to exclude anyone from the conversation, so please also count messages which are trying to "shut down" someone talking as insults (example: "nobody asked for your opinion" is clearly trying to exclude the recipient from the conversation). Also, the community is generally for an older audience, so we're fine with some adult topics, like pornography, but mark any messages that are clearly trying to be offensive or hurtful.
-With each request, you will get the 5 latest messages in the channel as a chronological order as context. If the channel doesn't have enough messages, you will get less than 5. YOU ALWAYS NEED TO EVAULATE ONLY THE LAST MESSAGE. Each message starts in a new line with a "from name:" prefix, where name is the username of the message's author. If the message is directly replying to someone, [replying to name] will get added. If a message is empty, don't do anything with it, it doesn't matter. Here is an example:
+With each request, you will get the 5 latest messages in the channel as a chronological order as context. If the channel doesn't have enough messages, you will get less than 5. Each message starts in a new line with a "from name:" prefix, where name is the username of the message's author. If the message is directly replying to someone, [replying to name] will get added. If a message is empty, don't do anything with it, it doesn't matter. Here is an example:
 from Peter#3234: hey, that's so cool, right?
 from Jane#2314: I know right, this is amazing
 from Peter#3234: We should do this tomorrow again
 from Jake#2314 [replying to Peter#3234]: Hey guys, I don't think you should publicly announce you're vaping
-from Jane#2314: didn't ask for your opinion, go back to your mommy [EVAULATE THIS MESSAGE ONLY]
+[only evaulate this] from Jane#2314: didn't ask for your opinion, go back to your mommy
 If you get "reason?" as a request, you must explain your evaluation of the latest request in a more detailed way. Explain it in the third person, so don't use "I evaluated it as..." etc.
 For the evaluation, use the following format: type (level) comment. Please always follow this format, otherwise you might break the system.
 Type is either of the following: "insult" if the message contains an insult, "safe" if contains no insults or a swear word is used but not as an insult, and "suspicious" if you cannot decide. Next up, level is a number ranging from 1% to 100%, and shows how sure you are. And finally, comment is just a short sentence that explains what you found.
-Here is an example: "insult (100%) This message contains an insult".
-And remember, this is the Internet, look for intentional filter bypasses (i.e., using Leetspeak).`;
+Here is an example: "insult (100%) This message contains an insult".`;
 
 const InsultRegex = /(insult|safe|suspicious)\s+\((\d{1,3})%\)\s+(?:-?\s*)(.+)/;
 
@@ -39,7 +37,9 @@ interface InsultEvaluation {
 }
 
 async function CheckInsult(rawRequest: string[]): Promise<InsultEvaluation> {
+    rawRequest[rawRequest.length - 1] = `[only evaulate this] ${rawRequest[rawRequest.length - 1]}`;
     const request = rawRequest.join("\n");
+
     const response = await openAIClient.createChatCompletion({
         model: AIModel,
         messages: [
@@ -72,18 +72,7 @@ export default async function DetectInsult(message: Message<true>): Promise<Reis
     const response = await CheckInsult(request);
     if (!response) return null;
 
-    if (response.type === "insult") {
-        // punish if level is over 90%
-        if (response.level >= 90) {
-            return { comment: response.comment, requestID: response.requestID };
-        } else {
-            SendWarningEmbed(message, response);
-        }
-    }
-
-    if (response.type === "suspicious") {
-        SendWarningEmbed(message, response);
-    }
+    if (response.type !== "safe") SendWarningEmbed(message, response);
 
     return null;
 }
@@ -116,7 +105,7 @@ function SendWarningEmbed(message: Message<true>, response: InsultEvaluation) {
     })
         .addFields(
             { name: "Message", value: messagePreview, inline: false },
-            { name: "Context", value: ProcessRawRequest(requests.find(r => r.id === response.requestID).request), inline: false },
+            { name: "Context", value: RequestToEmbed(requests.find(r => r.id === response.requestID).request), inline: false },
             { name: "Type", value: response.type, inline: true },
             { name: "Level", value: `${response.level}%`, inline: true },
             { name: "Comment", value: response.comment, inline: false }
@@ -144,7 +133,7 @@ function SendWarningEmbed(message: Message<true>, response: InsultEvaluation) {
                 .then(async interaction => {
                     if (interaction.customId === "automod.approve") {
                         message.delete();
-                        InternalMute(await GetGuild().members.fetchMe(), message.member, GetPunishmentLength("Insult"), `${GetPunishmentReason("Insult")} [Approved by ${interaction.user}]`, response.comment);
+                        InternalMute(await GetGuild().members.fetchMe(), message.member, GetPunishmentLength("Insult"), `${GetPunishmentReason("Insult")} [Approved by ${interaction.user}]`, { detail: response.comment });
 
                         const embed = EmbedBuilder.from(msg.embeds[0]);
                         embed.setDescription(embed.data.description + `\n**[Approved by ${interaction.user}]**`);
@@ -183,7 +172,7 @@ export async function AskForReason(requestID: string) {
     return { request: request.request, reason };
 }
 
-export function ProcessRawRequest(request: string[]) {
+export function RequestToEmbed(request: string[]) {
     const processed = request.slice(0, request.length - 1).map(str => str.length > 100 ? str.slice(0, 97) + "..." : str);
     const lastLine = request[request.length - 1];
     const maxLength = 1024 - processed.reduce((acc, curr) => acc + curr.length, 0) - 4;

@@ -4,7 +4,6 @@ import ConvertDuration from "../util/ConvertDuration.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import { ModNameToLevel } from "../util/ModUtils.js";
-
 const SlowmodeCommand: SlashCommand = {
     name: "slowmode",
 

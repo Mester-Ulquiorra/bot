@@ -1,6 +1,5 @@
 import SlashCommand from "../types/SlashCommand.js";
 import * as Commands from "./Geo/Commands.js";
-
 const GeoCommand: SlashCommand = {
     name: "geo",
     description: "The main command of the Economy system",

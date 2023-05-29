@@ -1,18 +1,4 @@
-import mongoose, { Document } from "mongoose";
-import { DBLevel } from "../types/Database.js";
-
-export interface IDBLevel extends DBLevel, Document { }
-
-const LevelConfigSchema = new mongoose.Schema<IDBLevel>({
-    userId: {
-        type: mongoose.SchemaTypes.String,
-        unique: true,
-        required: true,
-    },
-    xp: {
-        type: mongoose.SchemaTypes.Number,
-        default: 0,
-    },
-});
+import { LevelConfigSchema } from "@mester-ulquiorra/commonlib";
+import mongoose from "mongoose";
 
 export default mongoose.model("level", LevelConfigSchema);

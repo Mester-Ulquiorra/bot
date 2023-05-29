@@ -1,13 +1,12 @@
 import { format } from "date-fns";
 import { Message } from "discord.js";
+import { logger } from "../Ulquiorra.js";
 import SlashCommand from "../types/SlashCommand.js";
 import { GetSpecialChannel } from "../util/ClientUtils.js";
 import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
-import Log from "../util/Log.js";
 import { ModNameToLevel } from "../util/ModUtils.js";
-
 const ClearCommmand: SlashCommand = {
     name: "clear",
     async run(interaction, client) {
@@ -43,7 +42,7 @@ const ClearCommmand: SlashCommand = {
         const embed = CreateEmbed(`Successfully deleted ${messagesToDelete.length} messages!`, { color: "success" });
         const logEmbed = CreateEmbed(`**${interaction.user} has deleted ${messagesToDelete.length} messages in ${interaction.channel}**`);
 
-        Log(`${interaction.user.tag} (${interaction.user.id}) has deleted ${messagesToDelete.length} messages in ${interaction.channel.name} (${interaction.channelId})`);
+        logger.log(`${interaction.user.tag} (${interaction.user.id}) has deleted ${messagesToDelete.length} messages in ${interaction.channel.name} (${interaction.channelId})`);
 
         interaction.editReply({ embeds: [embed] });
         GetSpecialChannel("MessageLog").send({

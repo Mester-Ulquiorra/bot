@@ -1,13 +1,12 @@
 import { BaseInteraction, Client, GuildMember, InteractionReplyOptions } from "discord.js";
+import { logger } from "../Ulquiorra.js";
+import langs from "../lang/events/interactionCreate.js";
 import Event from "../types/Event.js";
 import { SlashCommandReturnValue } from "../types/SlashCommand.js";
-import CreateEmbed from "../util/CreateEmbed.js";
-import Log from "../util/Log.js";
-import { commands } from "../util/Register.js";
-import Localisatior, { GetMemberLanguage } from "../util/Localisatior.js";
-import langs from "../lang/events/interactionCreate.js";
 import { GetGuild } from "../util/ClientUtils.js";
-
+import CreateEmbed from "../util/CreateEmbed.js";
+import Localisatior, { GetMemberLanguage } from "../util/Localisatior.js";
+import { commands } from "../util/Register.js";
 const loc = new Localisatior(langs);
 /**
  * A list of custom ids the interaction manager should ignore.
@@ -115,7 +114,7 @@ const InteractionCreateEvent: Event = {
 
         // bigger oops
         if (returnMessage instanceof Error) {
-            Log(returnMessage.stack, "error");
+            logger.log(returnMessage.stack, "error");
 
             const embed = CreateEmbed(loc.get(userLang, "error.uncompleted", returnMessage.message), {
                 title: loc.get(userLang, "error.uncompleted_short"),

@@ -1,13 +1,12 @@
 import { ChatInputCommandInteraction, TextChannel } from "discord.js";
+import { logger } from "../Ulquiorra.js";
 import config from "../config.js";
 import SlashCommand from "../types/SlashCommand.js";
 import { GetGuild } from "../util/ClientUtils.js";
 import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
-import Log from "../util/Log.js";
 import { ModNameToLevel } from "../util/ModUtils.js";
-
 const LockCommand: SlashCommand = {
     name: "lock",
 
@@ -17,8 +16,8 @@ const LockCommand: SlashCommand = {
 
         // check if the user is trying to (un)lock all channels
         // also fix the reason not being correct
-        const lock_all = reason.startsWith("*");
-        if (lock_all)
+        const lockAll = reason.startsWith("*");
+        if (lockAll)
             reason = reason.substring(1) || "no reason provided";
 
         const unlock = interaction.options.getSubcommand() === "unlock";
@@ -31,7 +30,7 @@ const LockCommand: SlashCommand = {
         if (userConfig.mod < ModNameToLevel("Head"))
             return GetError("Permission");
 
-        if (userConfig.mod < ModNameToLevel("Admin") && lock_all)
+        if (userConfig.mod < ModNameToLevel("Admin") && lockAll)
             return GetError("Permission");
 
         const interactionChannel = interaction.channel;
@@ -40,7 +39,7 @@ const LockCommand: SlashCommand = {
         if (interactionChannel.isDMBased() || interactionChannel.isThread())
             return "This command can only be used in text channels.";
 
-        if (lock_all) {
+        if (lockAll) {
             // fetch all channels that are in the all lock id array
             const channelsToLock = (await GetGuild().channels.fetch()).filter(
                 (channel) => config.channels.LockAllIds.includes(channel.id)
@@ -50,7 +49,7 @@ const LockCommand: SlashCommand = {
                 lockOne(channel as TextChannel, !unlock, reason, interaction);
             }
 
-            Log(`${interaction.user.tag} has (${interaction.user.id}) ${unlock ? "un" : ""}locked ALL channels. Reason: ${reason}`);
+            logger.log(`${interaction.user.tag} has (${interaction.user.id}) ${unlock ? "un" : ""}locked ALL channels. Reason: ${reason}`);
 
             // delete the interaction
             interaction.deferReply().then(() => interaction.deleteReply());
@@ -64,7 +63,7 @@ const LockCommand: SlashCommand = {
         lockOne(interactionChannel as TextChannel, !unlock, reason, interaction);
 
         // log
-        Log(`${interaction.user.tag} (${interaction.user.id}) has ${unlock ? "un" : ""}locked channel ${interactionChannel.name} (${interactionChannel.id}). Reason: ${reason}`);
+        logger.log(`${interaction.user.tag} (${interaction.user.id}) has ${unlock ? "un" : ""}locked channel ${interactionChannel.name} (${interactionChannel.id}). Reason: ${reason}`);
 
         // delete the interaction
         interaction.deferReply().then(() => interaction.deleteReply());

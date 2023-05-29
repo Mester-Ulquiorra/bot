@@ -1,6 +1,5 @@
 import UserConfig from "../database/UserConfig.js";
 import ConsoleCommand from "../types/ConsoleCommand.js";
-
 const ShowModsConsoleCommand: ConsoleCommand = {
     name: "showmods",
     help: "showmods - shows every moderator",

@@ -1,13 +1,12 @@
+import { PunishmentType } from "@mester-ulquiorra/commonlib";
 import { GuildMember } from "discord.js";
-import Ulquiorra from "../Ulquiorra.js";
+import Ulquiorra, { logger } from "../Ulquiorra.js";
 import config from "../config.js";
-import PunishmentConfig, { PunishmentType } from "../database/PunishmentConfig.js";
+import PunishmentConfig from "../database/PunishmentConfig.js";
 import UserConfig from "../database/UserConfig.js";
 import { GetGuild, GetSpecialChannel } from "./ClientUtils.js";
-import Log from "./Log.js";
 import ManageRole from "./ManageRole.js";
 import { CreateModEmbed } from "./ModUtils.js";
-
 /**
  * A function for invalidating every punishment that is not valid anymore.
  */
@@ -24,7 +23,7 @@ export default async function () {
 
             // if userConfig is null, log a warning and skip
             if (userConfig == null) {
-                Log(`User config for user ${punishment.user} not found, skipping punishment ${punishment.punishmentId}`, "warn");
+                logger.log(`User config for user ${punishment.user} not found, skipping punishment ${punishment.punishmentId}`, "warn");
                 return;
             }
 
@@ -52,7 +51,7 @@ export default async function () {
                     );
 
                     // log
-                    Log(`${member.user.tag} (${member.user.id}) has been automatically unmuted`);
+                    logger.log(`${member.user.tag} (${member.user.id}) has been automatically unmuted`);
 
                     // create embed
                     const userEmbed = CreateModEmbed(
@@ -79,7 +78,7 @@ export default async function () {
                             if (user == null) return;
 
                             // log
-                            Log(`${user.tag} (${user.id}) has been automatically unbanned`);
+                            logger.log(`${user.tag} (${user.id}) has been automatically unbanned`);
                         })
                         .catch(() => {
                             return null;
@@ -107,6 +106,6 @@ export default async function () {
             GetSpecialChannel("ModLog").send({ embeds: [embed] });
         })
     ).catch((error) => {
-        Log(`Something has gone wrong while invalidating punishments: ${error.stack}`, "warn");
+        logger.log(`Something has gone wrong while invalidating punishments: ${error.stack}`, "warn");
     });
 }

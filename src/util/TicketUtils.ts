@@ -1,13 +1,12 @@
-import { ActionRowBuilder, APIActionRowComponent, APIButtonComponent, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildMember, ModalSubmitInteraction, TextChannel, UserContextMenuCommandInteraction } from "discord.js";
-import config from "../config.js";
-import TicketConfig, { TicketType } from "../database/TicketConfig.js";
-import { DBTicket, DBUser } from "../types/Database.js";
+import { DBTicket, DBUser, TicketType } from "@mester-ulquiorra/commonlib";
+import { APIActionRowComponent, APIButtonComponent, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildMember, ModalSubmitInteraction, TextChannel, UserContextMenuCommandInteraction } from "discord.js";
 import { SnowFlake } from "../Ulquiorra.js";
+import config from "../config.js";
+import TicketConfig from "../database/TicketConfig.js";
 import { GetGuild } from "./ClientUtils.js";
 import { GetUserConfig } from "./ConfigHelper.js";
 import CreateEmbed from "./CreateEmbed.js";
 import { ModName, ModNameToId, ModNameToLevel } from "./ModUtils.js";
-
 export async function CreateTicket(
     ticketOwner: GuildMember,
     reason = "no reason provided",

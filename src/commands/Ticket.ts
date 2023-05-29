@@ -1,15 +1,14 @@
+import { DBUser, TicketType } from "@mester-ulquiorra/commonlib";
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, Client, GuildMember, ModalBuilder, TextChannel, TextInputBuilder, TextInputStyle } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 import config from "../config.js";
-import TicketConfig, { TicketType } from "../database/TicketConfig.js";
-import { DBUser } from "../types/Database.js";
+import TicketConfig from "../database/TicketConfig.js";
 import SlashCommand from "../types/SlashCommand.js";
 import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import { CanManageUser, ModNameToLevel } from "../util/ModUtils.js";
 import { CanManageTicket, ChannelIsTicket, CreateTicket, CreateWaitingforMessage, ReloadTicketPermissions, TicketTypeToName } from "../util/TicketUtils.js";
-
 const TicketCreateRegex = /^ticket\.create[0-3]$/;
 
 const TicketCommand: SlashCommand = {
@@ -327,7 +326,7 @@ async function deleteTicket(interaction: ChatInputCommandInteraction | ButtonInt
     });
 
     // delete the ticket config
-    await ticket.delete();
+    await ticket.deleteOne();
 }
 
 /**

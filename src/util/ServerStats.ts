@@ -1,7 +1,6 @@
+import { logger } from "../Ulquiorra.js";
 import config from "../config.js";
 import { GetGuild } from "./ClientUtils.js";
-import Log from "./Log.js";
-
 export default async function () {
     try {
         const guild = GetGuild();
@@ -19,6 +18,6 @@ export default async function () {
             channel.edit({ name: `Boosts: ${guild.premiumSubscriptionCount}` });
         });
     } catch (error) {
-        Log(`Couldn't refresh server stats: ${error.stack}`, "warn");
+        logger.log(`Couldn't refresh server stats: ${error.stack}`, "warn");
     }
 }

@@ -1,6 +1,5 @@
 import { EmbedBuilder } from "discord.js";
 import ConsoleCommand from "../types/ConsoleCommand.js";
-
 /**
  * A map to hold every user the bot is waiting for.
  */

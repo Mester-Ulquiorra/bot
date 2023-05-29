@@ -1,12 +1,12 @@
-import PunishmentConfig, { PunishmentType } from "../database/PunishmentConfig.js";
+import { PunishmentType } from "@mester-ulquiorra/commonlib";
+import { logger } from "../Ulquiorra.js";
+import PunishmentConfig from "../database/PunishmentConfig.js";
 import SlashCommand from "../types/SlashCommand.js";
 import { GetGuild, GetSpecialChannel } from "../util/ClientUtils.js";
 import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
-import Log from "../util/Log.js";
 import { CanPerformPunishment, CreateModEmbed } from "../util/ModUtils.js";
-
 const UnbanCommand: SlashCommand = {
     name: "unban",
 
@@ -48,7 +48,7 @@ const UnbanCommand: SlashCommand = {
             await punishment.save();
         }
 
-        Log(`${member.tag} (${member.id}) has been unbanned by ${interaction.user.tag} (${interaction.user.id}): ${reason}`);
+        logger.log(`${member.tag} (${member.id}) has been unbanned by ${interaction.user.tag} (${interaction.user.id}): ${reason}`);
 
         const modEmbed = CreateModEmbed(interaction.user, member, punishment,
             {

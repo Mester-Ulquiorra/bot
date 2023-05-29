@@ -2,7 +2,6 @@ import { Message } from "discord.js";
 import config from "../../config.js";
 import { GetUserConfig } from "../ConfigHelper.js";
 import { ReishiEvaluation } from "../Reishi.js";
-
 enum ProtectionDecision {
     Yes = "yes",
     No = "no"

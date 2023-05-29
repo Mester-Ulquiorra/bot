@@ -1,15 +1,15 @@
+import { PunishmentType } from "@mester-ulquiorra/commonlib";
 import { GuildMember } from "discord.js";
+import { logger } from "../Ulquiorra.js";
 import config from "../config.js";
-import PunishmentConfig, { PunishmentType } from "../database/PunishmentConfig.js";
+import PunishmentConfig from "../database/PunishmentConfig.js";
 import SlashCommand from "../types/SlashCommand.js";
 import { GetSpecialChannel } from "../util/ClientUtils.js";
 import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
-import Log from "../util/Log.js";
 import ManageRole from "../util/ManageRole.js";
 import { CanManageUser, CanPerformPunishment, CreateModEmbed } from "../util/ModUtils.js";
-
 const UnmuteCommand: SlashCommand = {
     name: "unmute",
 
@@ -56,7 +56,7 @@ const UnmuteCommand: SlashCommand = {
         ManageRole(target, config.roles.Muted, "Remove");
 
         // log
-        Log(`${target.user.tag} (${target.id}) has been unmuted by ${interaction.user.tag} (${interaction.user.id}): ${reason}`);
+        logger.log(`${target.user.tag} (${target.id}) has been unmuted by ${interaction.user.tag} (${interaction.user.id}): ${reason}`);
 
         const modEmbed = CreateModEmbed(interaction.user, target.user, targetMutes[0],
             {

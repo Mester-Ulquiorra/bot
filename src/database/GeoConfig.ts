@@ -1,5 +1,46 @@
 import mongoose, { Document, SchemaTypes } from "mongoose";
-import { DBGeo } from "../types/Database.js";
+import { GeoItem } from "../commands/Geo/GeoData.js";
+export interface DBGeo {
+    /**
+     * The user's id
+     */
+    userId: string;
+    /**
+     * The user's balance
+     */
+    balance: {
+        /**
+         * The total amount of Geo the user has
+         */
+        geo: number;
+        /**
+         * If the user's balance is public
+         */
+        public: boolean;
+    };
+    /**
+     * The user's explore data
+     */
+    explore: {
+        /**
+         * The last time the user explored (in milliseconds)
+         */
+        lastExplore: number;
+    };
+    /**
+     * The user's inventory
+     */
+    inventory: {
+        /**
+         * The items in the user's inventory
+         */
+        items: Array<GeoItem>;
+        /**
+         * If the user's inventory is public
+         */
+        public: boolean;
+    }
+}
 
 export interface IDBGeo extends Document, DBGeo { }
 

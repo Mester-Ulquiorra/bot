@@ -1,13 +1,13 @@
+import { DBLevel } from "@mester-ulquiorra/commonlib";
 import { ActionRowBuilder, APISelectMenuOption, Client, GuildMember, StringSelectMenuBuilder } from "discord.js";
 import LevelConfig from "../database/LevelConfig.js";
-import { DBLevel } from "../types/Database.js";
+import langs from "../lang/commands/leaderboard.js";
 import SlashCommand from "../types/SlashCommand.js";
 import { GetGuild } from "../util/ClientUtils.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import { LevelToXP, XPToLevel, XPToLevelUp } from "../util/LevelUtils.js";
-import { CalculateMaxPage } from "../util/MathUtils.js";
 import Localisatior, { GetMemberLanguage, LocLanguage } from "../util/Localisatior.js";
-import langs from "../lang/commands/leaderboard.js";
+import { CalculateMaxPage } from "../util/MathUtils.js";
 
 const loc = new Localisatior(langs);
 

@@ -1,10 +1,9 @@
+import { logger } from "../Ulquiorra.js";
 import SlashCommand from "../types/SlashCommand.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import { GetLevelConfig, LevelToXP, XPToLevel } from "../util/LevelUtils.js";
-import Log from "../util/Log.js";
 import { AddRankFieldEmbeds } from "./Rank.js";
-
 const MaxXp = LevelToXP(100);
 
 const XpCommand: SlashCommand = {
@@ -59,7 +58,7 @@ const XpCommand: SlashCommand = {
         await levelConfig.save();
 
         // log
-        Log(`${interaction.user.tag} (${interaction.user.id}) has changed the level information of ${target.tag} (${target.id}). New level: ${XPToLevel(levelConfig.xp)}, xp: ${levelConfig.xp}`);
+        logger.log(`${interaction.user.tag} (${interaction.user.id}) has changed the level information of ${target.tag} (${target.id}). New level: ${XPToLevel(levelConfig.xp)}, xp: ${levelConfig.xp}`);
 
         // create the embed
         const embed = CreateEmbed(`New level information of ${target}`, {

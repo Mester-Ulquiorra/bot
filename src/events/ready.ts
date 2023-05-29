@@ -1,21 +1,20 @@
 import { Client, ComponentType, TextChannel } from "discord.js";
-import Ulquiorra from "../Ulquiorra.js";
+import Ulquiorra, { logger } from "../Ulquiorra.js";
 import config from "../config.js";
 import testMode from "../testMode.js";
 import Event from "../types/Event.js";
 import AutoUnpunish from "../util/AutoUnpunish.js";
 import { GetGuild } from "../util/ClientUtils.js";
 import CreateEmbed from "../util/CreateEmbed.js";
-import Log from "../util/Log.js";
 import ManageRole from "../util/ManageRole.js";
 import ServerStats from "../util/ServerStats.js";
-
 const ReadyEvent: Event = {
     name: "ready",
 
     async run(client: Client) {
-        // fetch the guild and its channels
-        client.guilds.fetch(config.GuildId).then((guild) => {
+        // fetch the guild and its channels (make sure than fetchMe is blocking, because it's important)
+        await client.guilds.fetch(config.GuildId).then(async (guild) => {
+            await guild.members.fetchMe();
             guild.channels.fetch();
         });
 
@@ -30,7 +29,7 @@ const ReadyEvent: Event = {
         ServerStats();
         SetupVerifyListener();
 
-        Log(`Successfully logged in as ${client.user.tag}!`);
+        logger.log(`Successfully logged in as ${client.user.tag}!`);
         console.timeEnd("Boot");
     }
 };

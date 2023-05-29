@@ -1,5 +1,4 @@
 import config from "../config.js";
-
 /**
  * A function used to convert a string duration (like 2h) to seconds using the ms library.
  * @param stringDuration The duration string.

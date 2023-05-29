@@ -1,13 +1,9 @@
 import { AuditLogEvent, GuildMember } from "discord.js";
-import PunishmentConfig, { PunishmentType } from "../database/PunishmentConfig.js";
+import { InternalKick } from "../commands/Kick.js";
 import Event from "../types/Event.js";
-import Ulquiorra, { SnowFlake } from "../Ulquiorra.js";
 import { GetGuild, GetSpecialChannel } from "../util/ClientUtils.js";
 import CreateEmbed from "../util/CreateEmbed.js";
-import Log from "../util/Log.js";
-import { CreateModEmbed } from "../util/ModUtils.js";
 import { DetectProfanity } from "../util/Reishi/CheckProfanity.js";
-
 const GuildMemberUpdateEvent: Event = {
     name: "guildMemberUpdate",
     async run(_client, oldMember: GuildMember, newMember: GuildMember) {
@@ -81,32 +77,7 @@ async function nicknameChange(oldMember: GuildMember, newMember: GuildMember) {
     ) return;
 
     // the member has changed it
-    if (!newMember.kickable) return;
-
-    const punishmentId = SnowFlake.getUniqueID().toString();
-
-    const punishment = await PunishmentConfig.create({
-        punishmentId: punishmentId,
-        user: newMember.id,
-        mod: Ulquiorra.user.id,
-        type: PunishmentType.Kick,
-        at: Math.floor(Date.now() / 1000),
-        active: false,
-        automated: true,
-        reason: "member has set their nickname to something inappropriate"
-    });
-
-    const modEmbed = CreateModEmbed(Ulquiorra.user, newMember.user, punishment, { detail: newMember.nickname });
-    const userEmbed = CreateModEmbed(Ulquiorra.user, newMember.user, punishment, { userEmbed: true, detail: newMember.nickname });
-
-    newMember
-        .send({ embeds: [userEmbed.embed] })
-        .catch(() => { return; })
-        .finally(() => { newMember.kick("inappropriate nickname"); });
-
-    Log(`${newMember.user.tag} (${newMember.id}) has been automatically kicked: ${punishment.reason}. Punishment ID: ${punishment.punishmentId}`);
-
-    GetSpecialChannel("ModLog").send({ embeds: [modEmbed] });
+    InternalKick(GetGuild().members.me, newMember, "Profanity in nickname");
 }
 
 export default GuildMemberUpdateEvent;

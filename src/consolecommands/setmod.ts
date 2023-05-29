@@ -2,7 +2,6 @@ import { SetModRole } from "../commands/SetMod.js";
 import UserConfig from "../database/UserConfig.js";
 import ConsoleCommand from "../types/ConsoleCommand.js";
 import { GetGuild } from "../util/ClientUtils.js";
-
 const SetModConsoleCommand: ConsoleCommand = {
     name: "setmod",
     help: "setmod <userid> [newmod = 0] - Sets a user's mod level",

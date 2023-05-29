@@ -3,7 +3,6 @@ import CreateEmbed from "../../util/CreateEmbed.js";
 import { CalculateMaxPage } from "../../util/MathUtils.js";
 import GeoData, { ItemDescriptions, ItemNames, ItemPrices } from "./GeoData.js";
 import { GetGeoConfig } from "./Util.js";
-
 const InventoryCommand: SlashCommand = {
     name: "_",
     async run(interaction, client) {

@@ -1,7 +1,6 @@
 import { TextChannel } from "discord.js";
-import config from "../config.js";
 import Ulquiorra from "../Ulquiorra.js";
-
+import config from "../config.js";
 type SpecialChannelName = "ModLog" | "MessageLog" | "Welcome" | "LevelUp" | "TestMode" | "Appeal" | "MiscLog" | "Automod";
 
 export function GetSpecialChannel(channelName: SpecialChannelName) {

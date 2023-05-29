@@ -1,8 +1,7 @@
 import { Message } from "discord.js";
 import { ReverseLeetSpeak, StripString } from "../MessageUtils.js";
-import blacklist from "./blacklist.js";
 import { ReishiEvaluation } from "../Reishi.js";
-
+import blacklist from "./blacklist.js";
 /**
  * The main function for profanity checking.
  * @param message The message to check.

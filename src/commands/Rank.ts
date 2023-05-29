@@ -1,8 +1,8 @@
 import { EmbedBuilder } from "discord.js";
 import * as path from "path";
 
+import { DBLevel } from "@mester-ulquiorra/commonlib";
 import { fileURLToPath, URL } from "url";
-import { DBLevel } from "../types/Database.js";
 import SlashCommand from "../types/SlashCommand.js";
 import { browser } from "../Ulquiorra.js";
 import CreateEmbed from "../util/CreateEmbed.js";
@@ -114,3 +114,4 @@ export function AddRankFieldEmbeds(embed: EmbedBuilder, levelConfig: DBLevel) {
 export default RankCommand;
 
 export { browser };
+

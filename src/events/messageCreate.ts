@@ -1,4 +1,5 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, Message, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, TextChannel } from "discord.js";
+import openai from "openai";
 import { shutdown } from "../Ulquiorra.js";
 import config from "../config.js";
 import Event from "../types/Event.js";
@@ -8,8 +9,6 @@ import { GetXPFromMessage } from "../util/LevelUtils.js";
 import { CreateAppealButton } from "../util/ModUtils.js";
 import { CheckMessage } from "../util/Reishi.js";
 import { CreateTicket, TicketTypeToName } from "../util/TicketUtils.js";
-
-import openai from "openai";
 
 const openAIClient = new openai.OpenAIApi(new openai.Configuration({
     apiKey: config.DANGER.OPENAI_KEY,

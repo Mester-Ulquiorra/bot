@@ -1,7 +1,6 @@
 import { GuildMember } from "discord.js";
 import config from "../config.js";
 import ManageRole from "./ManageRole.js";
-
 type LangFile = { [key: string]: string };
 export type LocLanguage = "en" | "hu" | "de";
 

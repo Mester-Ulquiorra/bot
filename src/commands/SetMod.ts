@@ -1,12 +1,11 @@
 import { ChatInputCommandInteraction, Client, GuildMember } from "discord.js";
+import { logger } from "../Ulquiorra.js";
 import SlashCommand from "../types/SlashCommand.js";
 import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
-import Log from "../util/Log.js";
 import ManageRole from "../util/ManageRole.js";
 import { CanManageUser, ModName, ModNameToId, ModNameToLevel } from "../util/ModUtils.js";
-
 const SetModCommand: SlashCommand = {
     name: "setmod",
 
@@ -31,7 +30,7 @@ const SetModCommand: SlashCommand = {
 
         SetModRole(target, modLevel);
 
-        Log(`Mod level of ${target.user.tag} (${target.id}) has been set to ${modLevel} by ${interaction.user.tag} (${interaction.user.id})`);
+        logger.log(`Mod level of ${target.user.tag} (${target.id}) has been set to ${modLevel} by ${interaction.user.tag} (${interaction.user.id})`);
 
         const returnEmbed = CreateEmbed(
             `**${target}'s mod level has been set to ${modLevel}**`,

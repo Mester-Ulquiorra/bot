@@ -1,12 +1,12 @@
+import { PunishmentType } from "@mester-ulquiorra/commonlib";
 import { ChatInputCommandInteraction, Client, GuildMember } from "discord.js";
-import PunishmentConfig, { PunishmentType } from "../database/PunishmentConfig.js";
+import { SnowFlake, logger } from "../Ulquiorra.js";
+import PunishmentConfig from "../database/PunishmentConfig.js";
 import SlashCommand from "../types/SlashCommand.js";
-import { SnowFlake } from "../Ulquiorra.js";
 import { GetSpecialChannel } from "../util/ClientUtils.js";
 import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
-import Log from "../util/Log.js";
 import { CanManageUser, CreateModEmbed } from "../util/ModUtils.js";
 
 const WarnCommand: SlashCommand = {
@@ -40,7 +40,7 @@ const WarnCommand: SlashCommand = {
             active: false
         });
 
-        Log(`${target.user.tag} (${target.id}) has been warned by ${interaction.user.tag} (${interaction.user.id}): ${reason}. ID: ${punishmentId}`);
+        logger.log(`${target.user.tag} (${target.id}) has been warned by ${interaction.user.tag} (${interaction.user.id}): ${reason}. ID: ${punishmentId}`);
 
         // create the embeds for the warn
         const modEmbed = CreateModEmbed(interaction.user, target.user, punishment);

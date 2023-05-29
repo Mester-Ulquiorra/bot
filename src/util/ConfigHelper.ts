@@ -1,14 +1,13 @@
+import { logger } from "../Ulquiorra.js";
 import UserConfig from "../database/UserConfig.js";
-import Log from "./Log.js";
-
-export const GetUserConfig = async (id: string, reason?: string, create = true) => {
+export const GetUserConfig = async (userId: string, reason?: string, create = true) => {
     // try to get the user config, if it fails, create a new one
-    const userConfig = await UserConfig.findOne({ userId: id });
+    const userConfig = await UserConfig.findOne({ userId });
 
-    return userConfig ?? (create ? CreateUserConfig(id, reason) : null);
+    return userConfig ?? (create ? CreateUserConfig(userId, reason) : null);
 };
 
-export const CreateUserConfig = async (userId: string, reason = "no reason provided") => {
+export const CreateUserConfig = async (userId: string, reason?: string) => {
     // we assume the user config doesn't exist yet
     const userConfig = await UserConfig.create({
         userId,
@@ -16,7 +15,7 @@ export const CreateUserConfig = async (userId: string, reason = "no reason provi
         firstjoined: -1
     }).catch(() => { return UserConfig.findOne({ userId }); });
 
-    if (reason) Log(`Created user config for user ${userId}: ${reason}`);
+    if (reason) logger.log(`Created user config for user ${userId}: ${reason}`);
 
     return userConfig;
 };

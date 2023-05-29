@@ -1,27 +1,28 @@
+// canvas must be loaded before sharp is initalized
 import "canvas";
+import { Logger } from "@mester-ulquiorra/commonlib";
 import * as deepl from "deepl-node";
 import { Client } from "discord.js";
 import Mongoose from "mongoose";
 import { Snowflake } from "nodejs-snowflake";
-import { tmpdir } from "os";
-import path, { join } from "path";
+import { join } from "path";
 import puppeteer from "puppeteer";
 import { createInterface } from "readline";
-import { fileURLToPath } from "url";
 import config from "./config.js";
 import "./database.js";
 import AutoUnpunish from "./util/AutoUnpunish.js";
 import CleanTickets from "./util/CleanTickets.js";
 import { HandleConsoleCommand } from "./util/ConsoleUtils.js";
-import Log from "./util/Log.js";
 import { Register } from "./util/Register.js";
 import ServerStats from "./util/ServerStats.js";
+import { fileURLToPath } from "url";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
+const logger = new Logger(join(__dirname, "..", "logs"));
 // this is a really bad way of avoiding errors, but it is what it is
 process.on("uncaughtException", (error) => {
-    Log(`An uncaught exception has occured, ignoring, but may cause issues...\n${error.stack}`, "warn");
+    logger.log(`An uncaught exception has occured, ignoring, but may cause issues...\n${error.stack}`, "warn");
 });
 
 process.on("exit", () => {
@@ -29,7 +30,7 @@ process.on("exit", () => {
 });
 
 console.time("Boot");
-Log("And thus, an Espada was born...");
+logger.log("And thus, an Espada was born...");
 
 /* ------ Set up client and MongoDB ------ */
 const Ulquiorra = new Client({
@@ -55,20 +56,20 @@ const DeeplTranslator = new deepl.Translator(config.DANGER.DEEPL_KEY);
 
 // Set up puppeteer
 const browser = await puppeteer.launch({
-    userDataDir: path.join(tmpdir(), "puppeteer"),
+    headless: "new",
     args: [
         ...config.puppeteerArgs
     ]
 });
 
 function shutdown(reason: string) {
-    Log(`Shutting down client: ${reason}`, "fatal");
+    logger.log(`Shutting down client: ${reason}`, "fatal");
     Ulquiorra.destroy();
     Mongoose.disconnect();
     process.exit(1);
 }
 
-Log("Loading commands and events...");
+logger.log("Loading commands and events...");
 
 // register commands and events
 Register(
@@ -109,9 +110,6 @@ Register(
 });
 
 export {
-    shutdown,
-    SnowFlake,
-    DeeplTranslator,
-    browser
+    DeeplTranslator, SnowFlake, browser, logger, shutdown
 };
 export default Ulquiorra;

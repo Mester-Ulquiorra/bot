@@ -1,6 +1,5 @@
 import SlashCommand from "../types/SlashCommand.js";
 import SteamStatsCommand from "./Stats/Steam.js";
-
 const StatsCommand: SlashCommand = {
     name: "stats",
 
@@ -11,7 +10,7 @@ const StatsCommand: SlashCommand = {
     },
 
     async runAutocomplete(interaction, client) {
-        if(interaction.options.getSubcommandGroup() === "steam") {
+        if (interaction.options.getSubcommandGroup() === "steam") {
             return SteamStatsCommand.runAutocomplete(interaction, client);
         }
     }

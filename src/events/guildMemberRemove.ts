@@ -4,7 +4,6 @@ import Event from "../types/Event.js";
 import { GetSpecialChannel } from "../util/ClientUtils.js";
 import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed from "../util/CreateEmbed.js";
-
 const GuildMemberRemoveEvent: Event = {
     name: "guildMemberRemove",
 

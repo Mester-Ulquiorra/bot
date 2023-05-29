@@ -90,7 +90,7 @@ function train() {
         readFileSync(join(__dirname, badFile))
             .toString("utf8")
             .split("\n");
-    const bad_probs = [];
+    const bad_probs = new Array<number>();
     for (const key in bad_lines) {
         bad_probs.push(
             averageTransitionProbability(bad_lines[key], log_prob_matrix)

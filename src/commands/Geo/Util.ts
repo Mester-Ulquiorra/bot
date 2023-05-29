@@ -1,6 +1,5 @@
 import { GuildMember, User } from "discord.js";
-import GeoConfig from "../../database/GeoConfig.js";
-import { DBGeo } from "../../types/Database.js";
+import GeoConfig, { DBGeo } from "../../database/GeoConfig.js";
 import { GeoItems, GeoMultipler, IGeoItems, ItemsWithWeight, WeightedItems } from "./GeoData.js";
 
 export async function GetGeoConfig(userId: string) {
@@ -23,7 +22,7 @@ export function extractWeights<T extends WeightedItems>(items: ItemsWithWeight<T
     const names = items.map(([name]) => name);
     const weights = items.map(([, weight]) => weight);
 
-    return [ names, weights ];
+    return [names, weights];
 }
 
 export async function GetMultipliers(member: GuildMember | User, geoConfig: DBGeo) {

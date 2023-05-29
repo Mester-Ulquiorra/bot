@@ -9,7 +9,7 @@ type RoleResult<T extends string> = T extends "Add" ? GuildMember : T extends "R
  * @param mode How the role should be managed. (Add, Remove, Check) [Default: Check]
  * @param reason The reason for the role change. (Optional)
  */
-export default async function<T extends string = "Check"> (
+export default async function <T extends string = "Check">(
     member: GuildMember,
     role: RoleResolvable,
     mode: "Add" | "Remove" | "Check" = "Check",

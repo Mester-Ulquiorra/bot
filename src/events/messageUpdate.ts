@@ -4,7 +4,6 @@ import Event from "../types/Event.js";
 import { GetSpecialChannel } from "../util/ClientUtils.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import { CheckMessage } from "../util/Reishi.js";
-
 const MaxContentLength = 1021;
 
 const MessageUpdateEvent: Event = {

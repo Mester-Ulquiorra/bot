@@ -3,7 +3,6 @@ import { describe, it } from "node:test";
 import { DetectFlood } from "../util/Reishi/CheckFlood.js";
 import { DiscordInviteRegExp, UrlRegExp } from "../util/Reishi/CheckLink.js";
 import { DetectProfanity } from "../util/Reishi/CheckProfanity.js";
-
 describe("Reishi", () => {
     describe("ProfanityCheck", () => {
         it("should detect simple swear words", () => {

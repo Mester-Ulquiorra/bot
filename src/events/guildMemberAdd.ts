@@ -5,7 +5,6 @@ import { GetSpecialChannel } from "../util/ClientUtils.js";
 import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import ManageRole from "../util/ManageRole.js";
-
 const GuildMemberAddEvent: Event = {
     name: "guildMemberAdd",
 

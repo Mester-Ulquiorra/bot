@@ -1,13 +1,13 @@
+import { IDBLevel } from "@mester-ulquiorra/commonlib";
 import { GuildMember, Message, spoiler } from "discord.js";
+import { logger } from "../Ulquiorra.js";
 import config from "../config.js";
-import LevelConfig, { IDBLevel } from "../database/LevelConfig.js";
+import LevelConfig from "../database/LevelConfig.js";
 import testMode from "../testMode.js";
 import { GetGuild, GetSpecialChannel } from "./ClientUtils.js";
 import CreateEmbed from "./CreateEmbed.js";
 import gib_detect from "./GibberishDetector/gib_detect.js";
-import Log from "./Log.js";
 import ManageRole from "./ManageRole.js";
-
 // https://www.desmos.com/calculator/f3bsamea49?lang=de
 
 /**
@@ -132,7 +132,7 @@ async function AddXPToUser(levelConfig: IDBLevel, xp: number, message: Message) 
                 );
             })
             .catch(() =>
-                Log(`Couldn't find user, perhaps they left?`, "warn")
+                logger.log(`User ${message.author.id} has leveled up, but wasn't in the server???`, "warn")
             );
     }
 
@@ -212,10 +212,7 @@ async function AlertMember(member: GuildMember, newlevel: number, message: Messa
 }
 
 export {
-    GetXPFromMessage,
-    LevelToXP,
-    XPToLevelUp,
-    XPToLevel,
-    GetLevelConfig,
+    GetLevelConfig, GetXPFromMessage,
+    LevelToXP, XPToLevel, XPToLevelUp
 };
 

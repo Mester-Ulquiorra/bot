@@ -5,7 +5,6 @@ import { GetGuild } from "../util/ClientUtils.js";
 import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
-
 const UserInfoCommand: SlashCommand = {
     name: "userinfo",
 
@@ -25,7 +24,8 @@ const UserInfoCommand: SlashCommand = {
 };
 
 async function GenerateUserInfo(interaction: ChatInputCommandInteraction | ButtonInteraction, target: GuildMember | User) {
-    const targetConfig = await GetUserConfig(target.id, null, false);
+    await interaction.deferReply({ ephemeral: true });
+    const targetConfig = await GetUserConfig(target.id, null, true);
 
     if (!targetConfig) return "The user has never joined the server.";
 
@@ -100,10 +100,9 @@ async function GenerateUserInfo(interaction: ChatInputCommandInteraction | Butto
     ];
 
     // send the embed
-    interaction.reply({
+    interaction.editReply({
         embeds: [embed],
-        components,
-        ephemeral: true,
+        components
     });
 }
 

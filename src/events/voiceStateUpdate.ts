@@ -2,7 +2,6 @@ import { VoiceState } from "discord.js";
 import Event from "../types/Event.js";
 import { GetGuild, GetSpecialChannel } from "../util/ClientUtils.js";
 import CreateEmbed from "../util/CreateEmbed.js";
-
 const VoiceStateUpdateEvent: Event = {
     name: "voiceStateUpdate",
     async run(_client, oldState: VoiceState, newState: VoiceState) {

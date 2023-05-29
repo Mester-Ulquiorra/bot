@@ -1,6 +1,6 @@
+import { DBTictactoe } from "@mester-ulquiorra/commonlib";
 import { ActionRowBuilder, APIActionRowComponent, APIButtonComponent, APISelectMenuOption, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, Client, ComponentType, EmbedBuilder, GuildMember, Message, StringSelectMenuBuilder, User } from "discord.js";
 import TictactoeConfig from "../database/TictactoeConfig.js";
-import { DBTictactoe } from "../types/Database.js";
 import SlashCommand from "../types/SlashCommand.js";
 import { SnowFlake } from "../Ulquiorra.js";
 import { GetGuild } from "../util/ClientUtils.js";

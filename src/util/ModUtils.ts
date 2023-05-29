@@ -1,9 +1,7 @@
-import { ActionRowBuilder, APIActionRowComponent, APIButtonComponent, ButtonBuilder, ButtonStyle, EmbedBuilder, User } from "discord.js";
+import { DBPunishment, DBUser, PunishmentType } from "@mester-ulquiorra/commonlib";
+import { APIActionRowComponent, APIButtonComponent, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, User } from "discord.js";
 import config from "../config.js";
-import { PunishmentType } from "../database/PunishmentConfig.js";
-import { DBPunishment, DBUser } from "../types/Database.js";
 import CreateEmbed from "./CreateEmbed.js";
-
 enum ModLevel {
     Level1 = 1,
     Level2,

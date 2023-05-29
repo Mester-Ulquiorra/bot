@@ -1,11 +1,11 @@
 import { ActionRowBuilder, ChatInputCommandInteraction, Client, ComponentType, StringSelectMenuBuilder, hyperlink, time } from "discord.js";
 import SteamAPI from "steamapi";
 import config from "../../config.js";
+import testMode from "../../testMode.js";
 import SlashCommand from "../../types/SlashCommand.js";
 import CreateEmbed from "../../util/CreateEmbed.js";
 import { CalculateMaxPage } from "../../util/MathUtils.js";
 import { formatDurationFromMinutes } from "../../util/MiscUtils.js";
-import testMode from "../../testMode.js";
 
 const regionf = new Intl.DisplayNames("en-UK", { type: "region" });
 
@@ -154,8 +154,8 @@ async function getSteamApp(interaction: ChatInputCommandInteraction, client: Cli
             value: details.short_description as string,
         }
     );
-    if (details.developers instanceof Array<string>) embed.addFields({ name: "Developers", value: details.developers.join(", ") });
-    if (details.publishers instanceof Array<string>) embed.addFields({ name: "Publishers", value: details.publishers.join(", ") });
+    if (Array.isArray(details.developers)) embed.addFields({ name: "Developers", value: details.developers.join(", ") });
+    if (Array.isArray(details.publishers)) embed.addFields({ name: "Publishers", value: details.publishers.join(", ") });
 
     if (isPrice(details.price_overview)) {
         embed.addFields({
@@ -181,7 +181,7 @@ async function getSteamApp(interaction: ChatInputCommandInteraction, client: Cli
         embed.addFields({ name: "Trailers", value: trailersFinal.join(" ") });
     }
 
-    if (details.dlc instanceof Array<number>) {
+    if (Array.isArray(details.dlc)) {
         const dlcFinal = new Array<string>();
         for (let i = 0; i < details.dlc.length; i++) {
             const dlc = cachedApps.find(a => a.appid === details.dlc[i]);

@@ -1,7 +1,6 @@
 import { Message } from "discord.js";
 import { ReverseLeetSpeak, StripString } from "../MessageUtils.js";
 import { ReishiEvaluation } from "../Reishi.js";
-
 const SystemMessage = `You're FloodGPT. Your job is to evaluate a message and tell if it contains repeated text. Reply with just "no" (without any explanation or punctuation) or the part that's being repeated.
 Here are the possible ways of repeated text:
 - a word: "hello hello hello hello hello" (the same word 4 or more times after each other should be flagged)

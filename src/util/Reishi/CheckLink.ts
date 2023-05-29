@@ -1,7 +1,6 @@
 import { Message } from "discord.js";
 import config from "../../config.js";
 import { ReishiEvaluation } from "../Reishi.js";
-
 export const DiscordInviteRegExp = /discord(?:app)?\.com\/(?:(friend-)?invite|servers)?\/([a-z0-9-]+)|discord\.gg\/(?:\S+\/)?([a-z0-9-]+)/;
 export const UrlRegExp = /https?:\/\/(?:www\.)?([\w@:%.+~#=]{2,256}\.[a-z]{2,6}\b)*(\/[/\w.-]*)*(?:[?])*(.+)*/i;
 export const DiscordLink = /^https?:\/\/(?:www\.)?(?:(media|canary|ptb|cdn)\.?)(discord(?:app)?\.(?:com|net))(?:\/.*|\/?)$/;

@@ -1,15 +1,11 @@
 {
     "compilerOptions": {
         "skipLibCheck": true,
-        "module": "ESNext",
-        "moduleResolution": "Node16",
-        "target": "ESNext",
+        "module": "ES2022",
+        "moduleResolution": "nodenext",
+        "target": "ES2022",
         "lib": [
             "ES2022"
-        ],
-        "types": [
-            // add node as an option
-            "node",
         ],
         "typeRoots": [
             // add path to @types
@@ -17,12 +13,16 @@
         ],
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
-        "outDir": "./dist",
+        "outDir": "./build",
         "removeComments": true,
         "allowSyntheticDefaultImports": true,
         "newLine": "lf",
         "esModuleInterop": true,
-        "resolveJsonModule": true
+        "paths": {
+            "commonlib": [
+                "./node_modules/commonlib/build/typings.d.ts"
+            ]
+        }
     },
     "include": [
         "./src/",

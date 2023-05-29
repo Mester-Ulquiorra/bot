@@ -1,13 +1,13 @@
+import { PunishmentType } from "@mester-ulquiorra/commonlib";
 import { GuildMember } from "discord.js";
-import PunishmentConfig, { PunishmentType } from "../database/PunishmentConfig.js";
+import { SnowFlake, logger } from "../Ulquiorra.js";
+import PunishmentConfig from "../database/PunishmentConfig.js";
 import SlashCommand from "../types/SlashCommand.js";
-import { SnowFlake } from "../Ulquiorra.js";
 import { GetSpecialChannel } from "../util/ClientUtils.js";
 import { GetUserConfig } from "../util/ConfigHelper.js";
 import ConvertDuration from "../util/ConvertDuration.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
-import Log from "../util/Log.js";
 import { CanManageUser, CanPerformPunishment, CreateModEmbed } from "../util/ModUtils.js";
 
 const BanCommand: SlashCommand = {
@@ -47,7 +47,7 @@ const BanCommand: SlashCommand = {
             reason,
         });
 
-        Log(`${target.user.tag} (${target.id}) has been banned by ${interaction.user.tag} (${interaction.user.id}): ${reason}. ID: ${punishmentId}`);
+        logger.log(`${target.user.tag} (${target.id}) has been banned by ${interaction.user.tag} (${interaction.user.id}): ${reason}. ID: ${punishmentId}`);
 
         const modEmbed = CreateModEmbed(interaction.user, target.user, punishment);
         const userEmbed = CreateModEmbed(interaction.user, target.user, punishment, { userEmbed: true });

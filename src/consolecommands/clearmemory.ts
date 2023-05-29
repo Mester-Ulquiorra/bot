@@ -1,5 +1,4 @@
 import ConsoleCommand from "../types/ConsoleCommand.js";
-
 const ClearMemoryConsoleCommand: ConsoleCommand = {
     name: "clearmemory",
     help: "clearmemory - Triggers garbage collection",

@@ -1,6 +1,5 @@
 import { Client } from "discord.js";
 import { consoleCommands } from "./Register.js";
-
 /**
  * The main function for console commands.
  * @param {string} line The line to process.

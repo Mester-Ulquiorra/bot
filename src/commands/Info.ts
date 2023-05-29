@@ -1,14 +1,13 @@
 import { createHash } from "crypto";
 import { ChatInputCommandInteraction, Client } from "discord.js";
-import SlashCommand from "../types/SlashCommand.js";
+import LanguageDetect from "languagedetect";
 import { DeeplTranslator } from "../Ulquiorra.js";
+import SlashCommand from "../types/SlashCommand.js";
 import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import PunishmentInfoCommand from "./PunishmentInfo.js";
 import UserInfoCommand from "./UserInfo.js";
-import LanguageDetect from "languagedetect";
-
 const lngDetector = new LanguageDetect();
 
 const TranslateCooldown = new Map<string, number>();
@@ -45,7 +44,7 @@ const InfoCommand: SlashCommand = {
             return PunishmentInfoCommand.run(interaction, client);
 
         // if we don't have a subcommand group, we might have "member" as subcommand
-        if (interaction.options.getSubcommand(false))
+        if (interaction.options.getSubcommand(false) === "member")
             return UserInfoCommand.run(interaction, client);
     },
 

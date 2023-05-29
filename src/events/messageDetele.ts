@@ -3,7 +3,6 @@ import testMode from "../testMode.js";
 import Event from "../types/Event.js";
 import { GetSpecialChannel } from "../util/ClientUtils.js";
 import CreateEmbed from "../util/CreateEmbed.js";
-
 const MaxContentLength = 1021;
 
 const MessageDeleteEvent: Event = {

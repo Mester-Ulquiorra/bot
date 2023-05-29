@@ -10,7 +10,6 @@ import CheckLink from "./Reishi/CheckLink.js";
 import CheckProfanity from "./Reishi/CheckProfanity.js";
 import CheckProtectedPing from "./Reishi/CheckProtectedPing.js";
 import { ChannelIsTicket } from "./TicketUtils.js";
-
 const MassMentionThreshold = 5;
 
 export interface ReishiEvaluation {
@@ -33,7 +32,7 @@ export async function CheckMessage(message: Message) {
 
     // check if the user is a mod
     const userConfig = await GetUserConfig(message.author.id);
-    if (userConfig.mod > 0 && !testMode) return false;
+    if (userConfig.mod > 0 && !testMode) return true;
 
     // check if the message's channel is an absolute no search channel
     if (config.channels.AbsoluteNoSearch.includes(message.channel.id)) return true;
@@ -41,7 +40,7 @@ export async function CheckMessage(message: Message) {
     // check if we're in a ticket
     if (ChannelIsTicket(message.channel.name)) return true;
 
-    if (message.content.toLowerCase() === "hmm") return PunishMessage(message, "BlacklistedWord", { comment: "__delete__" });
+    if (message.content.match(/^hm+$/)) return PunishMessage(message, "BlacklistedWord", { comment: "__delete__" });
 
     let result = CheckProfanity(message);
     if (result?.comment) return PunishMessage(message, "BlacklistedWord", result);
@@ -132,7 +131,7 @@ async function PunishMessage(message: Message, type: PunishmentNames, result: Re
     if (!(type === "RepeatedText" && message.mentions.members.size !== 0)) message.delete();
 
     // call the internal mute function
-    InternalMute(await GetGuild().members.fetchMe(), message.member, GetPunishmentLength(type), GetPunishmentReason(type), result.comment, result.requestID);
+    InternalMute(GetGuild().members.me, message.member, GetPunishmentLength(type), GetPunishmentReason(type), { detail: result.comment, requestID: result.requestID });
 
     return false;
 }
