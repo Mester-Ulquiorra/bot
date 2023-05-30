@@ -1,12 +1,11 @@
 import { EmbedBuilder } from "discord.js";
 import * as path from "path";
-
 import { DBLevel } from "@mester-ulquiorra/commonlib";
-import { fileURLToPath, URL } from "url";
 import SlashCommand from "../types/SlashCommand.js";
 import { browser } from "../Ulquiorra.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import { GetLevelConfig, LevelToXP, XPToLevel, XPToLevelUp } from "../util/LevelUtils.js";
+import { fileURLToPath } from "bun";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 

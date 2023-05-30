@@ -1,6 +1,6 @@
+import { fileURLToPath } from "bun";
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
-import { fileURLToPath, URL } from "url";
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 const accepted_chars = "abcdefghijklmnopqrstuvwxyz ";

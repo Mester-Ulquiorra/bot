@@ -1,14 +1,16 @@
-import { createCanvas, Image } from "canvas";
+import { createCanvas, Image } from "@napi-rs/canvas";
 import * as chess from "chess.js";
 import { format } from "date-fns";
 import { ActionRowBuilder, APISelectMenuOption, ButtonBuilder, ButtonInteraction, ButtonStyle, ComponentType, GuildEmoji, GuildMember, InteractionCollector, Message, StringSelectMenuBuilder } from "discord.js";
 import * as path from "path";
-import { fileURLToPath } from "url";
 import config from "../config.js";
 import SlashCommand from "../types/SlashCommand.js";
-import { SnowFlake } from "../Ulquiorra.js";
+import { logger, SnowFlake } from "../Ulquiorra.js";
 import { GetGuild } from "../util/ClientUtils.js";
 import CreateEmbed from "../util/CreateEmbed.js";
+import { readFileSync } from "fs";
+import { fileURLToPath } from "bun";
+
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 const ChessCommand: SlashCommand = {
@@ -63,6 +65,7 @@ const ChessCommand: SlashCommand = {
                         ChessGame.ActiveGames.set(game.id, game);
                     })
                     .catch((err) => {
+                        logger.log(err, "error");
                         message.edit({
                             embeds: [
                                 CreateEmbed(
@@ -595,6 +598,7 @@ class ChessGame {
                 }
 
                 const image = new Image();
+
                 image.onload = function () {
                     ctx.drawImage(
                         image,
@@ -604,7 +608,8 @@ class ChessGame {
                         pieceSize
                     );
                 };
-                image.src = iconPath;
+
+                image.src = readFileSync(iconPath);
             }
         }
 

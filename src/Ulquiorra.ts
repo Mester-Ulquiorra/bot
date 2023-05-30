@@ -1,6 +1,7 @@
 // canvas must be loaded before sharp is initalized
-import "canvas";
 import { Logger } from "@mester-ulquiorra/commonlib";
+import "@napi-rs/canvas";
+import { fileURLToPath } from "bun";
 import * as deepl from "deepl-node";
 import { Client } from "discord.js";
 import Mongoose from "mongoose";
@@ -15,7 +16,6 @@ import CleanTickets from "./util/CleanTickets.js";
 import { HandleConsoleCommand } from "./util/ConsoleUtils.js";
 import { Register } from "./util/Register.js";
 import ServerStats from "./util/ServerStats.js";
-import { fileURLToPath } from "url";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
@@ -42,7 +42,7 @@ const Ulquiorra = new Client({
         "GuildVoiceStates",
         "GuildMessageReactions",
         "DirectMessages",
-        "MessageContent",
+        "MessageContent"
     ],
     allowedMentions: {
         parse: ["roles", "users"],

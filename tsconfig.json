@@ -1,28 +1,31 @@
 {
     "compilerOptions": {
-        "skipLibCheck": true,
-        "module": "ES2022",
-        "moduleResolution": "nodenext",
-        "target": "ES2022",
+        // add Bun type definitions
+        "types": [
+            "bun-types"
+        ],
+
+        // enable latest features
         "lib": [
-            "ES2022"
+            "esnext"
         ],
-        "typeRoots": [
-            // add path to @types
-            "node_modules/@types"
-        ],
-        "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
-        "outDir": "./build",
-        "removeComments": true,
-        "allowSyntheticDefaultImports": true,
+
+        "module": "esnext",
+        "target": "esnext",
+
+        // if TS 5.x+
+        "moduleResolution": "bundler",
+        "allowImportingTsExtensions": true,
+        "moduleDetection": "force",
+        "noEmit": true,
+        
+        "allowJs": true, // allow importing `.js` from `.ts`
+        "esModuleInterop": true, // allow default imports for CommonJS modules
         "newLine": "lf",
-        "esModuleInterop": true,
-        "paths": {
-            "commonlib": [
-                "./node_modules/commonlib/build/typings.d.ts"
-            ]
-        }
+
+        // best practices
+        "forceConsistentCasingInFileNames": true,
+        "skipLibCheck": true
     },
     "include": [
         "./src/",

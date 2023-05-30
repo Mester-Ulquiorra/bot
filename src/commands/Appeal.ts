@@ -11,6 +11,7 @@ import GetError from "../util/GetError.js";
 import ManageRole from "../util/ManageRole.js";
 import { CreateModEmbed } from "../util/ModUtils.js";
 import { DetectProfanity } from "../util/Reishi/CheckProfanity.js";
+
 const AppealCommand: SlashCommand = {
     name: "appeal",
 
