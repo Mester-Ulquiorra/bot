@@ -176,7 +176,7 @@ async function manageAppeal(interaction: ButtonInteraction, accepted: boolean) {
                 return;
             }
 
-            const targetConfig = await GetUserConfig(target.id);
+            const targetConfig = await GetUserConfig(target.id, "managing a punishment appeal");
 
             switch (punishment.type) {
                 case PunishmentType.Mute: {

@@ -16,7 +16,7 @@ const TicketCommand: SlashCommand = {
     userContextCommandNames: ["Create Ticket"],
 
     async run(interaction: ChatInputCommandInteraction, _client: Client) {
-        const userConfig = await GetUserConfig(interaction.user.id);
+        const userConfig = await GetUserConfig(interaction.user.id, "using the ticket command");
 
         // check if user's mod is 0 (if it is, return)
         if (userConfig.mod === 0) return GetError("Permission");
@@ -51,7 +51,7 @@ const TicketCommand: SlashCommand = {
     },
 
     async runButton(interaction: ButtonInteraction, _client: Client) {
-        const userConfig = await GetUserConfig(interaction.user.id);
+        const userConfig = await GetUserConfig(interaction.user.id, "creating ticket");
 
         if (interaction.customId === "ticket.reopen")
             return reopen(interaction, userConfig);
@@ -151,7 +151,7 @@ const TicketCommand: SlashCommand = {
  */
 async function manageUser(interaction: ChatInputCommandInteraction, target: GuildMember, userConfig: DBUser, type: "ADD" | "REMOVE", reason: string) {
     // get member config
-    const targetConfig = await GetUserConfig(target.id);
+    const targetConfig = await GetUserConfig(target.id, "managing user in ticket");
 
     // check if user can manage member
     if (!CanManageUser(userConfig, targetConfig))

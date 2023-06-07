@@ -1,25 +1,25 @@
-// canvas must be loaded before sharp is initalized
 import { Logger } from "@mester-ulquiorra/commonlib";
-import "@napi-rs/canvas";
-import { fileURLToPath } from "bun";
 import * as deepl from "deepl-node";
+import "discord.js";
 import { Client } from "discord.js";
-import Mongoose from "mongoose";
+import mongoose from "mongoose";
 import { Snowflake } from "nodejs-snowflake";
 import { join } from "path";
 import puppeteer from "puppeteer";
-import { createInterface } from "readline";
+import { fileURLToPath } from "url";
 import config from "./config.js";
 import "./database.js";
+import testMode from "./testMode.js";
 import AutoUnpunish from "./util/AutoUnpunish.js";
 import CleanTickets from "./util/CleanTickets.js";
-import { HandleConsoleCommand } from "./util/ConsoleUtils.js";
 import { Register } from "./util/Register.js";
 import ServerStats from "./util/ServerStats.js";
+import { createInterface } from "readline";
+import { HandleConsoleCommand } from "./util/ConsoleUtils.js";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-
 const logger = new Logger(join(__dirname, "..", "logs"));
+
 // this is a really bad way of avoiding errors, but it is what it is
 process.on("uncaughtException", (error) => {
     logger.log(`An uncaught exception has occured, ignoring, but may cause issues...\n${error.stack}`, "warn");
@@ -30,9 +30,9 @@ process.on("exit", () => {
 });
 
 console.time("Boot");
-logger.log("And thus, an Espada was born...");
+logger.log(`And thus, ${testMode ? "a testing" : "an"} Espada was born...`);
 
-/* ------ Set up client and MongoDB ------ */
+/* ------ Set up client ------ */
 const Ulquiorra = new Client({
     intents: [
         "Guilds",
@@ -49,11 +49,12 @@ const Ulquiorra = new Client({
         repliedUser: true
     }
 });
+
 // ------------------------------------------
+
 
 const SnowFlake = new Snowflake({ custom_epoch: config.SnowflakeEpoch });
 const DeeplTranslator = new deepl.Translator(config.DANGER.DEEPL_KEY);
-
 // Set up puppeteer
 const browser = await puppeteer.launch({
     headless: "new",
@@ -65,8 +66,12 @@ const browser = await puppeteer.launch({
 function shutdown(reason: string) {
     logger.log(`Shutting down client: ${reason}`, "fatal");
     Ulquiorra.destroy();
-    Mongoose.disconnect();
+    mongoose.disconnect();
     process.exit(1);
+}
+
+function GetResFolder() {
+    return join(__dirname, "..", "res");
 }
 
 logger.log("Loading commands and events...");
@@ -77,26 +82,28 @@ Register(
     join(__dirname, "events"),
     join(__dirname, "consolecommands"),
     Ulquiorra
-).then(() => {
-    Ulquiorra.login(config.DANGER.TOKEN).then(async () => {
-        setInterval(() => {
-            Ulquiorra.user.setActivity({
-                name: `Version ${config.Version}`,
-            });
-        }, 1000 * 60 * 60); // 1 hour
+).then(async () => {
+    if (testMode) Ulquiorra.on("debug", msg => logger.log(`DEBUG: ${msg}`, "warn"));
+    logger.log("Logging in...");
+    await Ulquiorra.login(config.DANGER.TOKEN);
 
-        setInterval(() => {
-            ServerStats();
-        }, 1000 * 60 * 10); // 10 minutes
+    setInterval(() => {
+        Ulquiorra.user.setActivity({
+            name: `Version ${config.Version}`,
+        });
+    }, 1000 * 60 * 60); // 1 hour
 
-        setInterval(() => {
-            CleanTickets();
-        }, 1000 * 60 * 10); // 10 minutes
+    setInterval(() => {
+        ServerStats();
+    }, 1000 * 60 * 10); // 10 minutes
 
-        setInterval(() => {
-            AutoUnpunish();
-        }, 1000 * 60); // 1 minute
-    });
+    setInterval(() => {
+        CleanTickets();
+    }, 1000 * 60 * 10); // 10 minutes
+
+    setInterval(() => {
+        AutoUnpunish();
+    }, 1000 * 60); // 1 minute
 
     const rl = createInterface({
         input: process.stdin,
@@ -110,6 +117,6 @@ Register(
 });
 
 export {
-    DeeplTranslator, SnowFlake, browser, logger, shutdown
+    DeeplTranslator, SnowFlake, browser, logger, shutdown, GetResFolder
 };
 export default Ulquiorra;

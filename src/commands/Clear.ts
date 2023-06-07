@@ -10,7 +10,7 @@ import { ModNameToLevel } from "../util/ModUtils.js";
 const ClearCommmand: SlashCommand = {
     name: "clear",
     async run(interaction, client) {
-        const userConfig = await GetUserConfig(interaction.user.id);
+        const userConfig = await GetUserConfig(interaction.user.id, "clearing messages");
         if (userConfig.mod < ModNameToLevel("Head")) return GetError("InsufficentModLevel");
 
         await interaction.deferReply({ ephemeral: true });

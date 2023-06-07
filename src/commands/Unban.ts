@@ -15,7 +15,7 @@ const UnbanCommand: SlashCommand = {
         const target = interaction.options.getUser("member");
         const reason = interaction.options.getString("reason") ?? "no reason provided";
 
-        const userConfig = await GetUserConfig(interaction.user.id);
+        const userConfig = await GetUserConfig(interaction.user.id, "unban a user");
         if (userConfig.mod == 0) return GetError("Permission");
         if (!CanPerformPunishment(userConfig, PunishmentType.Ban, 0)) // only head mods and higher can unban
             return GetError("InsufficentModLevel");

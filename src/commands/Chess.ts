@@ -2,14 +2,15 @@ import { createCanvas, Image } from "@napi-rs/canvas";
 import * as chess from "chess.js";
 import { format } from "date-fns";
 import { ActionRowBuilder, APISelectMenuOption, ButtonBuilder, ButtonInteraction, ButtonStyle, ComponentType, GuildEmoji, GuildMember, InteractionCollector, Message, StringSelectMenuBuilder } from "discord.js";
+import { readFileSync } from "fs";
 import * as path from "path";
+import { fileURLToPath } from "url";
 import config from "../config.js";
 import SlashCommand from "../types/SlashCommand.js";
-import { logger, SnowFlake } from "../Ulquiorra.js";
+import { GetResFolder, SnowFlake } from "../Ulquiorra.js";
 import { GetGuild } from "../util/ClientUtils.js";
+import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed from "../util/CreateEmbed.js";
-import { readFileSync } from "fs";
-import { fileURLToPath } from "bun";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
@@ -23,6 +24,10 @@ const ChessCommand: SlashCommand = {
 
                 if (member.id === interaction.user.id)
                     return "You can't play against yourself.";
+
+                // check if the user has game invites enabled
+                const userConfig = await GetUserConfig(member.id, "starting chess game");
+                if (!userConfig.settings.allowGameInvites) return "That user has disabled game invites.";
 
                 // check if either the user or the member is in a game
                 if (
@@ -64,8 +69,7 @@ const ChessCommand: SlashCommand = {
                         // add the game to the map
                         ChessGame.ActiveGames.set(game.id, game);
                     })
-                    .catch((err) => {
-                        logger.log(err, "error");
+                    .catch(() => {
                         message.edit({
                             embeds: [
                                 CreateEmbed(
@@ -742,7 +746,7 @@ class ChessGame {
         if (ChessGame.IconCache) return ChessGame.IconCache;
 
         // the chess icons are in <main-folder>/res/chess
-        const chessDir = path.join(__dirname, "..", "res", "chess");
+        const chessDir = path.join(GetResFolder(), "chess");
 
         ChessGame.IconCache = {
             W_PAWN: path.join(chessDir, "W_PAWN.png"),

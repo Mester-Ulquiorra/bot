@@ -20,7 +20,7 @@ const protectionCache = new Map<string, ProtectionMemory>();
 
 export default async function (message: Message<true>): Promise<ReishiEvaluation> {
     // check if the user is a mod or they have the protected role
-    const userConfig = await GetUserConfig(message.author.id);
+    const userConfig = await GetUserConfig(message.author.id, "detecting protected ping");
     if (userConfig.mod !== 0 || message.member.roles.cache.has(config.roles.Protected)) return null;
 
     // check if the message contains a mention with the protected role

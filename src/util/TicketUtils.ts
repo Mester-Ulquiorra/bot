@@ -33,7 +33,7 @@ export async function CreateTicket(
         // if usersToAdd is empty, we used the button and not the user context command
         mod: usersToAdd.length === 0 ? "-1" : ticketOwner.id,
         waitingfor: usersToAdd.length === 0 ? WaitingforFromType(type) : 0,
-        modlevel: usersToAdd.length === 0 ? 0 : (await GetUserConfig(ticketOwner.id)).mod
+        modlevel: usersToAdd.length === 0 ? 0 : (await GetUserConfig(ticketOwner.id, "creating ticket")).mod
     });
 
     // add the users to the ticket config

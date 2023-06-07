@@ -55,8 +55,8 @@ interface AdvancedMuteOptions {
 export async function InternalMute(mod: GuildMember, target: GuildMember, duration: number, reason: string, options: AdvancedMuteOptions = {}) {
     if (!target) return GetError("UserUnavailable");
 
-    const userConfig = await GetUserConfig(mod.user.id);
-    const targetConfig = await GetUserConfig(target.id);
+    const userConfig = await GetUserConfig(mod.user.id, "muting user");
+    const targetConfig = await GetUserConfig(target.id, "muting user");
 
     if (!CanPerformPunishment(userConfig, PunishmentType.Mute, duration)) return GetError("InsufficentModLevel");
     if (!CanManageUser(userConfig, targetConfig) || target.user.bot) return GetError("BadUser");

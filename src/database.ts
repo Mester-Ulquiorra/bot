@@ -1,8 +1,9 @@
 import Mongoose from "mongoose";
 import { join } from "path";
+import { fileURLToPath } from "url";
 import { logger } from "./Ulquiorra.js";
 import config from "./config.js";
-import { fileURLToPath } from "bun";
+
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 Mongoose.set("strictQuery", false);

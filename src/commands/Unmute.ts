@@ -21,10 +21,10 @@ const UnmuteCommand: SlashCommand = {
         const reason = interaction.options.getString("reason") ?? "no reason provided";
 
         // get user and member config
-        const userConfig = await GetUserConfig(interaction.user.id);
+        const userConfig = await GetUserConfig(interaction.user.id, "unmuting a user");
         if (!CanPerformPunishment(userConfig, PunishmentType.Mute, 259201)) // only level 3 and higher can unmute
             return GetError("InsufficentModLevel");
-        const targetConfig = await GetUserConfig(target.id);
+        const targetConfig = await GetUserConfig(target.id, "unmute a user");
 
         // check if user can manage member
         if (!CanManageUser(userConfig, targetConfig) || target.user.bot) return GetError("BadUser");

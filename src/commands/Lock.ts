@@ -23,7 +23,7 @@ const LockCommand: SlashCommand = {
         const unlock = interaction.options.getSubcommand() === "unlock";
 
         // get the user's config
-        const userConfig = await GetUserConfig(interaction.user.id);
+        const userConfig = await GetUserConfig(interaction.user.id, "locking channel");
 
         // only head mods and higher can lock channels
         // only admins can lock all channels

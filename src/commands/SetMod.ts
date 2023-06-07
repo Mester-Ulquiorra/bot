@@ -16,8 +16,8 @@ const SetModCommand: SlashCommand = {
         const modLevel = interaction.options.getInteger("modlevel");
         const reason = interaction.options.getString("reason") ?? "no reason provided";
 
-        const userConfig = await GetUserConfig(interaction.user.id);
-        const targetConfig = await GetUserConfig(target.id);
+        const userConfig = await GetUserConfig(interaction.user.id, "changing mod level of user");
+        const targetConfig = await GetUserConfig(target.id, "changing mode level of user");
 
         if (!CanManageUser(userConfig, targetConfig) || userConfig.mod < ModNameToLevel("Head"))
             return GetError("BadUser");

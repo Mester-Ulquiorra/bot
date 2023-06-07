@@ -1,5 +1,6 @@
 import SlashCommand from "../types/SlashCommand.js";
 import SteamStatsCommand from "./Stats/Steam.js";
+
 const StatsCommand: SlashCommand = {
     name: "stats",
 

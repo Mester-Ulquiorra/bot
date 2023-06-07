@@ -8,7 +8,7 @@ const SlowmodeCommand: SlashCommand = {
     name: "slowmode",
 
     async run(interaction, _client) {
-        const userConfig = await GetUserConfig(interaction.user.id);
+        const userConfig = await GetUserConfig(interaction.user.id, "setting slowmode");
         if (userConfig.mod < ModNameToLevel("Head")) return GetError("Permission");
 
         // get the duration format and try to convert it

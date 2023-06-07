@@ -7,6 +7,7 @@ import { GetGuild } from "../util/ClientUtils.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import { CalculateMaxPage } from "../util/MathUtils.js";
+import { GetUserConfig } from "../util/ConfigHelper.js";
 
 const ActiveGames = new Map<string, TicTacToeGame>();
 
@@ -71,9 +72,12 @@ async function play(interaction: ChatInputCommandInteraction) {
     const member = interaction.options.getMember("member") as GuildMember;
     if (!member) return GetError("UserUnavailable");
 
-
     if (member.id === interaction.user.id)
         return "You can't play against yourself.";
+
+    // check if the user has game invites enabled
+    const userConfig = await GetUserConfig(member.id, "starting tictactoe game");
+    if(!userConfig.settings.allowGameInvites) return "That user has disabled game invites.";
 
     // check if either the user or the member is in a game
     if (

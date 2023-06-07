@@ -33,8 +33,8 @@ const KickCommand: SlashCommand = {
 export async function InternalKick(mod: GuildMember, target: GuildMember, reason: string) {
     if (!target) return GetError("UserUnavailable");
 
-    const userConfig = await GetUserConfig(mod.id);
-    const targetConfig = await GetUserConfig(target.id);
+    const userConfig = await GetUserConfig(mod.id, "kicking user");
+    const targetConfig = await GetUserConfig(target.id, "kicking user");
 
     if (!CanManageUser(userConfig, targetConfig) || target.user.bot || !target.kickable) return GetError("BadUser");
 

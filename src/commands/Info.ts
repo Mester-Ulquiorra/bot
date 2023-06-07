@@ -34,7 +34,7 @@ const InfoCommand: SlashCommand = {
 
     async run(interaction: ChatInputCommandInteraction, client: Client) {
         // get user config
-        const userConfig = await GetUserConfig(interaction.user.id);
+        const userConfig = await GetUserConfig(interaction.user.id, "using info command");
 
         // check if user's mod is 0
         if (userConfig.mod === 0) return GetError("Permission");

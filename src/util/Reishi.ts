@@ -31,7 +31,7 @@ export async function CheckMessage(message: Message) {
     if (!message.inGuild()) return false;
 
     // check if the user is a mod
-    const userConfig = await GetUserConfig(message.author.id);
+    const userConfig = await GetUserConfig(message.author.id, "checking message");
     if (userConfig.mod > 0 && !testMode) return true;
 
     // check if the message's channel is an absolute no search channel

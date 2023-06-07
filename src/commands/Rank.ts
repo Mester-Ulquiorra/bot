@@ -1,15 +1,15 @@
+import { DBLevel } from "@mester-ulquiorra/commonlib";
 import { EmbedBuilder } from "discord.js";
 import * as path from "path";
-import { DBLevel } from "@mester-ulquiorra/commonlib";
+import { fileURLToPath } from "url";
+import { GetResFolder, browser } from "../Ulquiorra.js";
 import SlashCommand from "../types/SlashCommand.js";
-import { browser } from "../Ulquiorra.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import { GetLevelConfig, LevelToXP, XPToLevel, XPToLevelUp } from "../util/LevelUtils.js";
-import { fileURLToPath } from "bun";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
-const htmlFilePath = path.join(__dirname, "..", "res", "rank", "rankTemplate.html");
+const htmlFilePath = path.join(GetResFolder(), "rank", "rankTemplate.html");
 
 const RankCommand: SlashCommand = {
     name: "rank",

@@ -10,9 +10,10 @@ import { formatDurationFromMinutes } from "../../util/MiscUtils.js";
 const regionf = new Intl.DisplayNames("en-UK", { type: "region" });
 
 const steam = new SteamAPI(config.DANGER.STEAM_API_KEY);
-const cachedApps = (await steam.getAppList())
+const cachedApps = steam.getAppList().then(apps => apps
     .filter(app => app.name !== "")
-    .sort((a, b) => a.appid - b.appid);
+    .sort((a, b) => a.appid - b.appid)
+);
 
 const SteamStatsCommand: SlashCommand = {
     name: "_",
@@ -32,7 +33,7 @@ const SteamStatsCommand: SlashCommand = {
     },
 
     async runAutocomplete(interaction, client) {
-        const apps = cachedApps.filter(app => app.name.toLowerCase().includes(interaction.options.getString("app").toLowerCase())).slice(0, 25);
+        const apps = (await cachedApps).filter(app => app.name.toLowerCase().includes(interaction.options.getString("app").toLowerCase())).slice(0, 25);
         interaction.respond(apps.map(app => { return { name: app.name.slice(0, 100), value: app.appid.toString() }; }));
     }
 };
@@ -147,7 +148,7 @@ async function getSteamApp(interaction: ChatInputCommandInteraction, client: Cli
 
     if (testMode) console.log(details);
 
-    const embed = CreateEmbed(`**Information about ${cachedApps.find(a => a.appid === Number.parseInt(appId)).name}** ${hyperlink("Steam Store", `https://store.steampowered.com/app/${appId}`)}`);
+    const embed = CreateEmbed(`**Information about ${(await cachedApps).find(a => a.appid === Number.parseInt(appId)).name}** ${hyperlink("Steam Store", `https://store.steampowered.com/app/${appId}`)}`);
     embed.addFields(
         {
             name: "Description",
@@ -184,7 +185,7 @@ async function getSteamApp(interaction: ChatInputCommandInteraction, client: Cli
     if (Array.isArray(details.dlc)) {
         const dlcFinal = new Array<string>();
         for (let i = 0; i < details.dlc.length; i++) {
-            const dlc = cachedApps.find(a => a.appid === details.dlc[i]);
+            const dlc = (await cachedApps).find(a => a.appid === details.dlc[i]);
             if (dlc) dlcFinal.push(hyperlink(dlc.name + (i + 1).toString(), `https://store.steampowered.com/app/${details.dlc[i]}`));
         }
         embed.addFields({ name: "DLCs", value: dlcFinal.join(" ") });

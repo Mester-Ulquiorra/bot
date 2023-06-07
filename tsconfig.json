@@ -2,7 +2,8 @@
     "compilerOptions": {
         // add Bun type definitions
         "types": [
-            "bun-types"
+            //"bun-types",
+            "node"
         ],
 
         // enable latest features
@@ -14,10 +15,12 @@
         "target": "esnext",
 
         // if TS 5.x+
-        "moduleResolution": "bundler",
-        "allowImportingTsExtensions": true,
+        "moduleResolution": "nodenext",
+        //"allowImportingTsExtensions": true,
         "moduleDetection": "force",
-        "noEmit": true,
+        //"noEmit": true,
+
+        "outDir": "./build/",
         
         "allowJs": true, // allow importing `.js` from `.ts`
         "esModuleInterop": true, // allow default imports for CommonJS modules

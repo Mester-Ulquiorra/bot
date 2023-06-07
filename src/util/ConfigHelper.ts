@@ -1,6 +1,6 @@
 import { logger } from "../Ulquiorra.js";
 import UserConfig from "../database/UserConfig.js";
-export const GetUserConfig = async (userId: string, reason?: string, create = true) => {
+export const GetUserConfig = async (userId: string, reason: string, create = true) => {
     // try to get the user config, if it fails, create a new one
     const userConfig = await UserConfig.findOne({ userId });
 

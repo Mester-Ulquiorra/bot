@@ -21,8 +21,8 @@ const WarnCommand: SlashCommand = {
 
         const reason = interaction.options.getString("reason") ?? "no reason provided";
 
-        const userConfig = await GetUserConfig(interaction.user.id);
-        const targetConfig = await GetUserConfig(target.id);
+        const userConfig = await GetUserConfig(interaction.user.id, "warning a user");
+        const targetConfig = await GetUserConfig(target.id, "warning a user");
 
         if (!CanManageUser(userConfig, targetConfig) || target.user.bot) return GetError("BadUser");
 

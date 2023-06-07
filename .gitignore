@@ -4,6 +4,8 @@
 .scannerwork
 archive
 
+build
+
 package-lock.json
 *.pem
 sonar-project.properties
@@ -16,8 +18,7 @@ node_modules
 coverage
 logs
 
-build/*
-!build/res/
-
 bunfig.toml
 bun.lockb
+
+src/test.ts

@@ -1,7 +1,8 @@
-import { fileURLToPath } from "bun";
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
-const __dirname = fileURLToPath(new URL(".", import.meta.url));
+import { GetResFolder } from "../../Ulquiorra.js";
+
+const resRoot = join(GetResFolder(), "gibberish");
 
 const accepted_chars = "abcdefghijklmnopqrstuvwxyz ";
 
@@ -43,7 +44,7 @@ function train() {
     //Count transitions from big text file, taken
     //from http://norvig.com/spell-correct.html
     const lines =
-        readFileSync(join(__dirname, trainFile))
+        readFileSync(join(resRoot, trainFile))
             .toString("utf8")
             .split("\n");
     //
@@ -76,7 +77,7 @@ function train() {
     //Find the probability of generating a few arbitrarily choosen good and
     //bad phrases.
     const good_lines =
-        readFileSync(join(__dirname, goodFile))
+        readFileSync(join(resRoot, goodFile))
             .toString("utf8")
             .split("\n");
     const good_probs = [];
@@ -87,7 +88,7 @@ function train() {
     }
 
     const bad_lines =
-        readFileSync(join(__dirname, badFile))
+        readFileSync(join(resRoot, badFile))
             .toString("utf8")
             .split("\n");
     const bad_probs = new Array<number>();
@@ -113,7 +114,7 @@ function train() {
 
     //save matrix
     writeFileSync(
-        join(__dirname, modelFile),
+        join(resRoot, modelFile),
         JSON.stringify({
             matrix: log_prob_matrix,
             threshold: threshold,
@@ -144,8 +145,8 @@ function averageTransitionProbability(line: string, log_prob_matrix: number[][])
 let model_data: { matrix?: number[][], threshold?: number } = {};
 
 try {
-    if (!existsSync(join(__dirname, modelFile))) train();
-    model_data = JSON.parse(readFileSync(join(__dirname, modelFile)).toString("utf8"));
+    if (!existsSync(join(resRoot, modelFile))) train();
+    model_data = JSON.parse(readFileSync(join(resRoot, modelFile)).toString("utf8"));
 } catch (e) {
     console.log(e);
 }

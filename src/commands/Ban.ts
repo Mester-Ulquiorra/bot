@@ -24,10 +24,10 @@ const BanCommand: SlashCommand = {
         if (isNaN(duration)) return GetError("Duration");
 
         // get the user config for both the interaction and the target user
-        const userConfig = await GetUserConfig(interaction.user.id);
+        const userConfig = await GetUserConfig(interaction.user.id, "banning user");
         if (!CanPerformPunishment(userConfig, PunishmentType.Ban, duration)) return GetError("InsufficentModLevel");
 
-        const targetConfig = await GetUserConfig(target.id);
+        const targetConfig = await GetUserConfig(target.id, "banning user");
 
         // check if the user can manage the member
         if (!CanManageUser(userConfig, targetConfig) || target.user.bot || !target.bannable) return GetError("BadUser");
