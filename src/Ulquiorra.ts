@@ -16,6 +16,7 @@ import { Register } from "./util/Register.js";
 import ServerStats from "./util/ServerStats.js";
 import { createInterface } from "readline";
 import { HandleConsoleCommand } from "./util/ConsoleUtils.js";
+import "./util/Internal.js";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const logger = new Logger(join(__dirname, "..", "logs"));
@@ -51,7 +52,6 @@ const Ulquiorra = new Client({
 });
 
 // ------------------------------------------
-
 
 const SnowFlake = new Snowflake({ custom_epoch: config.SnowflakeEpoch });
 const DeeplTranslator = new deepl.Translator(config.DANGER.DEEPL_KEY);

@@ -22,6 +22,7 @@ const IgnoredIds: Array<RegExp> = [
     /^steam\..+/,
     /automod\.approve/,
     /automod\.deny/,
+    /chatbot\..+/
 ];
 
 const InteractionCreateEvent: Event = {

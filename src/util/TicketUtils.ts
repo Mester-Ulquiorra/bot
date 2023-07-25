@@ -7,6 +7,7 @@ import { GetGuild } from "./ClientUtils.js";
 import { GetUserConfig } from "./ConfigHelper.js";
 import CreateEmbed from "./CreateEmbed.js";
 import { ModName, ModNameToId, ModNameToLevel } from "./ModUtils.js";
+
 export async function CreateTicket(
     ticketOwner: GuildMember,
     reason = "no reason provided",

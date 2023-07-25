@@ -22,3 +22,5 @@ bunfig.toml
 bun.lockb
 
 src/test.ts
+
+.npmrc

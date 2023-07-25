@@ -29,27 +29,32 @@ const MessageDeleteEvent: Event = {
 
         const repliedWithPing = repliedMessage != null && message.mentions.has(message.mentions.repliedUser) ? `Yes` : "No";
 
+        let realContent = message.content;
+        // this weird thing appends "..." to the end of the message content if it's too long
+        if (realContent.length > MaxContentLength) realContent = `${realContent.substring(0, MaxContentLength)}...`;
+
         // create the embed
-        const embed = CreateEmbed(`**Message sent by ${message.author} has been deleted in ${message.channel}**`)
-            .addFields([
-                {
+        const embed = CreateEmbed(`**Message sent by ${message.author} has been deleted in ${message.channel}**`);
+        if (realContent.length > 0)
+            embed
+                .addFields({
                     name: "Content",
-                    // this weird thing appends "..." to the end of the message content if it's too long
-                    value: message.content.length > MaxContentLength
-                        ? `${message.content.substring(0, MaxContentLength)}...`
-                        : message.content,
+                    value: realContent,
                     inline: false,
-                },
-                {
-                    name: "Replied to a message? (with ping?)",
-                    // 3 outcomes: Yes (Yes), Yes (No) or No
-                    value:
-                        repliedMessage != null
-                            ? `Yes (${repliedWithPing}) ([Jump to message](${repliedMessage.url}))`
-                            : "No",
-                    inline: true,
-                },
-            ])
+                });
+
+        embed.addFields({
+            name:
+                repliedMessage != null
+                    ? "Replied to a message? (with ping?)"
+                    : "Replied to a message?",
+            // 3 outcomes: Yes (Yes), Yes (No) or No
+            value:
+                repliedMessage != null
+                    ? `Yes (${repliedWithPing}) ([Jump to message](${repliedMessage.url}))`
+                    : "No",
+            inline: true,
+        })
             .setFooter({
                 text:
                     `Member ID: ${message.author.id} | Message ID: ${message.id} `
@@ -61,17 +66,19 @@ const MessageDeleteEvent: Event = {
             });
 
         // create the field for attachments
-        const attachments = message.attachments.map((attachment) => attachment.url || "#error#");
+        const attachments = message.attachments.map((attachment) => {
+            return attachment.url ?? "#error#";
+        });
 
         // if there are attachments, add the field
         if (attachments.length > 0)
-            embed.addFields([
+            embed.addFields(
                 {
                     name: "Attachments",
                     value: attachments.join("\n"),
                     inline: false,
                 },
-            ]);
+            );
 
         // finally, get the message log channel and send the embed
         GetSpecialChannel("MessageLog").send({ embeds: [embed] });

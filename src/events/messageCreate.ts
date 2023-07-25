@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, Message, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, TextChannel } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, ComponentType, Message, TextChannel } from "discord.js";
 import openai from "openai";
 import { shutdown } from "../Ulquiorra.js";
 import config from "../config.js";
@@ -9,6 +9,7 @@ import { GetXPFromMessage } from "../util/LevelUtils.js";
 import { CreateAppealButton } from "../util/ModUtils.js";
 import { CheckMessage } from "../util/Reishi.js";
 import { CreateTicket, TicketTypeToName } from "../util/TicketUtils.js";
+import { GetUserConfig } from "../util/ConfigHelper.js";
 
 const openAIClient = new openai.OpenAIApi(new openai.Configuration({
     apiKey: config.DANGER.OPENAI_KEY,
@@ -24,9 +25,7 @@ If the user wants to play some games (we have chess, tictactoe, trivia), redirec
 const MessageCreateEvent: Event = {
     name: "messageCreate",
     async run(client: Client, message: Message) {
-        if (config.SuperUsers.includes(message.author.id))
-            //eslint-disable-next-line
-            var usedSuperuser = await handleSuperuserCommand(client, message);
+        const usedSuperuser = config.SuperUsers.includes(message.author.id) ? await handleSuperuserCommand(client, message) : false;
 
         // only calculate xp if the message is not blocked by Reishi
         CheckMessage(message)
@@ -35,8 +34,57 @@ const MessageCreateEvent: Event = {
                 GetXPFromMessage(message);
             });
 
-        if (message.content.startsWith(client.user.toString() + " ") && !usedSuperuser)
+        // start the chatbot
+        if (message.content.startsWith(client.user.toString() + " ") && !usedSuperuser) {
+            const userConfig = await GetUserConfig(message.author.id, "replying to message as chatbot");
+
+            if (userConfig.settings.chatbotFirstTime) {
+                // show a warning first
+                const embed = CreateEmbed(
+                    `**Warning: this chatbot is still in beta, so it might not work as expected.**\n
+                    It might say false information, especially about how to use channels and commands.
+                    You must first agree you've read and understood this warning before using the chatbot.`
+                ).setFooter({ text: "You have 30 seconds to choose an option" });
+
+                const components = [
+                    new ActionRowBuilder<ButtonBuilder>()
+                        .addComponents([
+                            new ButtonBuilder()
+                                .setCustomId("chatbot.agree")
+                                .setLabel("I agree")
+                                .setStyle(ButtonStyle.Primary),
+                            new ButtonBuilder()
+                                .setCustomId("chatbot.disagree")
+                                .setLabel("I disagree")
+                                .setStyle(ButtonStyle.Danger)
+                        ])
+                ];
+
+                /**
+                 * This is really simple, we create two buttons and return true if the user clicked the agree button.
+                 */
+                const acceptedWarning = await message.reply({
+                    embeds: [embed],
+                    components
+                }).then((botMessage) => {
+                    return botMessage.awaitMessageComponent({
+                        filter: (i) => i.user.id === message.author.id && i.customId.startsWith("chatbot."),
+                        time: 30_000,
+                        componentType: ComponentType.Button
+                    }).then((decision) => {
+                        decision.deferUpdate();
+                        return decision.customId === "chatbot.agree";
+                    }).catch(() => false).finally(() => { botMessage.delete(); });
+                });
+
+                if (!acceptedWarning) return;
+
+                userConfig.settings.chatbotFirstTime = false;
+                await userConfig.save();
+            }
+
             replyToConversation(message);
+        }
     }
 };
 
@@ -130,38 +178,6 @@ async function handleSuperuserCommand(client: Client, message: Message) {
 
         return true;
     }
-
-    if (command === "send-selfroles") {
-        (GetGuild().channels.cache.get(config.channels.SelfRoles) as TextChannel)
-            .send({
-                embeds: [
-                    CreateEmbed(`**Feel free to pick any roles you want.\nThese roles give you access to certain pings or colors (well, that will come later)!**`)
-                ],
-                components: [
-                    new ActionRowBuilder<StringSelectMenuBuilder>().setComponents(
-                        new StringSelectMenuBuilder()
-                            .setCustomId("selfroles.select")
-                            .setMaxValues(1)
-                            .setOptions(
-                                new StringSelectMenuOptionBuilder()
-                                    .setLabel("Ping for bot updates")
-                                    .setEmoji({ name: "🤖" })
-                                    .setValue("botupdate"),
-                                new StringSelectMenuOptionBuilder()
-                                    .setLabel("Ping for announcements")
-                                    .setEmoji({ name: "📢" })
-                                    .setValue("announcement"),
-                                new StringSelectMenuOptionBuilder()
-                                    .setLabel("Ping for giveaways")
-                                    .setEmoji({ name: "💰" })
-                                    .setValue("giveaway"),
-                            )
-                    )
-                ]
-            });
-
-        return true;
-    }
 }
 
 const conversations = new Map<string, { messages: openai.ChatCompletionRequestMessage[], last: number }>();
@@ -188,10 +204,8 @@ async function replyToConversation(message: Message) {
         messages: conversation.messages
     });
 
-    let reply = response.data.choices[0]?.message?.content;
+    const reply = response.data.choices[0]?.message?.content;
     if (!reply) return message.reply("__An unexpected error has happened__");
-
-    reply += `\nWarning: this is an experimental feature. It might say false information, especially about how to use the commands.`;
 
     // add the reply to the conversation
     conversation.messages.push({ content: reply, role: "assistant" });

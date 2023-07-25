@@ -10,8 +10,7 @@ Mongoose.set("strictQuery", false);
 Mongoose.set("setDefaultsOnInsert", true);
 Mongoose.connect(`mongodb+srv://${config.DANGER.DB_URL}/${config.DANGER.DB_NAME}`, {
     authMechanism: "MONGODB-X509",
-    sslCert: join(__dirname, "..", config.DANGER.DB_KEY),
-    sslKey: join(__dirname, "..", config.DANGER.DB_KEY),
+    tlsCertificateKeyFile: join(__dirname, "..", config.DANGER.DB_KEY),
     retryWrites: true,
     writeConcern: {
         w: "majority"
@@ -19,5 +18,5 @@ Mongoose.connect(`mongodb+srv://${config.DANGER.DB_URL}/${config.DANGER.DB_NAME}
 }).catch((err) => {
     logger.log("An error has happened while trying to connect to the database, which is a fatal issue. Terminating...", "fatal");
     logger.log(err, "fatal");
-    process.exit();
+    process.exit(1);
 });
