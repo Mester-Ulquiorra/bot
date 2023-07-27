@@ -11,38 +11,39 @@ import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import ManageRole from "../util/ManageRole.js";
 import { CanManageUser, CanPerformPunishment, CreateModEmbed } from "../util/ModUtils.js";
+
 const MuteCommand: SlashCommand = {
-    name: "mute",
+	name: "mute",
 
-    async run(interaction, _client) {
-        const target = interaction.options.getMember("member") as GuildMember;
-        const reason = interaction.options.getString("reason") ?? "no reason provided";
-        const duration = ConvertDuration(interaction.options.getString("duration"));
-        if (isNaN(duration)) return GetError("Duration");
+	async run(interaction, _client) {
+		const target = interaction.options.getMember("member") as GuildMember;
+		const reason = interaction.options.getString("reason") ?? "no reason provided";
+		const duration = ConvertDuration(interaction.options.getString("duration"));
+		if (isNaN(duration)) return GetError("Duration");
 
-        const punishment = await InternalMute(interaction.member as GuildMember, target, duration, reason);
-        if (typeof punishment === "string") return punishment;
+		const punishment = await InternalMute(interaction.member as GuildMember, target, duration, reason);
+		if (typeof punishment === "string") return punishment;
 
-        const channelEmbed = CreateEmbed(`${target} has been muted: **${reason}**`);
-        const replyEmbed = CreateModEmbed(interaction.user, target.user, punishment);
+		const channelEmbed = CreateEmbed(`${target} has been muted: **${reason}**`);
+		const replyEmbed = CreateModEmbed(interaction.user, target.user, punishment);
 
-        interaction.channel.sendTyping().then(() => {
-            interaction.channel.send({ embeds: [channelEmbed] });
-        });
+		interaction.channel.sendTyping().then(() => {
+			interaction.channel.send({ embeds: [channelEmbed] });
+		});
 
-        interaction.reply({ embeds: [replyEmbed], ephemeral: true });
-    }
+		interaction.reply({ embeds: [replyEmbed], ephemeral: true });
+	},
 };
 
 interface AdvancedMuteOptions {
-    /**
-     * Extra details of the mute, used by automod to show what triggered the mute
-     */
-    detail?: string;
-    /**
-     * Only used for AI automod, contains a custom request ID used for identifying the chat completion session
-     */
-    requestID?: string;
+	/**
+	 * Extra details of the mute, used by automod to show what triggered the mute
+	 */
+	detail?: string;
+	/**
+	 * Only used for AI automod, contains a custom request ID used for identifying the chat completion session
+	 */
+	requestID?: string;
 }
 
 /**
@@ -52,44 +53,57 @@ interface AdvancedMuteOptions {
  * @param duration The duration of the mute
  * @param reason The reason of the mute
  */
-export async function InternalMute(mod: GuildMember, target: GuildMember, duration: number, reason: string, options: AdvancedMuteOptions = {}) {
-    if (!target) return GetError("UserUnavailable");
+export async function InternalMute(
+	mod: GuildMember,
+	target: GuildMember,
+	duration: number,
+	reason: string,
+	options: AdvancedMuteOptions = {}
+) {
+	if (!target) return GetError("UserUnavailable");
 
-    const userConfig = await GetUserConfig(mod.user.id, "muting user");
-    const targetConfig = await GetUserConfig(target.id, "muting user");
+	const userConfig = await GetUserConfig(mod.user.id, "muting user");
+	const targetConfig = await GetUserConfig(target.id, "muting user");
 
-    if (!CanPerformPunishment(userConfig, PunishmentType.Mute, duration)) return GetError("InsufficentModLevel");
-    if (!CanManageUser(userConfig, targetConfig) || target.user.bot) return GetError("BadUser");
+	if (!CanPerformPunishment(userConfig, PunishmentType.Mute, duration)) return GetError("InsufficentModLevel");
+	if (!CanManageUser(userConfig, targetConfig) || target.user.bot) return GetError("BadUser");
 
-    if (targetConfig.muted && (await ManageRole(target, config.roles.Muted, "Check"))) return "Member is already muted";
+	if (targetConfig.muted && (await ManageRole(target, config.roles.Muted, "Check"))) return "Member is already muted";
 
-    const punishmentId = SnowFlake.getUniqueID().toString();
+	const punishmentId = SnowFlake.getUniqueID().toString();
 
-    const punishment = await PunishmentConfig.create({
-        punishmentId,
-        user: target.id,
-        mod: mod.user.id,
-        type: PunishmentType.Mute,
-        reason,
-        at: Math.floor(Date.now() / 1000),
-        until: duration === -1 ? -1 : Math.floor(Date.now() / 1000) + duration,
-        automated: mod.user.bot
-    });
+	const punishment = await PunishmentConfig.create({
+		punishmentId,
+		user: target.id,
+		mod: mod.user.id,
+		type: PunishmentType.Mute,
+		reason,
+		at: Math.floor(Date.now() / 1000),
+		until: duration === -1 ? -1 : Math.floor(Date.now() / 1000) + duration,
+		automated: mod.user.bot,
+	});
 
-    ManageRole(target, config.roles.Muted, "Add", `Muted by ${mod.user.tag}: ${reason}`);
+	ManageRole(target, config.roles.Muted, "Add", `Muted by ${mod.user.tag}: ${reason}`);
 
-    targetConfig.muted = true;
-    await targetConfig.save();
+	targetConfig.muted = true;
+	await targetConfig.save();
 
-    logger.log(`${target.user.tag} (${target.id}) has been muted by ${mod.user.tag} (${mod.user.id}): ${reason}. ID: ${punishmentId}`);
+	logger.log(`${target.user.tag} (${target.id}) has been muted by ${mod.user.tag} (${mod.user.id}): ${reason}. ID: ${punishmentId}`);
 
-    const modEmbed = CreateModEmbed(mod.user, target.user, punishment, { detail: options.detail });
-    const userEmbed = CreateModEmbed(mod.user, target.user, punishment, { userEmbed: true, requestID: options.requestID });
+	const modEmbed = CreateModEmbed(mod.user, target.user, punishment, {
+		detail: options.detail,
+	});
+	const userEmbed = CreateModEmbed(mod.user, target.user, punishment, {
+		userEmbed: true,
+		requestID: options.requestID,
+	});
 
-    target.send({ embeds: [userEmbed.embed], components: userEmbed.components }).catch(() => { return; });
-    GetSpecialChannel("ModLog").send({ embeds: [modEmbed] });
+	target.send({ embeds: [userEmbed.embed], components: userEmbed.components }).catch(() => {
+		return;
+	});
+	GetSpecialChannel("ModLog").send({ embeds: [modEmbed] });
 
-    return punishment;
+	return punishment;
 }
 
 export default MuteCommand;

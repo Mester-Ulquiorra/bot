@@ -2,7 +2,7 @@
  * A function for calculating the maximum pages available for a given amount of elements.
  */
 export function CalculateMaxPage(totalCount: number, pageSize: number) {
-    return Math.ceil(Math.max(totalCount, 1) / pageSize);
+	return Math.ceil(Math.max(totalCount, 1) / pageSize);
 }
 
 /**
@@ -13,5 +13,5 @@ export function CalculateMaxPage(totalCount: number, pageSize: number) {
  * @returns The clamped number.
  */
 export function ClampNumber(number: number, min: number, max: number) {
-    return Math.min(Math.max(number, min), max);
+	return Math.min(Math.max(number, min), max);
 }

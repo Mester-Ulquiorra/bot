@@ -1,16 +1,10 @@
 {
     "compilerOptions": {
         // add Bun type definitions
-        "types": [
-            //"bun-types",
-            "node"
-        ],
+        "types": ["bun-types"],
 
         // enable latest features
-        "lib": [
-            "esnext"
-        ],
-
+        "lib": ["esnext"],
         "module": "esnext",
         "target": "esnext",
 

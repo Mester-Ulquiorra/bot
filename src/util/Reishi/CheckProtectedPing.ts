@@ -1,16 +1,17 @@
 import { Message } from "discord.js";
 import config from "../../config.js";
 import { GetUserConfig } from "../ConfigHelper.js";
-import { ReishiEvaluation } from "../Reishi.js";
+import { PunishMessage, ReishiEvaluation } from "../Reishi.js";
+
 enum ProtectionDecision {
-    Yes = "yes",
-    No = "no"
+	Yes = "yes",
+	No = "no",
 }
 
 interface ProtectionMemory {
-    userId: string;
-    decision: ProtectionDecision;
-    time: number;
+	userId: string;
+	decision: ProtectionDecision;
+	time: number;
 }
 
 /**
@@ -18,84 +19,105 @@ interface ProtectionMemory {
  */
 const protectionCache = new Map<string, ProtectionMemory>();
 
-export default async function (message: Message<true>): Promise<ReishiEvaluation> {
-    // check if the user is a mod or they have the protected role
-    const userConfig = await GetUserConfig(message.author.id, "detecting protected ping");
-    if (userConfig.mod !== 0 || message.member.roles.cache.has(config.roles.Protected)) return null;
+export default async function (message: Message<true>) {
+	// check if the user is a mod or they have the protected role
+	const userConfig = await GetUserConfig(message.author.id, "detecting protected ping");
+	if (userConfig.mod !== 0 || message.member.roles.cache.has(config.roles.Protected)) return null;
 
-    // check if the message contains a mention with the protected role
-    const protectedPings = [...new Set(
-        message.mentions.members
-            .map(member => member)
-            .filter(member => member.roles.cache.has(config.roles.Protected))
-    )];
+	// check if the message contains a mention with the protected role
+	const protectedPings = [
+		...new Set(message.mentions.members.map((member) => member).filter((member) => member.roles.cache.has(config.roles.Protected))),
+	];
 
-    if (protectedPings.length === 0) return null;
-    // if there are more than 1 protected users pinged, just mute
-    if (protectedPings.length >= 2) return { comment: `Pinged the following protected members: ${protectedPings.map(member => member.toString()).join(", ")}` };
+	if (protectedPings.length === 0) return;
 
-    const now = Date.now();
+	// if there are more than 1 protected users pinged, just mute
+	if (protectedPings.length >= 2) {
+		PunishMessage(message, "ProtectedPing", {
+			comment: `Pinged the following protected members: ${protectedPings.map((member) => member.toString()).join(", ")}`,
+		});
+		return;
+	}
 
-    const user = protectedPings[0];
+	const now = Date.now();
 
-    // check if the user has any fresh messages in the channels
-    const freshMessages = (await message.channel.messages.fetch({ limit: 50 }))
-        // messages in the last 2 minutes
-        .filter(x => (now - x.createdTimestamp) < 2 * 60 * 1000)
-        // filter messages only from the pinged user
-        .filter(x => x.author.id === user.id)
-        // collection to array
-        .map(x => x);
+	const user = protectedPings[0];
 
-    if (freshMessages.length === 0) return { comment: `Pinged the following protected member: ${user}` };
+	// check if the user has any fresh messages in the channels
+	const freshMessages = (await message.channel.messages.fetch({ limit: 50 }))
+		// messages in the last 2 minutes
+		.filter((x) => now - x.createdTimestamp < 2 * 60 * 1000)
+		// filter messages only from the pinged user
+		.filter((x) => x.author.id === user.id)
+		// collection to array
+		.map((x) => x);
 
-    let protDecision = protectionCache.get(user.id);
+	if (freshMessages.length === 0) {
+		PunishMessage(message, "ProtectedPing", { comment: `Pinged the following protected member: ${user}` });
+		return;
+	}
 
-    // validate decision
-    if (protDecision && (now - protDecision.time) > 2 * 60 * 1000) {
-        protectionCache.delete(user.id);
-        protDecision = null;
-    }
+	let protDecision = protectionCache.get(user.id);
 
-    if (protDecision && protDecision.decision === ProtectionDecision.Yes) return { comment: `Pinged the following protected member: ${user}` };
-    else if (protDecision) return null;
+	// validate decision
+	if (protDecision && now - protDecision.time > 2 * 60 * 1000) {
+		protectionCache.delete(user.id);
+		protDecision = null;
+	}
 
-    // ask the user if they want to mute
-    const inputMessage = await message.reply({
-        content: `${user}, should I mute for this?`,
-        allowedMentions: {
-            repliedUser: false,
-            users: [user.id]
-        }
-    });
+	if (protDecision && protDecision.decision === ProtectionDecision.Yes) {
+		PunishMessage(message, "ProtectedPing", { comment: `Pinged the following protected member: ${user}` });
+		return;
+	} else if (protDecision) return;
 
-    inputMessage.react("✅").then(() => { inputMessage.react("❌"); });
+	// ask the user if they want to mute
+	const inputMessage = await message.reply({
+		content: `${user}, should I mute for this?`,
+		allowedMentions: {
+			repliedUser: false,
+			users: [user.id],
+		},
+	});
 
-    return inputMessage.awaitReactions({
-        max: 1,
-        filter: (reaction, reactionUser) => reactionUser.id === user.id,
-        time: 30_000
-    }).then((reactions) => {
-        const reaction = reactions.first();
+	inputMessage.react("✅").then(() => {
+		inputMessage.react("❌");
+	});
 
-        if (reaction.emoji.name === "✅") {
-            protectionCache.set(user.id, {
-                decision: ProtectionDecision.Yes,
-                time: Date.now(),
-                userId: user.id
-            });
-            return { comment: `Pinged the following protected member: ${user}` };
-        }
+	inputMessage
+		.awaitReactions({
+			max: 1,
+			filter: (reaction, reactionUser) => reactionUser.id === user.id,
+			time: 30_000,
+		})
+		.then((reactions) => {
+			const reaction = reactions.first();
 
-        protectionCache.set(user.id, {
-            decision: ProtectionDecision.No,
-            time: Date.now(),
-            userId: user.id
-        });
-        return null;
-    }).catch(() => {
-        return { comment: `Pinged the following protected member: ${user}` };
-    }).finally(() => {
-        inputMessage.delete();
-    });
+			if (reaction.emoji.name === "✅") {
+				protectionCache.set(user.id, {
+					decision: ProtectionDecision.Yes,
+					time: Date.now(),
+					userId: user.id,
+				});
+
+				PunishMessage(message, "ProtectedPing", {
+					comment: `Pinged the following protected member: ${user}`,
+				});
+				return;
+			}
+
+			protectionCache.set(user.id, {
+				decision: ProtectionDecision.No,
+				time: Date.now(),
+				userId: user.id,
+			});
+			return;
+		})
+		.catch(() => {
+			PunishMessage(message, "ProtectedPing", {
+				comment: `Pinged the following protected member: ${user}`,
+			});
+		})
+		.finally(() => {
+			inputMessage.delete();
+		});
 }

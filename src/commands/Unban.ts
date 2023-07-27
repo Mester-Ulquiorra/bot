@@ -7,67 +7,71 @@ import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import { CanPerformPunishment, CreateModEmbed } from "../util/ModUtils.js";
+
 const UnbanCommand: SlashCommand = {
-    name: "unban",
+	name: "unban",
 
-    async run(interaction, _client) {
-        // get the member and reason
-        const target = interaction.options.getUser("member");
-        const reason = interaction.options.getString("reason") ?? "no reason provided";
+	async run(interaction, _client) {
+		// get the member and reason
+		const target = interaction.options.getUser("member");
+		const reason = interaction.options.getString("reason") ?? "no reason provided";
 
-        const userConfig = await GetUserConfig(interaction.user.id, "unban a user");
-        if (userConfig.mod == 0) return GetError("Permission");
-        if (!CanPerformPunishment(userConfig, PunishmentType.Ban, 0)) // only head mods and higher can unban
-            return GetError("InsufficentModLevel");
+		const userConfig = await GetUserConfig(interaction.user.id, "unban a user");
+		if (userConfig.mod == 0) return GetError("Permission");
+		if (!CanPerformPunishment(userConfig, PunishmentType.Ban, 0))
+			// only head mods and higher can unban
+			return GetError("InsufficentModLevel");
 
-        // check if member is banned by fetching their ban and seeing if it returns an error
-        const ban = await GetGuild().bans
-            .fetch(target)
-            .catch(() => { return "The member is not banned."; });
+		// check if member is banned by fetching their ban and seeing if it returns an error
+		const ban = await GetGuild()
+			.bans.fetch(target)
+			.catch(() => {
+				return "The member is not banned.";
+			});
 
-        // check if the ban object is a string (the member is not banned)
-        if (typeof ban === "string") return ban;
+		// check if the ban object is a string (the member is not banned)
+		if (typeof ban === "string") return ban;
 
-        // get the ban punishment of the member by searching for the latest ban punishment that's still active
-        const punishment = await PunishmentConfig.findOne({
-            user: target.id,
-            type: PunishmentType.Ban,
-            active: true,
-        });
+		// get the ban punishment of the member by searching for the latest ban punishment that's still active
+		const punishment = await PunishmentConfig.findOne({
+			user: target.id,
+			type: PunishmentType.Ban,
+			active: true,
+		});
 
-        // unban the member
-        const member = await GetGuild().members
-            .unban(target, `Unbanned by ${interaction.user.tag}: ${reason}`)
-            .catch(() => { return; });
+		// unban the member
+		const member = await GetGuild()
+			.members.unban(target, `Unbanned by ${interaction.user.tag}: ${reason}`)
+			.catch(() => {
+				return;
+			});
 
-        // if member is null, we got an error
-        if (!member) return "Something has went wrong while trying to unban the member.";
+		// if member is null, we got an error
+		if (!member) return "Something has went wrong while trying to unban the member.";
 
-        if (punishment) {
-            punishment.active = false;
-            await punishment.save();
-        }
+		if (punishment) {
+			punishment.active = false;
+			await punishment.save();
+		}
 
-        logger.log(`${member.tag} (${member.id}) has been unbanned by ${interaction.user.tag} (${interaction.user.id}): ${reason}`);
+		logger.log(`${member.tag} (${member.id}) has been unbanned by ${interaction.user.tag} (${interaction.user.id}): ${reason}`);
 
-        const modEmbed = CreateModEmbed(interaction.user, member, punishment,
-            {
-                anti: true,
-                backupType: PunishmentType.Ban,
-                reason,
-            }
-        );
+		const modEmbed = CreateModEmbed(interaction.user, member, punishment, {
+			anti: true,
+			backupType: PunishmentType.Ban,
+			reason,
+		});
 
-        const channelEmbed = CreateEmbed(`${member} has been unbanned: **${reason}**`);
+		const channelEmbed = CreateEmbed(`${member} has been unbanned: **${reason}**`);
 
-        interaction.channel.sendTyping().then(() => {
-            interaction.channel.send({ embeds: [channelEmbed] });
-        });
+		interaction.channel.sendTyping().then(() => {
+			interaction.channel.send({ embeds: [channelEmbed] });
+		});
 
-        GetSpecialChannel("ModLog").send({ embeds: [modEmbed] });
+		GetSpecialChannel("ModLog").send({ embeds: [modEmbed] });
 
-        interaction.reply({ embeds: [modEmbed], ephemeral: true });
-    }
+		interaction.reply({ embeds: [modEmbed], ephemeral: true });
+	},
 };
 
 export default UnbanCommand;

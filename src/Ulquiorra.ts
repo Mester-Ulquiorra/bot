@@ -23,11 +23,11 @@ const logger = new Logger(join(__dirname, "..", "logs"));
 
 // this is a really bad way of avoiding errors, but it is what it is
 process.on("uncaughtException", (error) => {
-    logger.log(`An uncaught exception has occured, ignoring, but may cause issues...\n${error.stack}`, "warn");
+	logger.log(`An uncaught exception has occured, ignoring, but may cause issues...\n${error.stack}`, "warn");
 });
 
 process.on("exit", () => {
-    browser.close();
+	browser.close();
 });
 
 console.time("Boot");
@@ -35,88 +35,89 @@ logger.log(`And thus, ${testMode ? "a testing" : "an"} Espada was born...`);
 
 /* ------ Set up client ------ */
 const Ulquiorra = new Client({
-    intents: [
-        "Guilds",
-        "GuildMembers",
-        "GuildBans",
-        "GuildMessages",
-        "GuildVoiceStates",
-        "GuildMessageReactions",
-        "DirectMessages",
-        "MessageContent"
-    ],
-    allowedMentions: {
-        parse: ["roles", "users"],
-        repliedUser: true
-    }
+	intents: [
+		"Guilds",
+		"GuildMembers",
+		"GuildBans",
+		"GuildMessages",
+		"GuildVoiceStates",
+		"GuildMessageReactions",
+		"DirectMessages",
+		"MessageContent",
+	],
+	allowedMentions: {
+		parse: ["roles", "users"],
+		repliedUser: true,
+	},
 });
 
 // ------------------------------------------
 
 const SnowFlake = new Snowflake({ custom_epoch: config.SnowflakeEpoch });
 const DeeplTranslator = new deepl.Translator(config.DANGER.DEEPL_KEY);
+
 // Set up puppeteer
 const browser = await puppeteer.launch({
-    headless: "new",
-    args: [
-        ...config.puppeteerArgs
-    ]
+	headless: "new",
+	args: [...config.puppeteerArgs],
 });
 
 function shutdown(reason: string) {
-    logger.log(`Shutting down client: ${reason}`, "fatal");
-    Ulquiorra.destroy();
-    mongoose.disconnect();
-    process.exit(1);
+	logger.log(`Shutting down client: ${reason}`, "fatal");
+	Ulquiorra.destroy();
+	mongoose.disconnect();
+	process.exit(1);
 }
 
 function GetResFolder() {
-    return join(__dirname, "..", "res");
+	return join(__dirname, "..", "res");
 }
 
 logger.log("Loading commands and events...");
 
 // register commands and events
-Register(
-    join(__dirname, "commands"),
-    join(__dirname, "events"),
-    join(__dirname, "consolecommands"),
-    Ulquiorra
-).then(async () => {
-    if (testMode) Ulquiorra.on("debug", msg => logger.log(`DEBUG: ${msg}`, "warn"));
-    logger.log("Logging in...");
-    await Ulquiorra.login(config.DANGER.TOKEN);
+Register(join(__dirname, "commands"), join(__dirname, "events"), join(__dirname, "consolecommands"), Ulquiorra).then(async () => {
+	if (testMode) Ulquiorra.on("debug", (msg) => logger.log(`DEBUG: ${msg}`, "warn"));
+	logger.log("Logging in...");
+	await Ulquiorra.login(config.DANGER.TOKEN);
 
-    setInterval(() => {
-        Ulquiorra.user.setActivity({
-            name: `Version ${config.Version}`,
-        });
-    }, 1000 * 60 * 60); // 1 hour
+	setInterval(
+		() => {
+			Ulquiorra.user.setActivity({
+				name: `Version ${config.Version}`,
+			});
+		},
+		1000 * 60 * 60
+	); // 1 hour
 
-    setInterval(() => {
-        ServerStats();
-    }, 1000 * 60 * 10); // 10 minutes
+	setInterval(
+		() => {
+			ServerStats();
+		},
+		1000 * 60 * 10
+	); // 10 minutes
 
-    setInterval(() => {
-        CleanTickets();
-    }, 1000 * 60 * 10); // 10 minutes
+	setInterval(
+		() => {
+			CleanTickets();
+		},
+		1000 * 60 * 10
+	); // 10 minutes
 
-    setInterval(() => {
-        AutoUnpunish();
-    }, 1000 * 60); // 1 minute
+	setInterval(() => {
+		AutoUnpunish();
+	}, 1000 * 60); // 1 minute
 
-    const rl = createInterface({
-        input: process.stdin,
-        output: process.stdout,
-        terminal: false
-    });
+	const rl = createInterface({
+		input: process.stdin,
+		output: process.stdout,
+		terminal: false,
+	});
 
-    rl.on("line", (line) => {
-        HandleConsoleCommand(line, Ulquiorra);
-    });
+	rl.on("line", (line) => {
+		HandleConsoleCommand(line, Ulquiorra);
+	});
 });
 
-export {
-    DeeplTranslator, SnowFlake, browser, logger, shutdown, GetResFolder
-};
+export { DeeplTranslator, SnowFlake, browser, logger, shutdown, GetResFolder };
 export default Ulquiorra;
