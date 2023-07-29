@@ -23,6 +23,6 @@ export function GetSpecialChannel(channelName: SpecialChannelName) {
 	}
 }
 
-export function GetGuild(prisonServer = false) {
-	return prisonServer ? Ulquiorra.guilds.cache.get(config.PrisonId) : Ulquiorra.guilds.cache.get(config.GuildId);
+export function GetGuild() {
+	return Ulquiorra.guilds.cache.get(config.GuildId);
 }

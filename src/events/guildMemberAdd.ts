@@ -10,8 +10,6 @@ const GuildMemberAddEvent: Event = {
 	name: "guildMemberAdd",
 
 	async run(client, member: GuildMember) {
-		if (member.guild.id === config.PrisonId) return;
-
 		// get the member config (doesn't matter if it didn't exist before)
 		const memberConfig = await GetUserConfig(member.id, "new member");
 

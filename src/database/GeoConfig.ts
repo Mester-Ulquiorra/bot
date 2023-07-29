@@ -41,6 +41,33 @@ export interface DBGeo {
 		 */
 		public: boolean;
 	};
+	/**
+	 * The user's stats
+	 */
+	stats: {
+		/**
+		 * Maximum health of the user
+		 */
+		hp: number;
+		/**
+		 * Attack of the user
+		 */
+		attack: number;
+		/**
+		 * Defense (damage reduction) of the user, maximum 80%
+		 */
+		defense: number;
+		/**
+		 * Speed of the user
+		 * It affects the following areas: refresh of skills
+		 * 2 speed means 2x faster
+		 */
+		speed: number;
+		/**
+		 * Maximum mana of the user
+		 */
+		mana: number;
+	};
 }
 
 export interface IDBGeo extends Document, DBGeo {}
@@ -88,6 +115,28 @@ export default mongoose.model(
 					},
 				],
 				_id: false,
+			},
+		},
+		stats: {
+			hp: {
+				type: SchemaTypes.Number,
+				default: 100,
+			},
+			attack: {
+				type: SchemaTypes.Number,
+				default: 2,
+			},
+			defense: {
+				type: SchemaTypes.Number,
+				default: 0,
+			},
+			speed: {
+				type: SchemaTypes.Number,
+				default: 1,
+			},
+			mana: {
+				type: SchemaTypes.Number,
+				default: 20,
 			},
 		},
 	})

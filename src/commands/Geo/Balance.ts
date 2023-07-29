@@ -2,7 +2,7 @@ import { GuildMember } from "discord.js";
 import SlashCommand from "../../types/SlashCommand.js";
 import CreateEmbed from "../../util/CreateEmbed.js";
 import GeoData from "./GeoData.js";
-import { GetGeoConfig, GetMultipliers } from "./Util.js";
+import { GetGeoConfig, GetGeoMultiplier } from "./Util.js";
 
 const BalanceGeoCommand: SlashCommand = {
 	name: "_",
@@ -11,7 +11,7 @@ const BalanceGeoCommand: SlashCommand = {
 		const geoConfig = await GetGeoConfig(target.id);
 		if (!geoConfig.balance.public && target.id !== interaction.user.id) return "This user's balance is private";
 
-		const geoMultiplier = (await GetMultipliers(target, geoConfig)).geo;
+		const geoMultiplier = (await GetGeoMultiplier(target, geoConfig)).geo;
 
 		const embed = CreateEmbed(`Balance of ${target}`)
 			.addFields({

@@ -1,6 +1,6 @@
 {
     "dependencies": {
-        "@mester-ulquiorra/commonlib": "1.0.7",
+        "@mester-ulquiorra/commonlib": "1.1.1",
         "@napi-rs/canvas": "^0.1.41",
         "bufferutil": "^4.0.7",
         "canvas": "^2.11.2",
@@ -31,7 +31,7 @@
         "zlib-sync": "^0.1.8"
     },
     "name": "ulquiorra-bot",
-    "version": "5.0.0-pre3",
+    "version": "5.0.0-pre4",
     "type": "module",
     "exports": "./build/Ulquiorra.js",
     "devDependencies": {
@@ -50,11 +50,9 @@
         "eslint": "^8.45.0",
         "eslint-plugin-unused-imports": "^2.0.0",
         "prettier": "^3.0.0",
-        "typescript": "^5.1.6",
-        "webpack": "^5.88.2"
+        "typescript": "^5.1.6"
     },
     "scripts": {
-        "test": "mocha",
         "start": "bun run ./src/Ulquiorra.ts",
         "build": "tsc -p tsconfig.json",
         "analyze": "sonar-scanner.bat -D\"sonar.projectKey=Ulquiorra\" -D\"sonar.sources=.\" -D\"sonar.host.url=http://localhost:9000\" -D\"sonar.login=sqp_02d81ec76a32c2b6396d06945eb3ce58bac2f2e8\" -Dsonar.scm.provider=git",

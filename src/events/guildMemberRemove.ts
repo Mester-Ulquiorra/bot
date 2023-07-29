@@ -1,5 +1,4 @@
 import { GuildMember } from "discord.js";
-import config from "../config.js";
 import Event from "../types/Event.js";
 import { GetSpecialChannel } from "../util/ClientUtils.js";
 import { GetUserConfig } from "../util/ConfigHelper.js";
@@ -9,8 +8,6 @@ const GuildMemberRemoveEvent: Event = {
 	name: "guildMemberRemove",
 
 	async run(_client, member: GuildMember) {
-		if (member.guild.id === config.PrisonId) return;
-
 		// get member config
 		const memberConfig = await GetUserConfig(member.id, "new member, leaving");
 
@@ -34,6 +31,12 @@ const GuildMemberRemoveEvent: Event = {
 			// set footer to member's id
 			.setFooter({ text: `ID: ${member.id}` });
 
+		const roles =
+			member.roles.cache
+				.map((role) => role.toString())
+				.slice(0, -1)
+				.join(", ") || "None";
+
 		// create the embed for logs
 		const logEmbed = CreateEmbed(`${member} has left the server`)
 			.addFields(
@@ -45,13 +48,7 @@ const GuildMemberRemoveEvent: Event = {
 				},
 				{
 					name: `Roles`,
-					value:
-						member.roles.cache.size > 1
-							? member.roles.cache
-									.map((role) => role.toString())
-									.slice(0, -1)
-									.join(", ")
-							: "none",
+					value: roles,
 					inline: false,
 				}
 			)

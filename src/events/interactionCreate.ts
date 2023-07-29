@@ -24,6 +24,7 @@ const IgnoredIds: Array<RegExp> = [
 	/automod\.approve/,
 	/automod\.deny/,
 	/chatbot\..+/,
+	/geofight\..+/,
 ];
 
 const InteractionCreateEvent: Event = {

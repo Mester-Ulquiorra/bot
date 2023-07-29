@@ -4,13 +4,18 @@ import { DBGeo } from "../../database/GeoConfig.js";
 import testMode from "../../testMode.js";
 import SlashCommand from "../../types/SlashCommand.js";
 import CreateEmbed from "../../util/CreateEmbed.js";
+import GeoFight from "./Fight.ts";
 import GeoData, { ArtifactNames, GeoChance, GeoEvent, GeoItems, RelicNames } from "./GeoData.js";
-import { GetGeoConfig, GetMultipliers, extractWeights } from "./Util.js";
+import { GetGeoConfig, GetGeoMultiplier, extractWeights } from "./Util.js";
+
 const ExploreCommand: SlashCommand = {
 	name: "_",
 	async run(interaction, client) {
 		const geoConfig = await GetGeoConfig(interaction.user.id);
-		const multipliers = await GetMultipliers(interaction.member as GuildMember, geoConfig);
+		const multipliers = await GetGeoMultiplier(interaction.member as GuildMember, geoConfig);
+
+		// check if user is fighting
+		if (GeoFight.isFighting(interaction.user.id)) return "Don't be a coward, finish your fight first!";
 
 		// check if user can explore
 		if (Date.now() - geoConfig.explore.lastExplore < GeoData.Explore.Cooldown && !(config.MesterId === interaction.user.id && testMode))
@@ -19,8 +24,6 @@ const ExploreCommand: SlashCommand = {
 			)} seconds`;
 
 		const exploreEvent = GeoChance.weighted(...extractWeights(GeoData.Explore.Events, multipliers));
-
-		await interaction.deferReply();
 
 		switch (exploreEvent) {
 			case "geo": {
@@ -31,13 +34,13 @@ const ExploreCommand: SlashCommand = {
 				geoConfig.balance.geo += amount;
 
 				const embed = CreateEmbed(GeoChance.pickone(GeoData.Explore.GeoPreSentences).replace("_", amount.toString()));
-				interaction.editReply({ embeds: [embed] });
+				interaction.reply({ embeds: [embed] });
 				break;
 			}
 			case "nothing": {
 				geoConfig.explore.lastExplore = Date.now();
 				const embed = CreateEmbed("You looked in every small corner of the area, but unfortunately you found nothing...");
-				interaction.editReply({ embeds: [embed] });
+				interaction.reply({ embeds: [embed] });
 				break;
 			}
 			case "relic": {
@@ -47,8 +50,8 @@ const ExploreCommand: SlashCommand = {
 
 				addItemToInventory(geoConfig, relicName);
 
-				const embed = CreateEmbed(`You found a(n) ${friendlyName}!`);
-				interaction.editReply({ embeds: [embed] });
+				const embed = CreateEmbed(`You found a(n) ${friendlyName} relic!`);
+				interaction.reply({ embeds: [embed] });
 				break;
 			}
 			case "artifact": {
@@ -58,22 +61,18 @@ const ExploreCommand: SlashCommand = {
 
 				addItemToInventory(geoConfig, artifactName);
 
-				const embed = CreateEmbed(`You found a(n) ${friendlyName}!`);
-				interaction.editReply({ embeds: [embed] });
+				const embed = CreateEmbed(`You found a(n) ${friendlyName} artifact!`);
+				interaction.reply({ embeds: [embed] });
 				break;
 			}
 			case "npc": {
 				const embed = CreateEmbed("You found an NPC!\nUnfortunately, this feature is not implemented yet.");
-				await interaction.deleteReply();
-				interaction.followUp({ embeds: [embed], ephemeral: true });
+				interaction.reply({ embeds: [embed], ephemeral: true });
 				break;
 			}
 			case "enemy": {
-				const embed = CreateEmbed(
-					"You found an enemy!\nThank god the fight system doesn't exist yet, you don't even have a weapon!"
-				);
-				await interaction.deleteReply();
-				interaction.followUp({ embeds: [embed], ephemeral: true });
+				const message = await interaction.reply({ embeds: [CreateEmbed("Loading fight...")], fetchReply: true });
+				await GeoFight.build(message, interaction.member as GuildMember);
 				break;
 			}
 			default: {
@@ -83,8 +82,7 @@ const ExploreCommand: SlashCommand = {
 						color: "error",
 					}
 				);
-				await interaction.deleteReply();
-				interaction.followUp({ embeds: [embed], ephemeral: true });
+				interaction.reply({ embeds: [embed], ephemeral: true });
 				break;
 			}
 		}

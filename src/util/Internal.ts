@@ -1,4 +1,4 @@
-import { isCreateAppealMessage, readInternalMessage } from "@mester-ulquiorra/commonlib";
+import { RequestWithMessage, isCreateAppealMessage, processInternalMessage } from "@mester-ulquiorra/commonlib";
 import express, { NextFunction, Request, Response } from "express";
 import { readFileSync } from "fs";
 import { join } from "path";
@@ -24,16 +24,10 @@ const allowLocalhostOnly = (req: Request, res: Response, next: NextFunction) => 
 const app = express();
 app.use(express.text({ type: "text/plain" }));
 
-app.post("/internal", allowLocalhostOnly, async (req, res) => {
-	const message = readInternalMessage(publicKey, req.body);
+app.post("/internal", allowLocalhostOnly, processInternalMessage(publicKey), async (req: RequestWithMessage, res) => {
+	const message = req.message;
 
-	console.log(message);
-
-	if (typeof message === "string") {
-		// message is an error
-		res.status(400).send(message);
-		return;
-	}
+	if (!message) return res.sendStatus(500);
 
 	// handle the message
 	if (isCreateAppealMessage(message)) {

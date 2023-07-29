@@ -26,10 +26,6 @@ process.on("uncaughtException", (error) => {
 	logger.log(`An uncaught exception has occured, ignoring, but may cause issues...\n${error.stack}`, "warn");
 });
 
-process.on("exit", () => {
-	browser.close();
-});
-
 console.time("Boot");
 logger.log(`And thus, ${testMode ? "a testing" : "an"} Espada was born...`);
 
@@ -50,23 +46,31 @@ const Ulquiorra = new Client({
 		repliedUser: true,
 	},
 });
-
 // ------------------------------------------
 
 const SnowFlake = new Snowflake({ custom_epoch: config.SnowflakeEpoch });
 const DeeplTranslator = new deepl.Translator(config.DANGER.DEEPL_KEY);
 
 // Set up puppeteer
-const browser = await puppeteer.launch({
-	headless: "new",
-	args: [...config.puppeteerArgs],
+const browser = await puppeteer
+	.launch({
+		headless: "new",
+		args: [...config.puppeteerArgs],
+	})
+	.catch(() => {
+		logger.log("Could not launch puppeteer, some functionalities might not work", "warn");
+		return null as puppeteer.Browser;
+	});
+
+process.on("exit", () => {
+	browser.close();
 });
 
 function shutdown(reason: string) {
 	logger.log(`Shutting down client: ${reason}`, "fatal");
 	Ulquiorra.destroy();
 	mongoose.disconnect();
-	process.exit(1);
+	process.exit(0);
 }
 
 function GetResFolder() {

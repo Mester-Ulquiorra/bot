@@ -4,8 +4,8 @@ import {
 	ButtonInteraction,
 	ChatInputCommandInteraction,
 	SelectMenuComponentOptionData,
-	SelectMenuInteraction,
 	StringSelectMenuBuilder,
+	StringSelectMenuInteraction,
 	User,
 } from "discord.js";
 import PunishmentConfig from "../database/PunishmentConfig.js";
@@ -162,7 +162,7 @@ async function showPunishmentById(interaction: ChatInputCommandInteraction | But
  * @param refresh If this is a refresh (the interaction already exists)
  */
 async function showPunishmentsOfMember(
-	interaction: ChatInputCommandInteraction | ButtonInteraction | SelectMenuInteraction,
+	interaction: ChatInputCommandInteraction | ButtonInteraction | StringSelectMenuInteraction,
 	user: User,
 	page: number,
 	refresh = false
@@ -199,9 +199,9 @@ async function showPunishmentsOfMember(
 	}
 
 	const components = [
-		new ActionRowBuilder<StringSelectMenuBuilder>()
-			.addComponents([new StringSelectMenuBuilder().setCustomId("punishmentinfo.pageselector").setMaxValues(1).setOptions(options)])
-			.toJSON(),
+		new ActionRowBuilder<StringSelectMenuBuilder>().addComponents([
+			new StringSelectMenuBuilder().setCustomId("punishmentinfo.pageselector").setMaxValues(1).setOptions(options),
+		]),
 	];
 
 	// --------------------------------------------------------------------

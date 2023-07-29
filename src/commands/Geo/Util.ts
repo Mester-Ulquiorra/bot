@@ -8,24 +8,35 @@ export async function GetGeoConfig(userId: string) {
 	return geoConfig;
 }
 
+/**
+ * Extract the weights from an array of items so that they can be used in the weighted function
+ * @param items The items to extract the weights from
+ * @param multipliers The multipliers to apply to the weights
+ * @returns The names and weights of the items
+ */
 export function extractWeights<T extends WeightedItems>(items: ItemsWithWeight<T>, multipliers: GeoMultipler = null): [T[], number[]] {
-	// check if there is a multiplier for explore events
-	if (multipliers?.exploreEvents) {
-		items = items.map(([name, weight]) => {
-			const multiplier = multipliers.exploreEvents.find(([multiplierName]) => multiplierName === name);
-			if (multiplier) return [name, weight * multiplier[1]];
-			return [name, weight];
-		});
-	}
-
 	// extract both the names and weights from the array
-	const names = items.map(([name]) => name);
-	const weights = items.map(([, weight]) => weight);
+	const names = new Array<T>();
+	const weights = new Array<number>();
+
+	items.map(([name, weight]) => {
+		names.push(name);
+
+		// check for multiplier
+		if (multipliers?.exploreEvents) {
+			const multiplier = multipliers.exploreEvents.find(([multiplierName]) => multiplierName === name);
+			if (multiplier) {
+				weights.push(weight * multiplier[1]);
+				return;
+			}
+		}
+		weights.push(weight);
+	});
 
 	return [names, weights];
 }
 
-export async function GetMultipliers(member: GuildMember | User, geoConfig: DBGeo) {
+export async function GetGeoMultiplier(member: GuildMember | User, geoConfig: DBGeo) {
 	const multipliers: GeoMultipler = {
 		geo: 1,
 	};

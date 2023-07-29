@@ -10,11 +10,11 @@ const SettingsCommand: SlashCommand = {
 		// get subcommand
 		const subcommand = interaction.options.getSubcommand(false);
 
-		if (subcommand === "game_invites") return ManageGaveInvites(interaction);
+		if (subcommand === "game_invites") return ManageGameInvites(interaction);
 	},
 };
 
-async function ManageGaveInvites(interaction: ChatInputCommandInteraction): Promise<SlashCommandReturnValue> {
+async function ManageGameInvites(interaction: ChatInputCommandInteraction): Promise<SlashCommandReturnValue> {
 	const enabled = interaction.options.getBoolean("enabled");
 	const userConfig = await GetUserConfig(interaction.user.id, "changing game invites setting");
 

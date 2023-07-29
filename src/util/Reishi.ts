@@ -66,7 +66,7 @@ export async function CheckMessage(message: Message) {
 	CheckInsult(message);
 	CheckSkull(message);
 
-	console.log(`Reishi took ${performance.now() - start}ms to evaluate a message`);
+	if (testMode) console.log(`Reishi took ${performance.now() - start}ms to evaluate a message`);
 
 	if (message.mentions.members?.size >= MassMentionThreshold) {
 		PunishMessage(message, "MassMention", null);

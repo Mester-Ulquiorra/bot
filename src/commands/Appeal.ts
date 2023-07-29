@@ -237,36 +237,8 @@ async function manageAppeal(interaction: ButtonInteraction, accepted: boolean) {
 		reason: `Punishment appeal accepted: ${bold(reason)}`,
 	});
 
-	target
-		.send({
-			embeds: [userEmbed],
-			components:
-				punishment.type === PunishmentType.Ban
-					? [
-							new ActionRowBuilder<ButtonBuilder>().addComponents(
-								new ButtonBuilder()
-									.setStyle(ButtonStyle.Link)
-									.setURL(config.ServerInvite)
-									.setLabel("You can join back using this link!")
-							),
-					  ]
-					: [],
-		})
-		.catch(() => {
-			return;
-		})
-		.finally(async () => {
-			// kick the member from the prison
-			const member = await GetGuild(true)
-				?.members.fetch(target.id)
-				.catch(() => {
-					return;
-				});
-			if (!member) return;
-			member.kick("appealed punishment").catch(() => {
-				return;
-			});
-		});
+	// TODO: send update to UCP
+
 	GetSpecialChannel("ModLog").send({ embeds: [modEmbed] });
 }
 

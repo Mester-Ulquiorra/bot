@@ -8,7 +8,7 @@ const InventoryCommand: SlashCommand = {
 	name: "_",
 	async run(interaction, client) {
 		const geoConfig = await GetGeoConfig(interaction.user.id);
-		const embed = CreateEmbed(undefined, { title: "Your Inventory" });
+		const embed = CreateEmbed(undefined, { title: `Inventory of ${interaction.user.username}` });
 		const page = interaction.options.getNumber("page") ?? 1;
 
 		// check if the page is valid
@@ -38,7 +38,7 @@ const InventoryCommand: SlashCommand = {
 			});
 		}
 
-		interaction.reply({ embeds: [embed], ephemeral: true });
+		interaction.reply({ embeds: [embed] });
 	},
 };
 

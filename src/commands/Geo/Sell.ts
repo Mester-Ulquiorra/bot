@@ -2,7 +2,7 @@ import { GuildMember } from "discord.js";
 import SlashCommand from "../../types/SlashCommand.js";
 import CreateEmbed from "../../util/CreateEmbed.js";
 import GeoData, { GeoChance, ItemNames, ItemPrices } from "./GeoData.js";
-import { GetGeoConfig, GetMultipliers, IsGeoItem } from "./Util.js";
+import { GetGeoConfig, GetGeoMultiplier, IsGeoItem } from "./Util.js";
 
 const SellCommand: SlashCommand = {
 	name: "_",
@@ -19,7 +19,7 @@ const SellCommand: SlashCommand = {
 		if (userItem.count < amount) return "You don't have that many of that item in your inventory.";
 
 		const price = ItemPrices[itemName];
-		const multiplier = (await GetMultipliers(interaction.member as GuildMember, geoConfig)).geo;
+		const multiplier = (await GetGeoMultiplier(interaction.member as GuildMember, geoConfig)).geo;
 		const total = Math.floor(GeoChance.integer({ min: price.min, max: price.max }) * amount * multiplier);
 
 		geoConfig.balance.geo += total;

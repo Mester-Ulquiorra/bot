@@ -14,6 +14,8 @@ const GeoCommand: SlashCommand = {
 				return Commands.Inventory.run(interaction, client);
 			case "sell":
 				return Commands.Sell.run(interaction, client);
+			case "stats":
+				return Commands.Stats.run(interaction, client);
 		}
 	},
 };

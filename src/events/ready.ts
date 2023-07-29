@@ -19,11 +19,6 @@ const ReadyEvent: Event = {
 			guild.channels.fetch();
 		});
 
-		// fetch the prison
-		client.guilds.fetch(config.PrisonId).catch(() => {
-			return;
-		});
-
 		client.user.setActivity({
 			name: `Version ${config.Version}`,
 		});

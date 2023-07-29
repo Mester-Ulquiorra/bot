@@ -59,7 +59,7 @@ export type ItemsWithWeight<T extends WeightedItems> = Array<[T, number]>;
 const GeoIcon = testMode ? "<:Geo:1078043983177072640>" : "<:Geo:1078044252765950072>";
 
 /**
- * Names of all relics1
+ * Names of all relics
  */
 export const RelicNames: { [key in RelicItems]: string } = {
 	dreamstone_shard: "Dreamstone Shard",
@@ -148,22 +148,21 @@ export const ItemPrices = Object.assign({}, RelicPrices);
 // -------------------- //
 
 export default {
-	GeoVersion: "0.0.5-alpha",
+	GeoVersion: "0.1.0-alpha",
 	GeoIcon,
 	Explore: {
 		/**
 		 * The time each player has to wait before they can explore again (in milliseconds)
-		 * @default 1 minute
 		 */
 		Cooldown: 60000,
 		/**
 		 * Name of events that can occur when exploring
 		 */
 		Events: [
-			["geo", 1000],
-			["nothing", 100],
+			["geo", 500],
+			["enemy", 250],
 			["npc", 200],
-			["enemy", 200],
+			["nothing", 100],
 			["relic", 50],
 			["artifact", 1],
 		] as ItemsWithWeight<ExploreEvent>,
