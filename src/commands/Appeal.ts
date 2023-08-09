@@ -1,5 +1,15 @@
 import { DBPunishment, PunishmentType, PunishmentTypeToName } from "@mester-ulquiorra/commonlib";
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, EmbedBuilder, bold, inlineCode } from "discord.js";
+import {
+	ActionRowBuilder,
+	ButtonBuilder,
+	ButtonInteraction,
+	ButtonStyle,
+	EmbedBuilder,
+	GuildMember,
+	bold,
+	inlineCode,
+	time,
+} from "discord.js";
 import Ulquiorra, { logger } from "../Ulquiorra.js";
 import config from "../config.js";
 import PunishmentConfig from "../database/PunishmentConfig.js";
@@ -11,6 +21,7 @@ import GetError from "../util/GetError.js";
 import ManageRole from "../util/ManageRole.js";
 import { CreateModEmbed } from "../util/ModUtils.js";
 import { DetectProfanity } from "../util/Reishi/CheckProfanity.js";
+import { sendInternalMessage } from "../util/Internal.js";
 
 const AppealCommand: SlashCommand = {
 	name: "appeal",
@@ -63,6 +74,21 @@ export async function createAppeal(userId: string, punishment: DBPunishment, rea
 			{
 				name: "Punishment type",
 				value: PunishmentTypeToName(punishment.type),
+				inline: true,
+			},
+			{
+				name: "Moderator",
+				value: `<@${punishment.mod}>`,
+				inline: true,
+			},
+			{
+				name: "Punished at",
+				value: time(punishment.at, "f"),
+				inline: true,
+			},
+			{
+				name: "Punishment reason",
+				value: punishment.reason,
 				inline: false,
 			},
 			{
@@ -137,14 +163,14 @@ async function manageAppeal(interaction: ButtonInteraction, accepted: boolean) {
 		});
 
 	if (typeof collected === "string") return collected;
+
+	const reason = collected.first().content;
 	collected
 		.first()
 		.delete()
 		.then(() => {
 			reasonMessage.delete();
 		});
-
-	const reason = collected.first().content;
 	if (reason === "cancel") return;
 	if (reason.length > 500) return "Sorry, that's too long!";
 
@@ -165,30 +191,7 @@ async function manageAppeal(interaction: ButtonInteraction, accepted: boolean) {
 		})
 		.setColor(accepted ? EmbedColors.success : EmbedColors.error);
 
-	logger.log(
-		`${interaction.user.tag} (${interaction.user.id}) has ${accepted ? "accepted" : "declined"} the punishment appeal of ${
-			target.tag
-		} (${target.id}). ID: ${punishment.punishmentId}`
-	);
-
 	interaction.message.edit({ embeds: [appealEmbed], components: [] });
-
-	if (!accepted) {
-		target
-			.send({
-				embeds: [
-					CreateEmbed(`**Your punishment appeal has been declined by ${interaction.user}**`, { color: "error" }).addFields({
-						name: "Reason",
-						value: reason,
-					}),
-				],
-			})
-			.catch(() => {
-				return;
-			});
-
-		return;
-	}
 
 	const targetConfig = await GetUserConfig(target.id, "managing a punishment appeal");
 
@@ -203,7 +206,7 @@ async function manageAppeal(interaction: ButtonInteraction, accepted: boolean) {
 					return member;
 				})
 				.catch(() => {
-					return;
+					return null as GuildMember;
 				});
 
 			if (!targetMember) break;
@@ -227,17 +230,28 @@ async function manageAppeal(interaction: ButtonInteraction, accepted: boolean) {
 	punishment.active = false;
 	await punishment.save();
 
+	logger.log(
+		`${interaction.user.tag} (${interaction.user.id}) has ${accepted ? "accepted" : "declined"} the punishment appeal of ${
+			target.tag
+		} (${target.id}). ID: ${punishment.punishmentId}`
+	);
+
+	// send an internal message to the API
+	const success = await sendInternalMessage({
+		type: "appealProcessed",
+		data: {
+			punishmentId: punishment.punishmentId,
+			status: accepted ? "accepted" : "rejected",
+			reason: reason,
+		},
+	});
+
+	if (!success) return "Failed to send appeal notification to the API (but the appeal was still processed)";
+
 	const modEmbed = CreateModEmbed(interaction.user, target, punishment, {
 		anti: true,
 		reason: `Punishment appeal accepted: ${bold(reason)}`,
 	});
-	const userEmbed = CreateModEmbed(interaction.user, target, punishment, {
-		anti: true,
-		userEmbed: true,
-		reason: `Punishment appeal accepted: ${bold(reason)}`,
-	});
-
-	// TODO: send update to UCP
 
 	GetSpecialChannel("ModLog").send({ embeds: [modEmbed] });
 }

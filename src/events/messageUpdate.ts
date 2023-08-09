@@ -1,5 +1,4 @@
-import { ChannelType, Message, PermissionsBitField } from "discord.js";
-import testMode from "../testMode.js";
+import { ChannelType, Message } from "discord.js";
 import Event from "../types/Event.js";
 import { GetSpecialChannel } from "../util/ClientUtils.js";
 import CreateEmbed from "../util/CreateEmbed.js";

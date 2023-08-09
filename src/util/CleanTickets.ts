@@ -6,9 +6,7 @@ const TicketExpirationTime = 60 * 60 * 24; // 1 day
 
 export default async function () {
 	// get every closed ticket
-	const tickets = await TicketConfig.find({ closed: true }).sort({
-		closedat: 1,
-	});
+	const tickets = await TicketConfig.find({ closed: true }, {}, { sort: { closedat: 1 } });
 
 	// for each ticket
 	for (const ticket of tickets) {
@@ -16,7 +14,6 @@ export default async function () {
 		if (Math.floor(Date.now() / 1000) - ticket.closedat < TicketExpirationTime) continue;
 
 		try {
-			// delete the channel using this handy one liner
 			GetGuild()
 				.channels.fetch(ticket.channel)
 				.then((channel) => {

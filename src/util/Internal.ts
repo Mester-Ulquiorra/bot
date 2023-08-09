@@ -1,17 +1,26 @@
-import { RequestWithMessage, isCreateAppealMessage, processInternalMessage } from "@mester-ulquiorra/commonlib";
+import {
+	InternalMessage,
+	InternalMessageType,
+	RequestWithMessage,
+	isCreateAppealMessage,
+	processInternalMessage,
+	sendInternalMessage as _sendInternalMessage,
+} from "@mester-ulquiorra/commonlib";
 import express, { NextFunction, Request, Response } from "express";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { fileURLToPath } from "url";
 import { createAppeal } from "../commands/Appeal.js";
 import PunishmentConfig from "../database/PunishmentConfig.js";
+import { logger } from "../Ulquiorra.js";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
+const privateKey = readFileSync(join(__dirname, "..", "..", "internal-private.pem"));
 const publicKey = readFileSync(join(__dirname, "..", "..", "internal-public.pem"));
 
 const allowLocalhostOnly = (req: Request, res: Response, next: NextFunction) => {
 	const remoteAddress = req.socket.remoteAddress;
-	if (remoteAddress === "::1" || remoteAddress === "127.0.0.1" || remoteAddress === "::ffff:127.0.0.1") {
+	if (remoteAddress === "::1" || remoteAddress === "127.0.0.1" || remoteAddress === "::ffff:127.0.0.1" || remoteAddress === "localhost") {
 		// Request comes from localhost, allow it to continue
 		next();
 	} else {
@@ -44,5 +53,25 @@ app.post("/internal", allowLocalhostOnly, processInternalMessage(publicKey), asy
 });
 
 app.listen(5658, () => {
-	console.log("Internal server started");
+	logger.log("Internal server started");
 });
+
+/**
+ * Sends an internal message to the UCP API which is accepting messages at /internal HTTP post with port 5659.
+ * @param message The message to send
+ */
+export async function sendInternalMessage<T extends InternalMessageType>(message: InternalMessage<T>) {
+	const success = await _sendInternalMessage(privateKey, message, "http://localhost:5659/internal");
+
+	if (typeof success !== "string") {
+		logger.log("Failed to send internal message", "error");
+		return false;
+	}
+
+	if (success !== "") {
+		logger.log(`Internal message failed: ${success}`, "error");
+		return false;
+	}
+
+	return true;
+}

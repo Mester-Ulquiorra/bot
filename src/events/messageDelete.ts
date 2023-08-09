@@ -1,5 +1,4 @@
-import { ChannelType, Message, PermissionsBitField } from "discord.js";
-import testMode from "../testMode.js";
+import { ChannelType, Message } from "discord.js";
 import Event from "../types/Event.js";
 import { GetSpecialChannel } from "../util/ClientUtils.js";
 import CreateEmbed from "../util/CreateEmbed.js";
@@ -13,16 +12,11 @@ const MessageDeleteEvent: Event = {
 		if (message.author.bot || message.channel.type === ChannelType.DM) return;
 
 		// check if the message is a reply and if that's true, store the replied message in repliedMessage
-		const repliedMessage = message.reference?.messageId
-			? await message.channel.messages
-					.fetch(message.reference.messageId)
-					.then((m) => {
-						return m;
-					})
-					.catch(() => {
-						return null as Message;
-					})
-			: void 0;
+		const repliedMessage = message.reference
+			? await message.channel.messages.fetch(message.reference.messageId).catch(() => {
+					return null as Message<true>;
+			  })
+			: null;
 
 		// if the message is 2 characters long and replying to us, skip logging
 		if (message.content.length === 2 && repliedMessage?.author.id === client.user.id) return;

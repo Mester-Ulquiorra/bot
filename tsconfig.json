@@ -12,11 +12,12 @@
         "target": "esnext",
         // if TS 5.x+
         "moduleResolution": "nodenext",
-        "allowImportingTsExtensions": true,
+        //"allowImportingTsExtensions": true,
         "moduleDetection": "force",
-        "noEmit": true,
+        //"noEmit": true,
         "esModuleInterop": true, // allow default imports for CommonJS modules
         "newLine": "lf",
+        "outDir": "./build",
         // best practices
         "forceConsistentCasingInFileNames": true,
         "skipLibCheck": true

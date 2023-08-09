@@ -1,8 +1,7 @@
 import { Message } from "discord.js";
-import { PunishMessage, ReishiEvaluation } from "../Reishi.js";
-import https from "https";
 import { Configuration, OpenAIApi } from "openai";
 import config from "../../config.js";
+import { PunishMessage } from "../Reishi.js";
 
 const emojiRegex = /<a?:\w+:\d+>/g;
 

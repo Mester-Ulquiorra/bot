@@ -1,7 +1,7 @@
 import { Logger } from "@mester-ulquiorra/commonlib";
 import * as deepl from "deepl-node";
 import "discord.js";
-import { Client } from "discord.js";
+import { ActivityType, Client } from "discord.js";
 import mongoose from "mongoose";
 import { Snowflake } from "nodejs-snowflake";
 import { join } from "path";
@@ -45,6 +45,14 @@ const Ulquiorra = new Client({
 		parse: ["roles", "users"],
 		repliedUser: true,
 	},
+	presence: {
+		activities: [
+			{
+				name: `Version ${config.Version}`,
+				type: ActivityType.Playing,
+			},
+		],
+	},
 });
 // ------------------------------------------
 
@@ -63,7 +71,7 @@ const browser = await puppeteer
 	});
 
 process.on("exit", () => {
-	browser.close();
+	browser?.close();
 });
 
 function shutdown(reason: string) {
@@ -80,19 +88,9 @@ function GetResFolder() {
 logger.log("Loading commands and events...");
 
 // register commands and events
-Register(join(__dirname, "commands"), join(__dirname, "events"), join(__dirname, "consolecommands"), Ulquiorra).then(async () => {
-	if (testMode) Ulquiorra.on("debug", (msg) => logger.log(`DEBUG: ${msg}`, "warn"));
+Register(join(__dirname, "commands"), join(__dirname, "events"), join(__dirname, "consolecommands")).then(async () => {
 	logger.log("Logging in...");
 	await Ulquiorra.login(config.DANGER.TOKEN);
-
-	setInterval(
-		() => {
-			Ulquiorra.user.setActivity({
-				name: `Version ${config.Version}`,
-			});
-		},
-		1000 * 60 * 60
-	); // 1 hour
 
 	setInterval(
 		() => {
@@ -112,15 +110,17 @@ Register(join(__dirname, "commands"), join(__dirname, "events"), join(__dirname,
 		AutoUnpunish();
 	}, 1000 * 60); // 1 minute
 
-	const rl = createInterface({
-		input: process.stdin,
-		output: process.stdout,
-		terminal: false,
-	});
-
-	rl.on("line", (line) => {
-		HandleConsoleCommand(line, Ulquiorra);
-	});
+	try {
+		createInterface({
+			input: process.stdin,
+			output: process.stdout,
+			terminal: false,
+		}).on("line", (line) => {
+			HandleConsoleCommand(line, Ulquiorra);
+		});
+	} catch (err) {
+		logger.log(`Failed to start console, console commands are unavailable: ${err.stack}`, "error");
+	}
 });
 
 export { DeeplTranslator, SnowFlake, browser, logger, shutdown, GetResFolder };

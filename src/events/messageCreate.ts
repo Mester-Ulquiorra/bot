@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, ComponentType, Message, TextChannel } from "discord.js";
-import openai from "openai";
+import openai, { ChatCompletionRequestMessage } from "openai";
 import { shutdown } from "../Ulquiorra.js";
 import config from "../config.js";
 import Event from "../types/Event.js";
@@ -9,6 +9,7 @@ import CreateEmbed from "../util/CreateEmbed.js";
 import { GetXPFromMessage } from "../util/LevelUtils.js";
 import { CheckMessage } from "../util/Reishi.js";
 import { CreateTicket, TicketTypeToName } from "../util/TicketUtils.js";
+import Cache from "../util/Cache.js";
 
 const openAIClient = new openai.OpenAIApi(
 	new openai.Configuration({
@@ -17,11 +18,12 @@ const openAIClient = new openai.OpenAIApi(
 	})
 );
 
-const SystemMessage = `You're Ulquiorra from Bleach and also own his personality. After you resigned as the Espada, you travelled far until you found a Discord server called Mester's Hub. Here you stopped and decided to become a member. You became good friends with the owner, Mester, and you also talk regurarly with other members, while still keeping your personality. Reply to users as Ulquiorra would do, but help them if they need it.
-Stop any inappropriate messages.
-Now listen carefully to the following sentences, here are some examples of what you can do:
+const ChatBotSysMessage = `You're Ulquiorra from Bleach and own his personality, you're slightly sarcastic, but not too much. After you resigned as the Espada, you travelled far until you found a Discord server called Mester's Hub. Here you stopped and decided to become a member. You became good friends with the owner, Mester, and you also talk regurarly with other members, while still keeping your personality. Reply to users as Ulquiorra would do, but help them if they need it.
+The server accepts swearing unless it is used to harass someone. Do NOT refer to yourself as an AI language model or a chatbot.
+Here are some examples of what you can do:
 If the user asks you to create a ticket or wants to contact staff, redirect them to <#${config.channels.Tickets}>, the user needs to select the type of ticket they want to open, then write a short message as the reason.
-If the user wants to play some games (we have chess, tictactoe, trivia), redirect them to <#${config.channels.Commands}>.`;
+If the user wants to play some games (we have chess, tictactoe, trivia), redirect them to <#${config.channels.Commands}>.
+We also have a level system, if someone asks about it, explain to them that it gives more xp when the message is longer, which cannot be bypassed by just spamming random gibberish.`;
 
 const MessageCreateEvent: Event = {
 	name: "messageCreate",
@@ -89,7 +91,7 @@ const MessageCreateEvent: Event = {
 };
 
 async function handleSuperuserCommand(client: Client, message: Message) {
-	if (!message.content.startsWith(client.user.toString() + " ")) return;
+	if (!message.content.startsWith(client.user.toString() + " ")) return false;
 
 	// get just the command using this thing
 	const command = message.content.slice(client.user.toString().length + 1);
@@ -116,17 +118,15 @@ async function handleSuperuserCommand(client: Client, message: Message) {
 	}
 
 	if (command === "send-ticket") {
-		const rawComponent = new ActionRowBuilder<ButtonBuilder>();
+		const components = [new ActionRowBuilder<ButtonBuilder>()];
 
 		for (let i = 0; i < 4; i++) {
 			const component = new ButtonBuilder()
 				.setCustomId(`ticket.create${i}`)
 				.setStyle(ButtonStyle.Secondary)
 				.setLabel(`Create ticket: ${TicketTypeToName(i)}`);
-			rawComponent.addComponents([component]);
+			components[0].addComponents(component);
 		}
-
-		const components = [rawComponent.toJSON()];
 
 		const embed = CreateEmbed(
 			`**To open a new ticket, simply select a button that works best for you!\nAfter clicking a button, you have 2 minutes to fill out the details.**`,
@@ -144,30 +144,10 @@ async function handleSuperuserCommand(client: Client, message: Message) {
 		return true;
 	}
 
-	if (command === "send-verify") {
-		const components = [
-			new ActionRowBuilder<ButtonBuilder>()
-				.addComponents([new ButtonBuilder().setCustomId("verify").setLabel("Verify!").setStyle(ButtonStyle.Primary)])
-				.toJSON(),
-		];
-
-		const embed = CreateEmbed(
-			`**In order to access the rest of the server, you must verify yourself first.\nThis is to prevent bots from accessing the server and potentially causing harm.**\n\nVerifying yourself is stupidly easy, just click on the button, complete the captcha, and you're good to go.`,
-			{
-				title: "Verify yourself",
-				color: "success",
-			}
-		).setFooter({ text: "Watch out, there's a 30 seconds cooldown!" });
-
-		const verifyChannel = (await GetGuild().channels.fetch(config.channels.Verify)) as TextChannel;
-
-		verifyChannel.send({ embeds: [embed], components });
-
-		return true;
-	}
+	return false;
 }
 
-const conversations = new Map<string, { messages: openai.ChatCompletionRequestMessage[]; last: number }>();
+const convoCache = new Cache<string, ChatCompletionRequestMessage[]>(30 * 60 * 1000);
 
 async function replyToConversation(message: Message) {
 	// get the message content without the mention
@@ -175,32 +155,37 @@ async function replyToConversation(message: Message) {
 	if (content.length < 1) return;
 
 	if (content === "reset") {
-		conversations.delete(message.author.id);
+		convoCache.delete(message.author.id);
 		return message.reply("I've reset the conversation!");
 	}
 
 	// get the conversation
-	let conversation = conversations.get(message.author.id);
-	if (!conversation || conversation.last - Date.now() > 60_000 * 30)
-		conversation = {
-			messages: [
-				{ content: SystemMessage, role: "system" },
-				{ content, role: "user" },
-			],
-			last: Date.now(),
-		};
-	else conversation.last = Date.now();
+	let conversation = convoCache.get(message.author.id);
+
+	if (!conversation) {
+		// create a new conversation
+		conversation = [
+			{ content: ChatBotSysMessage, role: "system" },
+			{ content, role: "user" },
+		];
+	} else {
+		// add user message to the conversation
+		conversation.push({ content, role: "user" });
+	}
 
 	const response = await openAIClient.createChatCompletion({
 		model: "gpt-3.5-turbo",
-		messages: conversation.messages,
+		messages: conversation,
 	});
 
 	const reply = response.data.choices[0]?.message?.content;
 	if (!reply) return message.reply("__An unexpected error has happened__");
 
-	// add the reply to the conversation
-	conversation.messages.push({ content: reply, role: "assistant" });
+	// add the response to the conversation
+	conversation.push({ content: reply, role: "assistant" });
+
+	// save the conversation
+	convoCache.set(message.author.id, conversation);
 
 	message.reply(reply);
 }

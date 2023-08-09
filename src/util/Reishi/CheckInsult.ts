@@ -5,7 +5,7 @@ import { InternalMute } from "../../commands/Mute.js";
 import config from "../../config.js";
 import { GetGuild, GetSpecialChannel } from "../ClientUtils.js";
 import CreateEmbed, { EmbedColors } from "../CreateEmbed.js";
-import { GetPunishmentLength, GetPunishmentReason, ReishiEvaluation } from "../Reishi.js";
+import { GetPunishmentLength, GetPunishmentReason } from "../Reishi.js";
 
 const AIModel = "gpt-3.5-turbo";
 

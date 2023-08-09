@@ -160,7 +160,7 @@ export default {
 		 */
 		Events: [
 			["geo", 500],
-			["enemy", 250],
+			["enemy", 0],
 			["npc", 200],
 			["nothing", 100],
 			["relic", 50],

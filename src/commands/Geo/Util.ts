@@ -1,6 +1,8 @@
 import { GuildMember, User } from "discord.js";
 import GeoConfig, { DBGeo } from "../../database/GeoConfig.js";
 import { GeoItems, GeoMultipler, IGeoItems, ItemsWithWeight, WeightedItems } from "./GeoData.js";
+import ManageRole from "../../util/ManageRole.js";
+import config from "../../config.js";
 
 export async function GetGeoConfig(userId: string) {
 	let geoConfig = await GeoConfig.findOne({ userId });
@@ -46,6 +48,10 @@ export async function GetGeoMultiplier(member: GuildMember | User, geoConfig: DB
 	// add 1.5 to geo if the user is a server booster
 	if (member.premiumSince != null) {
 		multipliers.geo += 0.5;
+	}
+
+	if (await ManageRole(member, config.roles.UCPUser, "Check")) {
+		multipliers.geo += 0.3;
 	}
 
 	return multipliers;

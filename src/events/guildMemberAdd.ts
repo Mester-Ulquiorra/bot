@@ -22,8 +22,8 @@ const GuildMemberAddEvent: Event = {
 		// check if the member is muted and if yes, add the role back
 		if (memberConfig.muted) ManageRole(member, config.roles.Muted, "Add", "joined back as muted");
 
-		// add the unverified role to the member
-		ManageRole(member, config.roles.Unverified, "Add", "new member");
+		// add the member role
+		ManageRole(member, config.roles.Member, "Add", "new member");
 
 		// create the embed
 		const embed = CreateEmbed(undefined)
@@ -42,7 +42,7 @@ const GuildMemberAddEvent: Event = {
 
 		// get the welcome channel and send the embed
 		GetSpecialChannel("Welcome").send({
-			content: `${member.user}, welcome to Mester's Hub! Please take a moment to verify yourself in <#${config.channels.Verify}> to unlock the rest of the server!`,
+			content: `${member.user}, welcome to Mester's Hub, we hope you'll have a great time here!`,
 			embeds: [embed],
 		});
 	},

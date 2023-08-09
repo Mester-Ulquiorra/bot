@@ -4,7 +4,7 @@ import { DBGeo } from "../../database/GeoConfig.js";
 import testMode from "../../testMode.js";
 import SlashCommand from "../../types/SlashCommand.js";
 import CreateEmbed from "../../util/CreateEmbed.js";
-import GeoFight from "./Fight.ts";
+import GeoFight from "./Fight.js";
 import GeoData, { ArtifactNames, GeoChance, GeoEvent, GeoItems, RelicNames } from "./GeoData.js";
 import { GetGeoConfig, GetGeoMultiplier, extractWeights } from "./Util.js";
 
@@ -71,7 +71,7 @@ const ExploreCommand: SlashCommand = {
 				break;
 			}
 			case "enemy": {
-				const message = await interaction.reply({ embeds: [CreateEmbed("Loading fight...")], fetchReply: true });
+				const message = await interaction.deferReply({ fetchReply: true });
 				await GeoFight.build(message, interaction.member as GuildMember);
 				break;
 			}

@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
 import config from "../../config.js";
 import { GetUserConfig } from "../ConfigHelper.js";
-import { PunishMessage, ReishiEvaluation } from "../Reishi.js";
+import { PunishMessage } from "../Reishi.js";
 
 enum ProtectionDecision {
 	Yes = "yes",

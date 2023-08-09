@@ -1,4 +1,3 @@
-import { Client } from "discord.js";
 import { readdirSync } from "fs";
 import { join } from "path";
 import { pathToFileURL } from "url";
@@ -17,12 +16,9 @@ type ModuleType = "slash" | "console" | "event";
  * @param commandPath The path to the commands folder.
  * @param eventPath The path to the events folder.
  * @param consoleCommandPath The path to the consolecommands folder.
- * @param client The bot client.
  */
-async function Register(commandPath: string, eventPath: string, consoleCommandPath: string, client: Client) {
-	await processFiles(commandPath, "slash").then(() => logger.log("Successfully loaded all commands!"));
-	await processFiles(consoleCommandPath, "console").then(() => logger.log("Successfully loaded all console commands!"));
-	await processFiles(eventPath, "event").then(() => logger.log("Successfully loaded all events!"));
+async function Register(commandPath: string, eventPath: string, consoleCommandPath: string) {
+	return Promise.all([processFiles(eventPath, "event"), processFiles(commandPath, "slash"), processFiles(consoleCommandPath, "console")]);
 }
 
 async function processFiles(root: string, type: ModuleType) {
@@ -30,7 +26,7 @@ async function processFiles(root: string, type: ModuleType) {
 
 	for (const file of filteredFiles) {
 		const urlPath = pathToFileURL(join(root, file)).toString();
-		await loadModule(urlPath, type).catch((error) => {
+		loadModule(urlPath, type).catch((error) => {
 			logger.log(`Error while trying to load ${file}: ${error.stack}`, "error");
 		});
 	}
@@ -44,7 +40,7 @@ async function loadModule(urlPath: string, type: ModuleType) {
 	if (type === "console") consoleCommands.set(module.name, module);
 	if (type === "event")
 		Ulquiorra.on(module.name, (...args) => {
-			module.run(Ulquiorra, ...args).catch((error) => {
+			module.run(Ulquiorra, ...args).catch((error: Error) => {
 				logger.log(`Error while trying to run ${module.name}: ${error.stack}`, "error");
 			});
 		});

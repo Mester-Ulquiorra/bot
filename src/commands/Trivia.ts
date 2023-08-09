@@ -15,7 +15,7 @@ import {
 	Message,
 	StringSelectMenuBuilder,
 } from "discord.js";
-import { getQuestions, Question } from "open-trivia-db";
+import { CategoryNames, getQuestions, Question } from "open-trivia-db";
 import SlashCommand from "../types/SlashCommand.js";
 import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
 import { shuffleArray } from "../util/MiscUtils.js";
@@ -26,16 +26,16 @@ const TriviaCommmand: SlashCommand = {
 	async run(interaction, _client) {
 		const category = Number.parseInt(interaction.options.getString("category"));
 
-		await interaction.reply({
+		const message = await interaction.reply({
 			embeds: [CreateEmbed("Setting up the game...")],
+			fetchReply: true,
 		});
-		const message = await interaction.fetchReply();
 
 		// create the game
 		new TriviaGame(
 			message,
 			interaction.member as GuildMember,
-			isNaN(category) ? null : category,
+			isNaN(category) ? CategoryNames["General Knowledge"] : category,
 			(interaction.options.getString("difficulty") as TriviaDifficulty) ?? "medium",
 			interaction.options.getInteger("rounds") ?? 5
 		);
@@ -56,12 +56,11 @@ class TriviaGame {
 	summaryEmbed: EmbedBuilder;
 
 	/**
-	 *
-	 * @param {Message} message The game's messages
-	 * @param {GuildMember} player The player who is playing the game
-	 * @param {number} category The category of the game
-	 * @param {string} difficulty The difficulty of the game
-	 * @param {number} amount The amount of questions to be asked
+	 * @param message The game's messages
+	 * @param player The player who is playing the game
+	 * @param category The category of the game
+	 * @param difficulty The difficulty of the game
+	 * @param amount The amount of questions to be asked
 	 */
 	constructor(message: Message, player: GuildMember, category: number, difficulty: TriviaDifficulty = "medium", amount = 5) {
 		this.player = player;
@@ -302,7 +301,7 @@ class TriviaGame {
 		embed.addFields([
 			{
 				name: "Category",
-				value: this.questions[this.turn].category,
+				value: this.questions[this.turn].category.name,
 				inline: true,
 			},
 			{

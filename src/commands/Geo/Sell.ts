@@ -12,7 +12,7 @@ const SellCommand: SlashCommand = {
 		const itemName = interaction.options.getString("item");
 		const amount = interaction.options.getNumber("amount") ?? 1;
 
-		if (!IsGeoItem(itemName)) return "That item doesn't even exist, yet you somehow managed to sell it.\nAre you a cheater?";
+		if (!IsGeoItem(itemName)) return "That item doesn't even exist, yet you somehow managed to sell it, are you a cheater?";
 
 		const userItem = geoConfig.inventory.items.find((i) => i.name === itemName);
 		if (!userItem) return "You don't have that item in your inventory.";

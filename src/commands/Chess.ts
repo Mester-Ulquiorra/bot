@@ -438,17 +438,23 @@ class ChessGame {
 					let thisMoveString = move.to;
 
 					const pieceToHit = this.chessGame.get(move.to as chess.Square);
-					const emoji =
-						pieceToHit || move.promotion
-							? await ChessGame.getPieceEmoji(
-									move.promotion
-										? {
-												type: move.promotion,
-												color: this.chessGame.turn(),
-										  }
-										: pieceToHit
-							  )
-							: undefined;
+					let emoji: Awaited<ReturnType<typeof ChessGame.getPieceEmoji>>;
+
+					if (move.promotion) {
+						emoji = await ChessGame.getPieceEmoji({
+							type: move.promotion,
+							color: this.chessGame.turn(),
+						});
+					}
+					if (pieceToHit) emoji = await ChessGame.getPieceEmoji(pieceToHit);
+
+					let finalEmoji = undefined;
+					if (emoji) {
+						finalEmoji = {
+							name: emoji instanceof GuildEmoji ? emoji.name : emoji,
+							id: emoji instanceof GuildEmoji ? emoji.id : undefined,
+						};
+					}
 
 					if (move.flags.includes("p")) thisMoveString += ` (Promotion)`;
 					if (move.flags.includes("c") || move.flags.includes("e")) thisMoveString += ` (Capture)`;
@@ -457,12 +463,7 @@ class ChessGame {
 					movesOption.push({
 						label: thisMoveString,
 						value: `${move.from}-${move.to}-${move.promotion || "none"}`,
-						emoji: emoji
-							? {
-									name: emoji instanceof GuildEmoji ? emoji.name : emoji,
-									id: emoji instanceof GuildEmoji ? emoji.id : undefined,
-							  }
-							: undefined,
+						emoji: finalEmoji,
 						description: `Move your piece to ${move.to} ${move.promotion ? `and promote it to a ${move.promotion}` : ""}`,
 					});
 				}

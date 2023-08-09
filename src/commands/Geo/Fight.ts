@@ -1,9 +1,12 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ComponentType, GuildMember, Message } from "discord.js";
-import { IDBGeo } from "../../database/GeoConfig.ts";
-import CreateEmbed from "../../util/CreateEmbed.ts";
-import { RandomIntWithLinearlyDecreasingChance, RoundNumber } from "../../util/MathUtils.ts";
-import GeoData from "./GeoData.ts";
-import { GetGeoConfig, GetGeoMultiplier } from "./Util.ts";
+import { IDBGeo } from "../../database/GeoConfig.js";
+import CreateEmbed from "../../util/CreateEmbed.js";
+import { RandomIntWithLinearlyDecreasingChance, RoundNumber } from "../../util/MathUtils.js";
+import GeoData from "./GeoData.js";
+import { GetGeoConfig, GetGeoMultiplier } from "./Util.js";
+import { Image, createCanvas } from "@napi-rs/canvas";
+import { logger } from "../../Ulquiorra.js";
+import Cache from "../../util/Cache.js";
 
 interface GeoFightPlayer {
 	member: GuildMember;
@@ -22,6 +25,9 @@ interface GeoFightEnemy {
 const enemyNames = ["Moss Knight", "Moss Charger", "Moss Flyer", "Mosskin", "Mester"];
 
 const fightingUsers = new Set<string>();
+const avatarCache = new Cache<string, Buffer>();
+
+const borderColor = "#fff";
 
 function generateEnemy() {
 	// randomly generate hp, attack and defense
@@ -48,29 +54,13 @@ class GeoFight {
 		this.enemy = generateEnemy();
 		this.message = message;
 
-		this.render();
+		this.turn();
 	}
 
-	render(newTurn = true) {
+	async turn(newTurn = true) {
 		if (newTurn) {
-			const embed = CreateEmbed(`**${this.player.member.user.username}** is fighting!`).setFooter({
-				text: "This is a tech preview of the Geo fight system, the UI is not final",
-			});
-
 			// add speed to mana
 			if (newTurn) this.player.mana += Math.min(this.player.config.stats.speed, this.player.config.stats.mana - this.player.mana);
-
-			embed.addFields(
-				{ name: "Health", value: `${this.player.health}/${this.player.config.stats.hp}`, inline: true },
-				{ name: "Mana", value: `${this.player.mana}/${this.player.config.stats.mana}`, inline: true },
-				{ name: "Mana regen", value: `${this.player.config.stats.speed}`, inline: true },
-				{ name: "Weapon", value: `None (${this.player.config.stats.attack} attack)`, inline: true },
-				{ name: "Armor", value: `None (${this.player.config.stats.defense} defense)`, inline: true },
-				{ name: "Skill", value: `Vengeful Spirit (5 attack, 5 mana)`, inline: true },
-				{ name: "Enemy", value: `${this.enemy.name} (${this.enemy.hp} hp)`, inline: true },
-				{ name: "Enemy attack", value: `${this.enemy.attack}`, inline: true },
-				{ name: "Enemy defense", value: `${this.enemy.defense}`, inline: true }
-			);
 
 			const components = [
 				new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -83,10 +73,12 @@ class GeoFight {
 				),
 			];
 
+			const rendered = await this.render();
+
 			this.message.edit({
-				content: "",
-				embeds: [embed],
 				components,
+				content: "",
+				files: [{ attachment: rendered, name: "fight.png" }],
 			});
 		}
 
@@ -101,13 +93,13 @@ class GeoFight {
 				this.processComponent(i);
 			})
 			.catch(() => {
-				this.end(false);
+				this.end(true);
 			});
 	}
 
 	async processComponent(interaction: ButtonInteraction) {
 		if (interaction.customId === "geofight.end") {
-			return this.end(false);
+			return this.end(true);
 		}
 
 		const enemyDamageReduction = 1 - this.enemy.defense / 100;
@@ -125,7 +117,7 @@ class GeoFight {
 					ephemeral: true,
 				});
 
-				return this.render(false);
+				return this.turn(false);
 			}
 
 			this.player.mana -= 5;
@@ -228,7 +220,7 @@ class GeoFight {
 							return this.end(false);
 						}
 
-						this.render();
+						this.turn();
 					});
 			});
 	}
@@ -284,6 +276,131 @@ class GeoFight {
 
 		return fight;
 	}
+
+	async render() {
+		// create a 400x250 canvas
+		const canvas = createCanvas(400, 250);
+
+		// get the 2d context
+		const ctx = canvas.getContext("2d");
+
+		// draw a 2px border
+		ctx.fillStyle = borderColor;
+		ctx.fillRect(0, 0, 400, 250);
+		ctx.fillStyle = "#000000";
+		ctx.fillRect(2, 2, canvas.width - 4, canvas.height - 4);
+
+		// draw a separator line at 60% height
+		const userY = 150;
+		ctx.fillStyle = borderColor;
+		ctx.fillRect(0, userY, 400, 2);
+
+		// for the y calculation we want the image to be centered between canvas height and userY
+		// so we do (canvas height - userY) / 2 + userY - 32
+		const avatarX = 10;
+		const avatarY = (canvas.height - userY) / 2 + userY - 32;
+
+		// draw player health bar first, so it's behind the avatar
+		// there are two bars: health and and mana bar, we want them to touch each other in the middle of the avatar
+		// the bars are 10 pixel wide, so draw it at avatarY + 32 - 10
+		// for the x coordinate, we want it to be in the middle of the avatar + 15 px (it'll clip a bit and won't show low health)
+		// but that should be fine
+		const barX = avatarX + 32 + 15;
+		const barWidth = 200;
+		const barHeight = 10;
+
+		// utility coordinates for health and mana bar
+		const healthBarY = avatarY + 32 - 10;
+		const manaBarY = avatarY + 32;
+
+		// draw border
+		const drawBorder = () => {
+			ctx.beginPath();
+			ctx.moveTo(0, 0);
+			ctx.lineTo(barWidth, 0);
+			ctx.arc(barWidth, barHeight / 2, barHeight / 2, -Math.PI / 2, Math.PI / 2);
+			ctx.lineTo(0, barHeight);
+			ctx.arc(0, barHeight / 2, barHeight / 2, Math.PI / 2, -Math.PI / 2);
+			ctx.closePath();
+			ctx.fill();
+		};
+
+		// draw bar with 2 px offset
+		const drawBar = (length: number) => {
+			console.log(length);
+			const barEnd = 2 + (barWidth - 4) * length;
+			ctx.beginPath();
+			ctx.moveTo(2, 2);
+			ctx.lineTo(barEnd, 2);
+			ctx.arc(barEnd, barHeight / 2, barHeight / 2 - 2, -Math.PI / 2, Math.PI / 2);
+			ctx.lineTo(2, barHeight - 2);
+			ctx.arc(2, barHeight / 2, barHeight / 2 - 2, Math.PI / 2, -Math.PI / 2);
+			ctx.closePath();
+			ctx.fill();
+		};
+
+		// draw health
+		const healthPercentage = this.player.health / this.player.config.stats.hp;
+		ctx.translate(barX, healthBarY);
+		ctx.fillStyle = borderColor;
+		drawBorder();
+		ctx.fillStyle = "#ff0000";
+		drawBar(healthPercentage);
+		ctx.resetTransform();
+
+		// draw mana
+		const manaPercentage = this.player.mana / this.player.config.stats.mana;
+		ctx.translate(barX, manaBarY);
+		ctx.fillStyle = borderColor;
+		drawBorder();
+		ctx.fillStyle = "#0000ff";
+		drawBar(manaPercentage);
+		ctx.resetTransform();
+
+		// draw the player's avatar
+		const image = new Image();
+
+		let avatar = avatarCache.get(this.player.member.id);
+		if (!avatar) {
+			const url = this.player.member.user.displayAvatarURL({ extension: "png", size: 64 });
+			avatar = await downloadURL(url);
+			avatarCache.set(this.player.member.id, avatar);
+		}
+		image.src = avatar;
+
+		// translate the ctx to make the drawing easier
+		// draw a circular image with a 1px border
+		ctx.translate(avatarX, avatarY);
+		ctx.fillStyle = borderColor;
+		ctx.beginPath();
+		ctx.arc(32, 32, 32, 0, Math.PI * 2);
+		ctx.closePath();
+		ctx.fill();
+		ctx.beginPath();
+		ctx.arc(32, 32, 31, 0, Math.PI * 2);
+		ctx.closePath();
+		ctx.clip();
+		ctx.drawImage(image, 0, 0, 64, 64);
+		ctx.resetTransform();
+
+		// export the canvas as a buffer
+		return canvas.toBuffer("image/png");
+	}
+}
+
+function downloadURL(url: string) {
+	return new Promise<Buffer>((resolve, reject) => {
+		fetch(url)
+			.then(async (res) => {
+				if (!res.ok) {
+					logger.log(`Error downloading ${url} (${res.status} ${res.statusText})`, "error");
+					throw new Error("Network error");
+				}
+				return res.arrayBuffer();
+			})
+			.then((buf) => resolve(Buffer.from(buf)))
+			.catch((err) => reject(err));
+	});
 }
 
 export default GeoFight;

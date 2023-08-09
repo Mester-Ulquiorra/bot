@@ -40,16 +40,15 @@ async function GenerateUserInfo(interaction: ChatInputCommandInteraction | Butto
 	if (!targetConfig) return "The user has never joined the server.";
 
 	// get the member's roles
-	const targetRoles =
-		target instanceof GuildMember
-			? target.roles.cache
-					// sort the roles so it represents the hierarchy
-					.sort((a, b) => b.position - a.position)
-					.map((r) => r.toString())
-					// remove @everyone
-					.slice(0, target.roles.cache.size - 1)
-					.join(" ")
-			: "Not found";
+	let targetRoles = "Not found";
+	if (target instanceof GuildMember)
+		targetRoles = target.roles.cache
+			// sort the roles so it represents the hierarchy
+			.sort((a, b) => b.position - a.position)
+			.map((r) => r.toString())
+			// remove @everyone
+			.slice(0, target.roles.cache.size - 1)
+			.join(" ");
 
 	const latestPunishment = await PunishmentConfig.findOne({
 		user: target.id,

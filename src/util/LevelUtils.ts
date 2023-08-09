@@ -3,18 +3,12 @@ import { GuildMember, Message, spoiler } from "discord.js";
 import { logger } from "../Ulquiorra.js";
 import config from "../config.js";
 import LevelConfig from "../database/LevelConfig.js";
-import testMode from "../testMode.js";
 import { GetGuild, GetSpecialChannel } from "./ClientUtils.js";
 import CreateEmbed from "./CreateEmbed.js";
 import gib_detect from "./GibberishDetector/gib_detect.js";
 import ManageRole from "./ManageRole.js";
-// https://www.desmos.com/calculator/f3bsamea49?lang=de
 
-/**
- * A map that holds when a user last sent a message.
- * Used to limit the xp gain rate.
- */
-const LastMessages = new Map<string, number>();
+// https://www.desmos.com/calculator/f3bsamea49?lang=del
 
 /**
  * A function for getting the xp from a message.
@@ -25,31 +19,15 @@ async function GetXPFromMessage(message: Message) {
 	// get the content without whitespace
 	const content = message.content.replaceAll(/\s/gu, "");
 
-	// get the config from the map
-	if (!LastMessages.has(message.author.id))
-		// make sure to add the member if they aren't in the map
-		LastMessages.set(message.author.id, 0);
-
-	// get the last time the member has sent a message
-	const lastMessage = LastMessages.get(message.author.id);
-
 	// get the level config of the user
 	const levelConfig = await GetLevelConfig(message.author.id);
-
-	const currTime = Date.now();
-
-	// check if the user has sent a message in this 10 second interval
-	if (currTime - lastMessage < 10 * 1000 && !testMode) return 0;
-
-	// set this message to the member's last message
-	LastMessages.set(message.author.id, currTime);
 
 	// check if the message is gibberish
 	if (!gib_detect(content)) return 0;
 
 	// calculate the xp gained from the message
 	const xp = LengthToXP(content.length, XPToLevel(levelConfig.xp));
-	if (xp === 0) return null;
+	if (xp === 0) return 0;
 
 	// now add it to the user
 	AddXPToUser(levelConfig, xp, message);
@@ -110,6 +88,7 @@ function LengthToXP(length: number, level: number) {
  */
 async function AddXPToUser(levelConfig: IDBLevel, xp: number, message: Message) {
 	levelConfig.xp += xp;
+	await levelConfig.save();
 	if (XPToLevel(levelConfig.xp) > XPToLevel(levelConfig.xp - xp)) {
 		// we leveled up!
 		const newLevel = XPToLevel(levelConfig.xp);
@@ -124,7 +103,6 @@ async function AddXPToUser(levelConfig: IDBLevel, xp: number, message: Message) 
 			.catch(() => logger.log(`User ${message.author.id} has leveled up, but wasn't in the server???`, "warn"));
 	}
 
-	await levelConfig.save();
 }
 
 /**
@@ -141,7 +119,7 @@ function ManageLevelRole(member: GuildMember, memberLevel: number) {
 	// get the current level role id that the user has
 	const currRole = config.LevelRoles.filter((role) => member.roles.cache.has(role.id)).at(-1);
 
-	ManageRole(member, currRole.id, "Remove", "level up");
+	if (currRole) ManageRole(member, currRole.id, "Remove", "level up");
 	ManageRole(member, levelRole.id, "Add", "level up");
 
 	return levelRole.id;
@@ -171,7 +149,7 @@ async function GetLevelConfig(userId: string) {
 async function AlertMember(member: GuildMember, newlevel: number, message: Message, newRole: string = null) {
 	let embedDescription = `**Congratulations <@${member.id}>, you've successfully achieved level ${newlevel}**! ([Jump to level message](${message.url}))`;
 
-	// if new_role is not null, get the role name
+	// if newRole is not null, get the role name
 	if (newRole) {
 		const roleName = await GetGuild()
 			.roles.fetch(newRole)
@@ -185,13 +163,7 @@ async function AlertMember(member: GuildMember, newlevel: number, message: Messa
 	// create embed
 	const alertembed = CreateEmbed(embedDescription, {
 		color: "success",
-	}).addFields([
-		{
-			name: `Achieved at`,
-			value: `<t:${Math.floor(message.createdTimestamp / 1000)}>`,
-			inline: true,
-		},
-	]);
+	});
 
 	GetSpecialChannel("LevelUp").send({
 		content: spoiler(`<@${member.id}>`),
