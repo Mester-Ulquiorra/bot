@@ -154,7 +154,7 @@ export default {
 		/**
 		 * The time each player has to wait before they can explore again (in milliseconds)
 		 */
-		Cooldown: 60000,
+		Cooldown: 30_000,
 		/**
 		 * Name of events that can occur when exploring
 		 */

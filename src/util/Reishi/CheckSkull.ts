@@ -18,13 +18,13 @@ export default async function (message: Message<true>) {
 	// check the basic skull emoji
 	if (message.content.includes("💀")) {
 		PunishMessage(message, "BlacklistedWord", { comment: "__delete__" });
-		return;
+		return true;
 	}
 
 	// check the skull and crossbones emoji
 	if (message.content.includes("☠️")) {
 		PunishMessage(message, "BlacklistedWord", { comment: "__delete__" });
-		return;
+		return true;
 	}
 
 	// TODO: extract custom emojis when OpenAI supports image analysis
@@ -62,4 +62,6 @@ export default async function (message: Message<true>) {
         });
     }
     */
+
+    return false;
 }

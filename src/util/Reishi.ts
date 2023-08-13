@@ -5,12 +5,11 @@ import testMode from "../testMode.js";
 import { GetGuild } from "./ClientUtils.js";
 import { GetUserConfig } from "./ConfigHelper.js";
 import CheckFlood from "./Reishi/CheckFlood.js";
-import CheckInsult from "./Reishi/CheckInsult.js";
 import CheckLink from "./Reishi/CheckLink.js";
 import CheckProfanity from "./Reishi/CheckProfanity.js";
 import CheckProtectedPing from "./Reishi/CheckProtectedPing.js";
-import { ChannelIsTicket } from "./TicketUtils.js";
 import CheckSkull from "./Reishi/CheckSkull.js";
+import { ChannelIsTicket } from "./TicketUtils.js";
 
 const MassMentionThreshold = 5;
 
@@ -53,27 +52,38 @@ export async function CheckMessage(message: Message) {
 	// check if we're in a ticket
 	if (ChannelIsTicket(message.channel.name)) return true;
 
-	// check is the message is just an idiotic "hmmm"
-	if (message.content.match(/^hm+$/))
-		return PunishMessage(message, "BlacklistedWord", {
-			comment: "__delete__",
-		});
+	return Promise.all([
+		CheckProfanity(message),
+		CheckFlood(message),
+		CheckLink(message),
+		CheckProtectedPing(message),
+		// CheckInsult(message); // disable for now
+		CheckSkull(message),
+		new Promise<boolean>((resolve) => {
+			if (message.mentions.members?.size >= MassMentionThreshold) {
+				PunishMessage(message, "MassMention", null);
+				resolve(true);
+			} else {
+				resolve(false);
+			}
+		}),
+		// check is the message is just an idiotic "hmmm"
+		new Promise<boolean>((resolve) => {
+			if (message.content.match(/^hm+$/)) {
+				PunishMessage(message, "BlacklistedWord", {
+					comment: "__delete__",
+				});
+				resolve(true);
+			}
+			resolve(false);
+		}),
+	]).then((results) => {
+		if (testMode) console.log(`Reishi took ${performance.now() - start}ms to evaluate a message`);
 
-	CheckProfanity(message);
-	CheckFlood(message);
-	CheckLink(message);
-	CheckProtectedPing(message);
-	CheckInsult(message);
-	CheckSkull(message);
-
-	if (testMode) console.log(`Reishi took ${performance.now() - start}ms to evaluate a message`);
-
-	if (message.mentions.members?.size >= MassMentionThreshold) {
-		PunishMessage(message, "MassMention", null);
-		return false;
-	}
-
-	return true;
+		// check if any of the checks returned true
+		if (results.some((result) => result)) return false;
+		return true;
+	});
 }
 
 /**
@@ -85,15 +95,15 @@ export function GetPunishmentLength(type: PunishmentNames) {
 		case "BlacklistedWord":
 			return 30 * 60; // 30 minutes
 		case "RepeatedText":
-			return 5 * 60; // 5 minutes
+			return 20 * 60; // 20 minutes
 		case "MassMention":
-			return 60 * 60; // 1 hour
+			return 2 * 60 * 60 * 24 * 365; // 2 years
 		case "Link":
 			return 10 * 60; // 10 minutes
 		case "ProtectedPing":
 			return 30 * 60; // 30 minutes
 		default:
-			return 30 * 60;
+			return 30 * 60; // 30 minutes
 	}
 }
 

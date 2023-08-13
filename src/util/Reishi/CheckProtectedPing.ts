@@ -2,6 +2,7 @@ import { Message } from "discord.js";
 import config from "../../config.js";
 import { GetUserConfig } from "../ConfigHelper.js";
 import { PunishMessage } from "../Reishi.js";
+import CreateEmbed from "../CreateEmbed.js";
 
 enum ProtectionDecision {
 	Yes = "yes",
@@ -22,21 +23,21 @@ const protectionCache = new Map<string, ProtectionMemory>();
 export default async function (message: Message<true>) {
 	// check if the user is a mod or they have the protected role
 	const userConfig = await GetUserConfig(message.author.id, "detecting protected ping");
-	if (userConfig.mod !== 0 || message.member.roles.cache.has(config.roles.Protected)) return null;
+	if (message.member.roles.cache.has(config.roles.Protected)) return false;
 
 	// check if the message contains a mention with the protected role
 	const protectedPings = [
 		...new Set(message.mentions.members.map((member) => member).filter((member) => member.roles.cache.has(config.roles.Protected))),
 	];
 
-	if (protectedPings.length === 0) return;
+	if (protectedPings.length === 0) return false;
 
 	// if there are more than 1 protected users pinged, just mute
 	if (protectedPings.length >= 2) {
 		PunishMessage(message, "ProtectedPing", {
 			comment: `Pinged the following protected members: ${protectedPings.map((member) => member.toString()).join(", ")}`,
 		});
-		return;
+		return true;
 	}
 
 	const now = Date.now();
@@ -54,7 +55,7 @@ export default async function (message: Message<true>) {
 
 	if (freshMessages.length === 0) {
 		PunishMessage(message, "ProtectedPing", { comment: `Pinged the following protected member: ${user}` });
-		return;
+		return true;
 	}
 
 	let protDecision = protectionCache.get(user.id);
@@ -65,17 +66,19 @@ export default async function (message: Message<true>) {
 		protDecision = null;
 	}
 
-	if (protDecision && protDecision.decision === ProtectionDecision.Yes) {
-		PunishMessage(message, "ProtectedPing", { comment: `Pinged the following protected member: ${user}` });
-		return;
-	} else if (protDecision) return;
+	if (protDecision) {
+		if(protDecision.decision === ProtectionDecision.Yes) {
+			PunishMessage(message, "ProtectedPing", { comment: `Pinged the following protected member: ${user}` });
+			return true;
+		}
+		return false;
+	}
 
 	// ask the user if they want to mute
 	const inputMessage = await message.reply({
-		content: `${user}, should I mute for this?`,
+		embeds: [CreateEmbed(`${user}, should I mute for this?`)],
 		allowedMentions: {
 			repliedUser: false,
-			users: [user.id],
 		},
 	});
 
@@ -83,10 +86,10 @@ export default async function (message: Message<true>) {
 		inputMessage.react("❌");
 	});
 
-	inputMessage
+	return inputMessage
 		.awaitReactions({
 			max: 1,
-			filter: (reaction, reactionUser) => reactionUser.id === user.id,
+			filter: (reaction, reactionUser) => reactionUser.id === user.id && ["✅", "❌"].includes(reaction.emoji.name),
 			time: 30_000,
 		})
 		.then((reactions) => {
@@ -102,7 +105,7 @@ export default async function (message: Message<true>) {
 				PunishMessage(message, "ProtectedPing", {
 					comment: `Pinged the following protected member: ${user}`,
 				});
-				return;
+				return true;
 			}
 
 			protectionCache.set(user.id, {
@@ -110,12 +113,13 @@ export default async function (message: Message<true>) {
 				time: Date.now(),
 				userId: user.id,
 			});
-			return;
+			return false;
 		})
 		.catch(() => {
 			PunishMessage(message, "ProtectedPing", {
 				comment: `Pinged the following protected member: ${user}`,
 			});
+			return false;
 		})
 		.finally(() => {
 			inputMessage.delete();

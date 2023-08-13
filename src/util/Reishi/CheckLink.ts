@@ -14,23 +14,26 @@ export default function (message: Message<true>) {
 	// check if we have a discord link
 	if (DiscordLink.test(message.content)) {
 		PunishMessage(message, "Link", { comment: "__delete__" });
-		return;
+		return true;
 	}
 
 	// check if we have a discord invite
 	const discordInvite = message.content.match(DiscordInviteRegExp);
 	if (discordInvite) {
 		PunishMessage(message, "Link", { comment: discordInvite[0] });
-		return;
+		return true;
 	}
 
 	// check if we're in an excluded channel
-	if (config.channels.ExcludeNormalSearch.includes(message.channelId)) return;
+	if (config.channels.ExcludeNormalSearch.includes(message.channelId)) return false;
 
 	const evaulation: ReishiEvaluation = { comment: DetectLink(message.content) };
 	if (evaulation.comment) {
 		PunishMessage(message, "Link", evaulation);
+		return true;
 	}
+	
+	return false;
 }
 
 /**

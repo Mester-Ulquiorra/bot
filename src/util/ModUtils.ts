@@ -233,7 +233,6 @@ export function CreateModEmbed<T extends boolean = false, U extends boolean = fa
 
 	const components = [CreateAppealButton()];
 	if (options.userEmbed) {
-		if (options.requestID) components.push(CreateAutomodReasonButton(options.requestID));
 		return <ModEmbed<T, U>>{ embed, components };
 	} else return <ModEmbed<T, U>>embed;
 }
@@ -246,11 +245,5 @@ export function CreateAppealButton() {
 				.setStyle(ButtonStyle.Link)
 				.setURL(testMode ? "http://localhost:3000/punishments" : "https://ucp.mester.info/punishments")
 		)
-		.toJSON();
-}
-
-function CreateAutomodReasonButton(requestID: string) {
-	return new ActionRowBuilder<ButtonBuilder>()
-		.addComponents(new ButtonBuilder().setCustomId(`automod.reason-${requestID}`).setLabel("Show reason").setStyle(ButtonStyle.Primary))
 		.toJSON();
 }

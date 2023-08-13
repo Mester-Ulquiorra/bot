@@ -7,9 +7,8 @@ import {
 	ButtonStyle,
 	EmbedBuilder,
 	GuildMember,
-	ModalSubmitInteraction,
+	RepliableInteraction,
 	TextChannel,
-	UserContextMenuCommandInteraction,
 } from "discord.js";
 import { SnowFlake } from "../Ulquiorra.js";
 import config from "../config.js";
@@ -22,8 +21,8 @@ import { ModName, ModNameToId, ModNameToLevel } from "./ModUtils.js";
 export async function CreateTicket(
 	ticketOwner: GuildMember,
 	reason = "no reason provided",
-	interaction: ModalSubmitInteraction | UserContextMenuCommandInteraction = null,
-	type: TicketType = TicketType.General,
+	interaction: RepliableInteraction = null,
+	type: TicketType = "general",
 	usersToAdd: Array<string> = []
 ) {
 	const ticketId = SnowFlake.getUniqueID().toString();
@@ -42,7 +41,7 @@ export async function CreateTicket(
 		});
 
 	const ticket = await TicketConfig.create({
-		ticketId: ticketId,
+		ticketId,
 		channel: ticketChannel.id,
 		creator: ticketOwner.id,
 		type,
@@ -108,13 +107,15 @@ export async function CreateTicket(
 		});
 	}
 
-	// if we don't have an interaction, just leave now
-	if (interaction === null) return;
-
 	// create the return embed
 	const embed = CreateEmbed(`**Ticket __${channelName}__ created in ${ticketChannel}**`, { color: "success" });
 
-	interaction.reply({ embeds: [embed], ephemeral: true });
+	// if we don't have an interaction, just leave now
+	if (interaction !== null) {
+		interaction.reply({ embeds: [embed], ephemeral: true });
+	}
+
+	return ticketChannel;
 }
 
 /**
@@ -123,16 +124,16 @@ export async function CreateTicket(
  */
 export function TicketTypeToName(ticketType: TicketType) {
 	switch (ticketType) {
-		case TicketType.General:
+		case "general":
 			return "General help";
-		case TicketType.MemberReport:
+		case "userR":
 			return "Member report";
-		case TicketType.ModReport:
+		case "modR":
 			return "Moderator report";
-		case TicketType.HeadModReport:
-			return "Head mod report";
-		case TicketType.Private:
+		case "private":
 			return "Private ticket";
+		case "feedback":
+			return "Feedback/suggestion/bug report";
 		default:
 			return "No type";
 	}
@@ -156,11 +157,8 @@ export function CanManageTicket(ticket: DBTicket, userConfig: DBUser) {
 	// if the user is an admin or higher, return true
 	if (userConfig.mod >= ModNameToLevel("Admin")) return true;
 
-	// if the user is a head mod, and the ticket's type is not a head mod report, return true
-	if (userConfig.mod === ModNameToLevel("Head") && ticket.type < TicketType.HeadModReport) return true;
-
-	// if the user is a normal mod, and the ticket's type is not a mod or a headmod report, return true
-	if (userConfig.mod < ModNameToLevel("Head") && userConfig.mod != 0 && ticket.type < TicketType.ModReport) return true;
+	// if the user is a mod, and the ticket's type is not a mod report, return true
+	if (userConfig.mod < ModNameToLevel("Head") && userConfig.mod != 0 && ticket.type !== "modR") return true;
 
 	// if the id of the user is the same as the creator of ticketconfig, return true
 	if (ticket.creator === userConfig.userId) return true;
@@ -269,14 +267,13 @@ export async function ReloadTicketPermissions(channel: TextChannel, ticket: DBTi
 
 function WaitingforFromType(ticketType: TicketType) {
 	switch (ticketType) {
-		case TicketType.Private:
+		case "private":
 			return 0;
-		case TicketType.General:
-		case TicketType.MemberReport:
+		case "general":
+		case "userR":
+		case "feedback":
 			return 1;
-		case TicketType.ModReport:
+		case "modR":
 			return 4;
-		case TicketType.HeadModReport:
-			return 5;
 	}
 }

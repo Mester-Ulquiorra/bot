@@ -195,40 +195,49 @@ async function manageAppeal(interaction: ButtonInteraction, accepted: boolean) {
 
 	const targetConfig = await GetUserConfig(target.id, "managing a punishment appeal");
 
-	switch (punishment.type) {
-		case PunishmentType.Mute: {
-			targetConfig.muted = false;
-			await targetConfig.save();
+	if (accepted) {
+		switch (punishment.type) {
+			case PunishmentType.Mute: {
+				targetConfig.muted = false;
+				await targetConfig.save();
 
-			const targetMember = await GetGuild()
-				.members.fetch(target.id)
-				.then((member) => {
-					return member;
-				})
-				.catch(() => {
-					return null as GuildMember;
-				});
+				const targetMember = await GetGuild()
+					.members.fetch(target.id)
+					.then((member) => {
+						return member;
+					})
+					.catch(() => {
+						return null as GuildMember;
+					});
 
-			if (!targetMember) break;
+				if (!targetMember) break;
 
-			ManageRole(targetMember, config.roles.Muted, "Remove", `appeal accepted by ${interaction.user.tag}`);
-			break;
+				ManageRole(targetMember, config.roles.Muted, "Remove", `appeal accepted by ${interaction.user.tag}`);
+				break;
+			}
+
+			case PunishmentType.Ban: {
+				targetConfig.banned = false;
+				await targetConfig.save();
+
+				GetGuild()
+					.members.unban(target, `appeal accepted by ${interaction.user.tag}`)
+					.catch(() => {
+						return;
+					});
+				break;
+			}
 		}
+		punishment.active = false;
+		await punishment.save();
 
-		case PunishmentType.Ban: {
-			targetConfig.banned = false;
-			await targetConfig.save();
+		const modEmbed = CreateModEmbed(interaction.user, target, punishment, {
+			anti: true,
+			reason: `Punishment appeal accepted: ${bold(reason)}`,
+		});
 
-			GetGuild()
-				.members.unban(target, `appeal accepted by ${interaction.user.tag}`)
-				.catch(() => {
-					return;
-				});
-			break;
-		}
+		GetSpecialChannel("ModLog").send({ embeds: [modEmbed] });
 	}
-	punishment.active = false;
-	await punishment.save();
 
 	logger.log(
 		`${interaction.user.tag} (${interaction.user.id}) has ${accepted ? "accepted" : "declined"} the punishment appeal of ${
@@ -247,13 +256,6 @@ async function manageAppeal(interaction: ButtonInteraction, accepted: boolean) {
 	});
 
 	if (!success) return "Failed to send appeal notification to the API (but the appeal was still processed)";
-
-	const modEmbed = CreateModEmbed(interaction.user, target, punishment, {
-		anti: true,
-		reason: `Punishment appeal accepted: ${bold(reason)}`,
-	});
-
-	GetSpecialChannel("ModLog").send({ embeds: [modEmbed] });
 }
 
 export default AppealCommand;

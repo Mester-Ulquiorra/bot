@@ -43,6 +43,11 @@ app.post("/internal", allowLocalhostOnly, processInternalMessage(publicKey), asy
 		const punishment = await PunishmentConfig.findOne({
 			punishmentId: message.data.punishmentId,
 		});
+
+		if(punishment.appealed) return res.status(400).send("Punishment already appealed");
+		punishment.appealed = true;
+		await punishment.save();
+		
 		const userId = punishment.user;
 
 		const result = await createAppeal(userId, punishment, message.data.reason, message.data.additional);
@@ -64,7 +69,7 @@ export async function sendInternalMessage<T extends InternalMessageType>(message
 	const success = await _sendInternalMessage(privateKey, message, "http://localhost:5659/internal");
 
 	if (typeof success !== "string") {
-		logger.log("Failed to send internal message", "error");
+		logger.log(`Failed to send internal message: ${success}`, "error");
 		return false;
 	}
 

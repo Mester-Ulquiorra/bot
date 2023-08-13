@@ -3,6 +3,7 @@ import Event from "../types/Event.js";
 import { GetSpecialChannel } from "../util/ClientUtils.js";
 import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed from "../util/CreateEmbed.js";
+import InviteConfig from "../database/InviteConfig.js";
 
 const GuildMemberRemoveEvent: Event = {
 	name: "guildMemberRemove",
@@ -56,6 +57,13 @@ const GuildMemberRemoveEvent: Event = {
 
 		GetSpecialChannel("MiscLog").send({ embeds: [logEmbed] });
 		GetSpecialChannel("Welcome").send({ embeds: [embed] });
+
+		// manage invite
+		const inviteCode = memberConfig.joinedWith;
+		if (!inviteCode) return;
+
+		// remove 1 from uses
+		await InviteConfig.findOneAndUpdate({ code: inviteCode }, { $inc: { uses: -1 } });
 	},
 };
 

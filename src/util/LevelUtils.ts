@@ -8,7 +8,7 @@ import CreateEmbed from "./CreateEmbed.js";
 import gib_detect from "./GibberishDetector/gib_detect.js";
 import ManageRole from "./ManageRole.js";
 
-// https://www.desmos.com/calculator/f3bsamea49?lang=del
+// https://www.desmos.com/calculator/wkbcatlf9h
 
 /**
  * A function for getting the xp from a message.
@@ -40,7 +40,7 @@ async function GetXPFromMessage(message: Message) {
  * @param level The level to get the max xp of.
  */
 function XPCapOfLevel(level: number) {
-	return Math.floor(-0.045 * (level - 100) ** 2 + 500);
+	return Math.floor(4.5 * level + 150);
 }
 
 /**
@@ -77,7 +77,7 @@ function XPToLevel(xp: number) {
  * @returns The xp gained from the message.
  */
 function LengthToXP(length: number, level: number) {
-	return Math.floor(Math.min(XPCapOfLevel(level), 0.00025 * length ** 2 + 10));
+	return Math.floor(Math.min(XPCapOfLevel(level), 0.8 * length + 10));
 }
 
 /**

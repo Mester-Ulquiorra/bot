@@ -11,6 +11,7 @@ import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import ManageRole from "../util/ManageRole.js";
 import { CanManageUser, CanPerformPunishment, CreateModEmbed } from "../util/ModUtils.js";
+import { sendInternalMessage } from "../util/Internal.js";
 
 const MuteCommand: SlashCommand = {
 	name: "mute",
@@ -40,10 +41,6 @@ interface AdvancedMuteOptions {
 	 * Extra details of the mute, used by automod to show what triggered the mute
 	 */
 	detail?: string;
-	/**
-	 * Only used for AI automod, contains a custom request ID used for identifying the chat completion session
-	 */
-	requestID?: string;
 }
 
 /**
@@ -95,13 +92,24 @@ export async function InternalMute(
 	});
 	const userEmbed = CreateModEmbed(mod.user, target.user, punishment, {
 		userEmbed: true,
-		requestID: options.requestID,
 	});
 
 	target.send({ embeds: [userEmbed.embed], components: userEmbed.components }).catch(() => {
 		return;
 	});
 	GetSpecialChannel("ModLog").send({ embeds: [modEmbed] });
+
+	const object = punishment.toJSON({ versionKey: false });
+	delete object._id;
+	delete object.automated;
+	// set mod property to mod's username
+	object.mod = mod.user.username;
+
+	sendInternalMessage({
+		type: "punishment",
+		// for data, use punishment as json, but without automated
+		data: object,
+	});
 
 	return punishment;
 }

@@ -16,58 +16,56 @@ const MessageUpdateEvent: Event = {
 		if (oldMessage.pinned !== newMessage.pinned) return;
 		if (oldMessage.attachments.size === newMessage.attachments.size && oldMessage.content === newMessage.content) return;
 
-		let oldMessageContent = oldMessage.content != "" ? oldMessage.content : "[nothing]";
-		if (oldMessage.content.length > MaxContentLength) oldMessageContent = `${oldMessage.content.substring(0, MaxContentLength)}...`;
-
 		// create a new embed
 		const embed = CreateEmbed(
 			`**Message sent by <@${oldMessage.author.id}> has been edited in ${oldMessage.channel}** [Jump to message](${newMessage.url})`
-		)
-			.addFields([
+		).setFooter({
+			text: `Member ID: ${oldMessage.author.id} | Message ID: ${oldMessage.id}`,
+		});
+
+		if (oldMessage.content !== newMessage.content) {
+			// add an ellipsis to the old content
+			let oldMessageContent = oldMessage.content != "" ? oldMessage.content : "[nothing]";
+			if (oldMessage.content.length > MaxContentLength) oldMessageContent = `${oldMessage.content.substring(0, MaxContentLength)}...`;
+
+			// do the same for the new content
+			let newMessageContent = newMessage.content;
+			if (newMessage.content.length > MaxContentLength) newMessageContent = `${newMessage.content.substring(0, MaxContentLength)}...`;
+
+			embed.addFields(
 				{
 					name: "Old content",
-					// this weird thing appends "..." to the end of the message content if it's too long
-					// warning: old content MIGHT be null, so check for that
 					value: oldMessageContent,
 					inline: false,
 				},
 				{
 					name: "New content",
-					// same weird thingy
-					value:
-						newMessage.content.length > MaxContentLength
-							? `${newMessage.content.substring(0, MaxContentLength)}...`
-							: newMessage.content,
+					value: newMessageContent,
 					inline: false,
-				},
-			])
-			.setFooter({
-				text: `Member ID: ${oldMessage.author.id} | Message ID: ${oldMessage.id}`,
-			});
+				}
+			);
+		}
 
-		// create the field for attachments
-		// message.attachments is a collection, so we need to convert it to an array
-		const oldAttachments = oldMessage.attachments.map((attachment) => attachment.url);
-		const newAttachments = newMessage.attachments.map((attachment) => attachment.url);
+		if (oldMessage.attachments.size !== newMessage.attachments.size && oldMessage.attachments.size > 0) {
+			// create the field for attachments
+			// message.attachments is a collection, so we need to convert it to an array
+			const oldAttachments = oldMessage.attachments.map((attachment) => attachment.url);
+			const newAttachments = newMessage.attachments.map((attachment) => attachment.url);
 
-		// if there are attachments and the new and old attachments aren't the same, add the fields
-		if (oldAttachments.length > 0 && oldAttachments.length !== newAttachments.length) {
-			embed.addFields([
+			// if there are attachments and the new and old attachments aren't the same, add the fields
+			embed.addFields(
 				{
 					name: "Old attachments",
 					value: oldAttachments.join("\n"),
 					inline: false,
 				},
-			]);
-			// if there are no new attachments, add "None"
-			// otherwise it causes an error
-			embed.addFields([
 				{
 					name: "New attachments",
+					// if there are no new attachments, add "None"
 					value: newAttachments.length > 0 ? newAttachments.join("\n") : "None",
 					inline: false,
-				},
-			]);
+				}
+			);
 		}
 
 		// finally, get the message log channel and send the embed

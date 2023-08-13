@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, ComponentType, Message, TextChannel } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, Client, ComponentType, Message, TextChannel, quote } from "discord.js";
 import openai, { ChatCompletionRequestMessage } from "openai";
 import { shutdown } from "../Ulquiorra.js";
 import config from "../config.js";
@@ -10,6 +10,9 @@ import { GetXPFromMessage } from "../util/LevelUtils.js";
 import { CheckMessage } from "../util/Reishi.js";
 import { CreateTicket, TicketTypeToName } from "../util/TicketUtils.js";
 import Cache from "../util/Cache.js";
+import { TicketType, TicketTypes } from "@mester-ulquiorra/commonlib";
+import testMode from "../testMode.js";
+import GiveawayConfig from "../database/GiveawayConfig.js";
 
 const openAIClient = new openai.OpenAIApi(
 	new openai.Configuration({
@@ -18,20 +21,32 @@ const openAIClient = new openai.OpenAIApi(
 	})
 );
 
-const ChatBotSysMessage = `You're Ulquiorra from Bleach and own his personality, you're slightly sarcastic, but not too much. After you resigned as the Espada, you travelled far until you found a Discord server called Mester's Hub. Here you stopped and decided to become a member. You became good friends with the owner, Mester, and you also talk regurarly with other members, while still keeping your personality. Reply to users as Ulquiorra would do, but help them if they need it.
-The server accepts swearing unless it is used to harass someone. Do NOT refer to yourself as an AI language model or a chatbot.
+const ChatBotSysMessage = `You're Ulquiorra from Bleach and own his personality with GLaDOS-like sarcasm. After you resigned as the Espada, you travelled far until you found a Discord server called Mester's Hub. Here you stopped and decided to become a member. You became good friends with the owner, Mester, and you also talk regurarly with other members, while still keeping your personality. Reply to users as Ulquiorra would do, but help them if they need it.
+The server accepts swearing unless it is used to harass someone. Do NOT refer to yourself as an AI language model or a chatbot. You are actually the single Discord bot in the Discord server, but act like you're the real Ulquiorra.
 Here are some examples of what you can do:
-If the user asks you to create a ticket or wants to contact staff, redirect them to <#${config.channels.Tickets}>, the user needs to select the type of ticket they want to open, then write a short message as the reason.
 If the user wants to play some games (we have chess, tictactoe, trivia), redirect them to <#${config.channels.Commands}>.
-We also have a level system, if someone asks about it, explain to them that it gives more xp when the message is longer, which cannot be bypassed by just spamming random gibberish.`;
+We also have a level system, if someone asks about it, explain to them that it gives more xp when the message is longer, which cannot be bypassed by just spamming random gibberish.
+There is a UCP (User Control Panel) which is a web interface for checking punishments and appealing them, accessible at https://ucp.mester.info.`;
+
+const SummarySysMessage = (
+	channelId: string
+) => `You're Ulquiorra and now job is to look at Discord messages and summarise the different topics.
+If there are multiple topics, list them all.
+Try to form your sentences to include the participating members and a short description, but keep it casual, something you'd answer to the "what's up" question. IMPORTANT: always put two backticks around a member. Make sure to include some messages so the users can quickly jump to the point in the conversation.
+Example: "We were just discussing how to gain extra points in a video game with \`TehTreeman\` and \`Mester\`."
+The format of the input is as follows: [date] author: message (message ID). If you want to include a link that jumps to a specific message, use https://discord.com/channels/775789526781263912/${channelId}/<message ID here>`;
+
+const summaryCooldown = new Cache<string, number>(15 * 60 * 1000);
 
 const MessageCreateEvent: Event = {
 	name: "messageCreate",
 	async run(client: Client, message: Message) {
 		const usedSuperuser = config.SuperUsers.includes(message.author.id) ? await handleSuperuserCommand(client, message) : false;
 
-		CheckMessage(message);
-		GetXPFromMessage(message);
+		const clean = await CheckMessage(message);
+		if (!clean) return;
+
+		if (message.channel.type !== ChannelType.DM) GetXPFromMessage(message);
 
 		// start the chatbot
 		if (message.content.startsWith(client.user.toString() + " ") && !usedSuperuser) {
@@ -62,21 +77,20 @@ const MessageCreateEvent: Event = {
 						embeds: [embed],
 						components,
 					})
-					.then((botMessage) => {
-						return botMessage
-							.awaitMessageComponent({
+					.then(async (botMessage) => {
+						try {
+							const decision = await botMessage.awaitMessageComponent({
 								filter: (i) => i.user.id === message.author.id && i.customId.startsWith("chatbot."),
-								time: 30_000,
+								time: 30000,
 								componentType: ComponentType.Button,
-							})
-							.then((decision) => {
-								decision.deferUpdate();
-								return decision.customId === "chatbot.agree";
-							})
-							.catch(() => false)
-							.finally(() => {
-								botMessage.delete();
 							});
+							decision.deferUpdate();
+							return decision.customId === "chatbot.agree";
+						} catch {
+							return false;
+						} finally {
+							botMessage.delete();
+						}
 					});
 
 				if (!acceptedWarning) return;
@@ -120,11 +134,11 @@ async function handleSuperuserCommand(client: Client, message: Message) {
 	if (command === "send-ticket") {
 		const components = [new ActionRowBuilder<ButtonBuilder>()];
 
-		for (let i = 0; i < 4; i++) {
+		for (const ticketType of TicketTypes.filter((t) => t !== "private")) {
 			const component = new ButtonBuilder()
-				.setCustomId(`ticket.create${i}`)
+				.setCustomId(`ticket.create-${ticketType}`)
 				.setStyle(ButtonStyle.Secondary)
-				.setLabel(`Create ticket: ${TicketTypeToName(i)}`);
+				.setLabel(`Create ticket: ${TicketTypeToName(ticketType)}`);
 			components[0].addComponents(component);
 		}
 
@@ -174,20 +188,155 @@ async function replyToConversation(message: Message) {
 	}
 
 	const response = await openAIClient.createChatCompletion({
-		model: "gpt-3.5-turbo",
+		model: "gpt-3.5-turbo-16k",
 		messages: conversation,
+		max_tokens: 512,
+		temperature: 1.2,
+		functions: [
+			{
+				name: "generate_summary",
+				description:
+					"If the user is asking you what's happening and things like that, generate him a summary of the conversation so far.",
+				parameters: { type: "object", properties: {} },
+			},
+			{
+				name: "open_ticket",
+				description:
+					"If the user is asking you to open a ticket, open one for them. It needs a reason (20-128 characters) and a type (general = general help, userR = user report, modR = mod report, feedback = feedback/suggestion/bug report)",
+				parameters: {
+					type: "object",
+					properties: {
+						reason: {
+							type: "string",
+							minLength: 20,
+							maxLength: 128,
+						},
+						type: {
+							type: "string",
+							enum: ["general", "userR", "modR", "feedback"],
+						},
+					},
+					required: ["reason", "type"],
+				},
+			},
+		],
 	});
 
-	const reply = response.data.choices[0]?.message?.content;
-	if (!reply) return message.reply("__An unexpected error has happened__");
+	if (testMode) console.log(response.data.choices[0].message);
+
+	const functionName = response.data.choices[0]?.message?.function_call?.name;
+
+	if (functionName === "generate_summary") {
+		const cooldown = summaryCooldown.get(message.channelId);
+		if (cooldown && cooldown > Date.now()) {
+			return void message.reply(
+				`You can only use this command once every 15 minutes. Please wait ${Math.ceil((cooldown - Date.now()) / 1000)} seconds.`
+			);
+		}
+		summaryCooldown.set(message.channelId, Date.now() + 15 * 60 * 1000);
+
+		const ourMessage = await message.reply("Generating summary...");
+
+		// fetch past 50 messages
+		const messages = await message.channel.messages.fetch({ limit: 30, before: message.id });
+
+		// prepare the messages for the summary
+		const summaryInput = prepareMessagesForSummary(messages.sort((a, b) => a.createdTimestamp - b.createdTimestamp).map((m) => m));
+
+		message.channel.sendTyping();
+
+		// generate the summary
+		const summaryResponse = await openAIClient.createChatCompletion({
+			model: "gpt-4",
+			messages: [
+				{
+					role: "system",
+					content: SummarySysMessage(message.channel.id),
+				},
+				{
+					role: "user",
+					content: summaryInput,
+				},
+			],
+			temperature: 1.2,
+			max_tokens: 300,
+		});
+
+		const summary = summaryResponse.data.choices[0]?.message?.content;
+		if (!summary) return void ourMessage.edit("__An unexpected error has happened__");
+
+		// add the response to the conversation
+		conversation.push({ content: summary, role: "assistant" });
+		convoCache.set(message.author.id, conversation);
+
+		return void ourMessage.edit({
+			content: summary,
+			flags: "SuppressEmbeds",
+		});
+	}
+
+	if (functionName === "open_ticket") {
+		const args = JSON.parse(response.data.choices[0].message.function_call.arguments) as {
+			reason: string;
+			type: TicketType;
+		};
+
+		// check if the arguments are valid
+		if (!args.reason || !args.type || args.reason.length < 20 || args.reason.length > 128 || !TicketTypes.includes(args.type)) {
+			return void message.reply("__An unexpected error has happened__");
+		}
+
+		// create the ticket
+		const ticket = await CreateTicket(message.member, args.reason, undefined, args.type);
+		if (!ticket) return void message.reply("__An unexpected error has happened__");
+
+		const reply = `I've created a ticket for you! You can find it at <#${ticket.id}>.`;
+
+		// add the response to the conversation
+		conversation.push({ content: reply, role: "assistant" });
+		convoCache.set(message.author.id, conversation);
+
+		return void message.reply(reply);
+	}
+
+	let reply = response.data.choices[0]?.message?.content;
+	// with a 25% chance, check if there are giveaways and add them at the end
+	if (Math.random() < 0.25) {
+		const giveaway = await GiveawayConfig.findOne({ ended: false }, {}, { limit: 1 });
+		if (giveaway) reply += "\n" + quote(`There is a giveaway going on! Check it out at <#${config.channels.Giveaway}>.`);
+	}
+	if (!reply) return void message.reply("__An unexpected error has happened__");
 
 	// add the response to the conversation
 	conversation.push({ content: reply, role: "assistant" });
-
-	// save the conversation
 	convoCache.set(message.author.id, conversation);
 
 	message.reply(reply);
+}
+
+/**
+ * Prepares the messages for the summary
+ * @param messages An array of messages to prepare for the summary (in the order of oldest to newest)
+ */
+function prepareMessagesForSummary(messages: Message[]) {
+	// filter out empty messages
+	messages = messages.filter((m) => m.content.length > 0);
+
+	// format: [date with time] author: message (message id)
+	// if message is over 1000 characters, add an ellipsis
+	const formattedMessages = messages.map((m) => {
+		const date = m.createdAt.toLocaleString("en-US", {
+			timeZone: "Europe/Budapest",
+			timeZoneName: "short",
+			hour12: false,
+		});
+
+		const content = m.cleanContent.length > 1000 ? m.cleanContent.slice(0, 1000) + "..." : m.cleanContent;
+
+		return `[${date}] ${m.author.tag}: ${content} (${m.id})`;
+	});
+
+	return formattedMessages.join("\n");
 }
 
 export default MessageCreateEvent;

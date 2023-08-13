@@ -29,7 +29,7 @@ import {
 	TicketTypeToName,
 } from "../util/TicketUtils.js";
 
-const TicketCreateRegex = /^ticket\.create[0-3]$/;
+const TicketCreateRegex = /^ticket\.create-\w+$/;
 
 const TicketCommand: SlashCommand = {
 	name: "ticket",
@@ -82,7 +82,7 @@ const TicketCommand: SlashCommand = {
 			)
 				return "You already have an opened ticket";
 
-			const ticketType = Number.parseInt(interaction.customId[interaction.customId.length - 1]);
+			const ticketType = interaction.customId.split("-")[1] as TicketType;
 
 			const modal = new ModalBuilder()
 				.setTitle(`Create ticket: ${TicketTypeToName(ticketType)}`)
@@ -93,7 +93,8 @@ const TicketCommand: SlashCommand = {
 							.setLabel("Reason (NOT the full problem)")
 							.setStyle(TextInputStyle.Short)
 							.setPlaceholder("Tell us why you opened this ticket in a short sentence.")
-							.setMaxLength(100)
+							.setMinLength(20)
+							.setMaxLength(128)
 							.setRequired(true),
 					])
 				);
@@ -101,22 +102,7 @@ const TicketCommand: SlashCommand = {
 			// set the correct customid
 			// !!! to prevent multiple modals from being sent, an uuid is added to the start
 			const uuid = uuidv4();
-			switch (ticketType) {
-				case TicketType.General:
-					modal.setCustomId(`ticket.open.${uuid}0`);
-					break;
-
-				case TicketType.MemberReport:
-					modal.setCustomId(`ticket.open.${uuid}1`);
-					break;
-
-				case TicketType.ModReport:
-					modal.setCustomId(`ticket.open.${uuid}2`);
-					break;
-
-				case TicketType.HeadModReport:
-					modal.setCustomId(`ticket.open.${uuid}3`);
-			}
+			modal.setCustomId(`ticket.open.${uuid}-${ticketType}`);
 
 			// send the modal and wait for it to return
 			await interaction.showModal(modal);
@@ -127,7 +113,7 @@ const TicketCommand: SlashCommand = {
 					time: 120_000,
 				})
 				.then((returnmodal) => {
-					const type = Number.parseInt(returnmodal.customId[returnmodal.customId.length - 1]);
+					const type = returnmodal.customId.split("-")[1] as TicketType;
 
 					// create the ticket (result should be handled)
 					CreateTicket(returnmodal.member as GuildMember, returnmodal.fields.getTextInputValue("reason"), returnmodal, type);
@@ -141,13 +127,13 @@ const TicketCommand: SlashCommand = {
 		}
 	},
 
-	async runUserContextCommand(interaction, client) {
+	async runUserContextCommand(interaction) {
 		if (interaction.commandName === "Create Ticket") {
 			CreateTicket(
 				interaction.member as GuildMember,
 				`added ${interaction.targetUser} from context menu`,
 				interaction,
-				TicketType.Private,
+				"private",
 				[interaction.targetId]
 			);
 		}

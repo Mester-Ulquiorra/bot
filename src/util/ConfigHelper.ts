@@ -5,7 +5,7 @@ export const GetUserConfig = async (userId: string, reason: string, create = tru
 	// try to get the user config, if it fails, create a new one
 	const userConfig = await UserConfig.findOne({ userId });
 
-	return userConfig ?? (create ? CreateUserConfig(userId, reason) : null);
+	return userConfig ?? (create ? CreateUserConfig(userId, reason) : null as ReturnType<typeof CreateUserConfig>);
 };
 
 export const CreateUserConfig = async (userId: string, reason?: string) => {

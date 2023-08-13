@@ -35,8 +35,9 @@ export default function (message: Message<true>) {
 
 	if (evaulation.comment) {
 		PunishMessage(message, "RepeatedText", evaulation);
-		return;
+		return true;
 	}
+	return false;
 }
 
 /**
@@ -113,7 +114,7 @@ function CheckLetters(word: string) {
 		}
 
 		// if the letter is repeated more than the threshold, return the letter
-		if (lettersInRow >= LetterCountThreshold) return `repeated letter ${letter}`;
+		if (lettersInRow >= LetterCountThreshold) return `__delete__`;
 	}
 	return null;
 }
