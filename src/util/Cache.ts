@@ -23,11 +23,13 @@ export default class<T, U> {
 		if (refreshTime) this.refreshTime = refreshTime;
 	}
 
-	set(key: T, data: U): void {
+	set(key: T, data: U): U {
 		this.#data.set(key, {
 			data,
 			lastRefresh: Date.now(),
 		});
+
+		return data;
 	}
 
 	get(key: T): U | undefined {

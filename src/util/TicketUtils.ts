@@ -118,25 +118,20 @@ export async function CreateTicket(
 	return ticketChannel;
 }
 
+const ticketTypeNames: { [key in TicketType]: string } = {
+	general: "General help",
+	userR: "Member report",
+	modR: "Moderator report",
+	private: "Private ticket",
+	feedback: "Feedback/suggestion/bug report",
+};
+
 /**
  * Get the name of the ticket type
  * @param ticketType The ticket type to get the name of
  */
 export function TicketTypeToName(ticketType: TicketType) {
-	switch (ticketType) {
-		case "general":
-			return "General help";
-		case "userR":
-			return "Member report";
-		case "modR":
-			return "Moderator report";
-		case "private":
-			return "Private ticket";
-		case "feedback":
-			return "Feedback/suggestion/bug report";
-		default:
-			return "No type";
-	}
+	return ticketTypeNames[ticketType];
 }
 
 /**
@@ -157,8 +152,11 @@ export function CanManageTicket(ticket: DBTicket, userConfig: DBUser) {
 	// if the user is an admin or higher, return true
 	if (userConfig.mod >= ModNameToLevel("Admin")) return true;
 
-	// if the user is a mod, and the ticket's type is not a mod report, return true
-	if (userConfig.mod < ModNameToLevel("Head") && userConfig.mod != 0 && ticket.type !== "modR") return true;
+	// if the user's mod level is higher than the mod level of the ticket, return true
+	if (userConfig.mod > ticket.modlevel) return true;
+
+	// if the user is the assigned mod of the ticket, return true
+	if (ticket.mod === userConfig.userId) return true;
 
 	// if the id of the user is the same as the creator of ticketconfig, return true
 	if (ticket.creator === userConfig.userId) return true;

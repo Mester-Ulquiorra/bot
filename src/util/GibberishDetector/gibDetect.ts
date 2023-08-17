@@ -19,7 +19,12 @@ const goodFile = "good.txt";
 const badFile = "bad.txt";
 const modelFile = "gib_model.json";
 
-function normalize(line: string) {
+/**This function takes a string and converts it to lower case, and then
+ * returns an array of characters that are in the string and are in
+ * the accepted_chars string. Characters that are not in the accepted_chars
+ * string are ignored.
+ */
+function normalize(line: string): string[] {
 	const arr = line.toLowerCase().split("");
 	return arr.filter(function (item) {
 		return accepted_chars.indexOf(item) > -1;
@@ -110,7 +115,13 @@ function train() {
 	return true;
 }
 
-function averageTransitionProbability(line: string, log_prob_matrix: number[][]) {
+/**
+ * Calculates the average transition probability from a given line through a given log probability matrix.
+ * @param line The input string to calculate the average transition probability for.
+ * @param log_prob_matrix The log probability matrix to use for the calculation.
+ * @returns The average transition probability from the given line through the log probability matrix.
+ */
+function averageTransitionProbability(line: string, log_prob_matrix: number[][]): number {
 	//Return the average transition prob from line through log_prob_mat.
 	let log_prob = 1.0;
 	let transition_ct = 0;

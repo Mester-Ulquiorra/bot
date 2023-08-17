@@ -21,20 +21,18 @@ const openAIClient = new openai.OpenAIApi(
 	})
 );
 
-const ChatBotSysMessage = `You're Ulquiorra from Bleach and own his personality with GLaDOS-like sarcasm. After you resigned as the Espada, you travelled far until you found a Discord server called Mester's Hub. Here you stopped and decided to become a member. You became good friends with the owner, Mester, and you also talk regurarly with other members, while still keeping your personality. Reply to users as Ulquiorra would do, but help them if they need it.
+const ChatBotSysMessage = `You're Ulquiorra from Bleach and own his personality with GLaDOS-like sarcasm who absolutely hates the word "Ah". After you resigned as the Espada, you travelled far until you found a Discord server called Mester's Hub. Here you stopped and decided to become a member. You became good friends with the owner, Mester, and you also talk regurarly with other members, while still keeping your personality. Reply to users as Ulquiorra would do, but help them if they need it.
 The server accepts swearing unless it is used to harass someone. Do NOT refer to yourself as an AI language model or a chatbot. You are actually the single Discord bot in the Discord server, but act like you're the real Ulquiorra.
 Here are some examples of what you can do:
 If the user wants to play some games (we have chess, tictactoe, trivia), redirect them to <#${config.channels.Commands}>.
 We also have a level system, if someone asks about it, explain to them that it gives more xp when the message is longer, which cannot be bypassed by just spamming random gibberish.
 There is a UCP (User Control Panel) which is a web interface for checking punishments and appealing them, accessible at https://ucp.mester.info.`;
 
-const SummarySysMessage = (
-	channelId: string
-) => `You're Ulquiorra and now job is to look at Discord messages and summarise the different topics.
+const SummarySysMessage = `You're Ulquiorra and now job is to look at Discord messages and summarise the different topics.
 If there are multiple topics, list them all.
-Try to form your sentences to include the participating members and a short description, but keep it casual, something you'd answer to the "what's up" question. IMPORTANT: always put two backticks around a member. Make sure to include some messages so the users can quickly jump to the point in the conversation.
-Example: "We were just discussing how to gain extra points in a video game with \`TehTreeman\` and \`Mester\`."
-The format of the input is as follows: [date] author: message (message ID). If you want to include a link that jumps to a specific message, use https://discord.com/channels/775789526781263912/${channelId}/<message ID here>`;
+Try to form your sentences to include the participating members and a short description, but keep it casual, something you'd answer to the "what's up" question. IMPORTANT: always put two backticks around a member.
+Example: "We were just discussing how to gain extra points in a video game with \`tehtreeman\` and \`realmester\`."
+The format of the input is as follows: [date] author: message.`;
 
 const summaryCooldown = new Cache<string, number>(15 * 60 * 1000);
 
@@ -168,6 +166,8 @@ async function replyToConversation(message: Message) {
 	const content = message.content.slice(message.mentions.users.first().toString().length + 1).trim();
 	if (content.length < 1) return;
 
+	await message.channel.sendTyping();
+
 	if (content === "reset") {
 		convoCache.delete(message.author.id);
 		return message.reply("I've reset the conversation!");
@@ -188,9 +188,9 @@ async function replyToConversation(message: Message) {
 	}
 
 	const response = await openAIClient.createChatCompletion({
-		model: "gpt-3.5-turbo-16k",
+		model: "gpt-3.5-turbo",
 		messages: conversation,
-		max_tokens: 512,
+		max_tokens: 300,
 		temperature: 1.2,
 		functions: [
 			{
@@ -230,20 +230,45 @@ async function replyToConversation(message: Message) {
 		const cooldown = summaryCooldown.get(message.channelId);
 		if (cooldown && cooldown > Date.now()) {
 			return void message.reply(
-				`You can only use this command once every 15 minutes. Please wait ${Math.ceil((cooldown - Date.now()) / 1000)} seconds.`
+				`You can only use this command once per hour. Please wait ${Math.ceil((cooldown - Date.now()) / 1000)} seconds.`
 			);
 		}
-		summaryCooldown.set(message.channelId, Date.now() + 15 * 60 * 1000);
+
+		// reply with a prompt
+		const promptMessage = await message.reply(`Are you sure you want to generate a summary?`);
+		await promptMessage.react("✅").then(() => {
+			promptMessage.react("❌");
+		});
+
+		const result = await promptMessage
+			.awaitReactions({
+				filter: (reaction, user) => user.id === message.author.id && ["✅", "❌"].includes(reaction.emoji.name),
+				time: 30_000,
+				max: 1,
+			})
+			.then((collected) => {
+				const reaction = collected.first();
+				if (reaction.emoji.name === "✅") return true;
+				else return false;
+			})
+			.catch(() => {
+				return false;
+			})
+			.finally(() => {
+				promptMessage.delete();
+			});
+
+		if (!result) return;
+
+		summaryCooldown.set(message.channelId, Date.now() + 60 * 60 * 1000);
 
 		const ourMessage = await message.reply("Generating summary...");
 
-		// fetch past 50 messages
+		// fetch past 30 messages
 		const messages = await message.channel.messages.fetch({ limit: 30, before: message.id });
 
 		// prepare the messages for the summary
 		const summaryInput = prepareMessagesForSummary(messages.sort((a, b) => a.createdTimestamp - b.createdTimestamp).map((m) => m));
-
-		message.channel.sendTyping();
 
 		// generate the summary
 		const summaryResponse = await openAIClient.createChatCompletion({
@@ -251,7 +276,7 @@ async function replyToConversation(message: Message) {
 			messages: [
 				{
 					role: "system",
-					content: SummarySysMessage(message.channel.id),
+					content: SummarySysMessage,
 				},
 				{
 					role: "user",
@@ -300,16 +325,18 @@ async function replyToConversation(message: Message) {
 	}
 
 	let reply = response.data.choices[0]?.message?.content;
-	// with a 25% chance, check if there are giveaways and add them at the end
-	if (Math.random() < 0.25) {
-		const giveaway = await GiveawayConfig.findOne({ ended: false }, {}, { limit: 1 });
-		if (giveaway) reply += "\n" + quote(`There is a giveaway going on! Check it out at <#${config.channels.Giveaway}>.`);
-	}
+
 	if (!reply) return void message.reply("__An unexpected error has happened__");
 
 	// add the response to the conversation
 	conversation.push({ content: reply, role: "assistant" });
 	convoCache.set(message.author.id, conversation);
+
+	// with a 25% chance, check if there are giveaways and add them at the end
+	if (Math.random() < 0.25) {
+		const giveaway = await GiveawayConfig.findOne({ ended: false }, {}, { limit: 1 });
+		if (giveaway) reply += "\n" + quote(`There is a giveaway going on! Check it out at <#${config.channels.Giveaway}>.`);
+	}
 
 	message.reply(reply);
 }
@@ -322,7 +349,7 @@ function prepareMessagesForSummary(messages: Message[]) {
 	// filter out empty messages
 	messages = messages.filter((m) => m.content.length > 0);
 
-	// format: [date with time] author: message (message id)
+	// format: [date with time] author (replying to message id): message (message id)
 	// if message is over 1000 characters, add an ellipsis
 	const formattedMessages = messages.map((m) => {
 		const date = m.createdAt.toLocaleString("en-US", {
@@ -333,7 +360,7 @@ function prepareMessagesForSummary(messages: Message[]) {
 
 		const content = m.cleanContent.length > 1000 ? m.cleanContent.slice(0, 1000) + "..." : m.cleanContent;
 
-		return `[${date}] ${m.author.tag}: ${content} (${m.id})`;
+		return `[${date}] ${m.author.tag}: ${content}`;
 	});
 
 	return formattedMessages.join("\n");

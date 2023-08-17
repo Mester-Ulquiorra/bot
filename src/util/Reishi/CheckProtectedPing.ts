@@ -1,29 +1,24 @@
 import { Message } from "discord.js";
 import config from "../../config.js";
-import { GetUserConfig } from "../ConfigHelper.js";
-import { PunishMessage } from "../Reishi.js";
 import CreateEmbed from "../CreateEmbed.js";
+import ManageRole from "../ManageRole.js";
+import { PunishMessage } from "../Reishi.js";
+import Cache from "../Cache.js";
+import { GetUserConfig } from "../ConfigHelper.js";
 
-enum ProtectionDecision {
-	Yes = "yes",
-	No = "no",
-}
-
-interface ProtectionMemory {
-	userId: string;
-	decision: ProtectionDecision;
-	time: number;
-}
+type ProtectionDecision = "yes" | "no";
 
 /**
  * A cache for storing protection decisions of users
  */
-const protectionCache = new Map<string, ProtectionMemory>();
+const protectionCache = new Cache<string, ProtectionDecision>(10 * 60 * 1000);
 
 export default async function (message: Message<true>) {
-	// check if the user is a mod or they have the protected role
-	const userConfig = await GetUserConfig(message.author.id, "detecting protected ping");
-	if (message.member.roles.cache.has(config.roles.Protected)) return false;
+	if (
+		(await ManageRole(message.member, config.roles.Friend, "Check")) ||
+		(await ManageRole(message.member, config.roles.Protected, "Check"))
+	)
+		return false;
 
 	// check if the message contains a mention with the protected role
 	const protectedPings = [
@@ -43,32 +38,33 @@ export default async function (message: Message<true>) {
 	const now = Date.now();
 
 	const user = protectedPings[0];
+	const userConfig = await GetUserConfig(user.id, "checking if user has disabled protected ping delete");
 
 	// check if the user has any fresh messages in the channels
 	const freshMessages = (await message.channel.messages.fetch({ limit: 50 }))
-		// messages in the last 2 minutes
-		.filter((x) => now - x.createdTimestamp < 2 * 60 * 1000)
+		// messages in the last 10 minutes
+		.filter((x) => now - x.createdTimestamp < 10 * 60 * 1000)
 		// filter messages only from the pinged user
 		.filter((x) => x.author.id === user.id)
 		// collection to array
 		.map((x) => x);
 
 	if (freshMessages.length === 0) {
-		PunishMessage(message, "ProtectedPing", { comment: `Pinged the following protected member: ${user}` });
+		PunishMessage(message, "ProtectedPing", {
+			comment: `Pinged the following protected member: ${user}`,
+			forceDelete: userConfig.settings.deleteProtectedMutes,
+		});
 		return true;
 	}
 
-	let protDecision = protectionCache.get(user.id);
-
-	// validate decision
-	if (protDecision && now - protDecision.time > 2 * 60 * 1000) {
-		protectionCache.delete(user.id);
-		protDecision = null;
-	}
+	const protDecision = protectionCache.get(user.id);
 
 	if (protDecision) {
-		if(protDecision.decision === ProtectionDecision.Yes) {
-			PunishMessage(message, "ProtectedPing", { comment: `Pinged the following protected member: ${user}` });
+		if (protDecision === "yes") {
+			PunishMessage(message, "ProtectedPing", {
+				comment: `Pinged the following protected member: ${user}`,
+				forceDelete: userConfig.settings.deleteProtectedMutes,
+			});
 			return true;
 		}
 		return false;
@@ -96,28 +92,22 @@ export default async function (message: Message<true>) {
 			const reaction = reactions.first();
 
 			if (reaction.emoji.name === "✅") {
-				protectionCache.set(user.id, {
-					decision: ProtectionDecision.Yes,
-					time: Date.now(),
-					userId: user.id,
-				});
+				protectionCache.set(user.id, "yes");
 
 				PunishMessage(message, "ProtectedPing", {
 					comment: `Pinged the following protected member: ${user}`,
+					forceDelete: userConfig.settings.deleteProtectedMutes,
 				});
 				return true;
 			}
 
-			protectionCache.set(user.id, {
-				decision: ProtectionDecision.No,
-				time: Date.now(),
-				userId: user.id,
-			});
+			protectionCache.set(user.id, "no");
 			return false;
 		})
 		.catch(() => {
 			PunishMessage(message, "ProtectedPing", {
 				comment: `Pinged the following protected member: ${user}`,
+				forceDelete: userConfig.settings.deleteProtectedMutes,
 			});
 			return false;
 		})

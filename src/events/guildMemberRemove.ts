@@ -1,9 +1,9 @@
 import { GuildMember } from "discord.js";
+import InviteConfig from "../database/InviteConfig.js";
 import Event from "../types/Event.js";
 import { GetSpecialChannel } from "../util/ClientUtils.js";
 import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed from "../util/CreateEmbed.js";
-import InviteConfig from "../database/InviteConfig.js";
 
 const GuildMemberRemoveEvent: Event = {
 	name: "guildMemberRemove",
@@ -59,6 +59,7 @@ const GuildMemberRemoveEvent: Event = {
 		GetSpecialChannel("Welcome").send({ embeds: [embed] });
 
 		// manage invite
+		console.log(memberConfig.toJSON());
 		const inviteCode = memberConfig.joinedWith;
 		if (!inviteCode) return;
 

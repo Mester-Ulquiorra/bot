@@ -6,17 +6,18 @@ import mongoose from "mongoose";
 import { Snowflake } from "nodejs-snowflake";
 import { join } from "path";
 import puppeteer from "puppeteer";
+import { createInterface } from "readline";
 import { fileURLToPath } from "url";
 import config from "./config.js";
 import "./database.js";
 import testMode from "./testMode.js";
 import AutoUnpunish from "./util/AutoUnpunish.js";
 import CleanTickets from "./util/CleanTickets.js";
-import { Register } from "./util/Register.js";
-import ServerStats from "./util/ServerStats.js";
-import { createInterface } from "readline";
 import { HandleConsoleCommand } from "./util/ConsoleUtils.js";
 import "./util/Internal.js";
+import { Register } from "./util/Register.js";
+import ServerStats from "./util/ServerStats.js";
+import { generateDependencyReport } from "@discordjs/voice";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const logger = new Logger(join(__dirname, "..", "logs"));
@@ -29,6 +30,8 @@ process.on("uncaughtException", (error) => {
 console.time("Boot");
 logger.log(`And thus, ${testMode ? "a testing" : "an"} Espada was born...`);
 
+if (testMode) logger.log(generateDependencyReport());
+
 /* ------ Set up client ------ */
 const Ulquiorra = new Client({
 	intents: [
@@ -40,6 +43,7 @@ const Ulquiorra = new Client({
 		"GuildMessageReactions",
 		"DirectMessages",
 		"MessageContent",
+		"GuildInvites",
 	],
 	allowedMentions: {
 		parse: ["roles", "users"],
@@ -123,5 +127,5 @@ Register(join(__dirname, "commands"), join(__dirname, "events"), join(__dirname,
 	}
 });
 
-export { DeeplTranslator, SnowFlake, browser, logger, shutdown, GetResFolder };
+export { DeeplTranslator, GetResFolder, SnowFlake, browser, logger, shutdown };
 export default Ulquiorra;

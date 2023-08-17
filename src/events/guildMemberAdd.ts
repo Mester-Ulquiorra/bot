@@ -59,10 +59,29 @@ async function manageInvite(client: Client, member: GuildMember) {
 
 	// find the invite that was used to join the server
 	const invite = newInvites.find((i) => i.uses > invites.get(i.code));
+	invites.set(invite.code, invite.uses);
 	const inviter = await client.users.fetch(invite.inviterId);
-
+	
 	// update the invite
-	await InviteConfig.findOneAndUpdate({ code: invite.code, userId: inviter.id }, { $inc: { uses: 1 } }, { upsert: true });
+	InviteConfig.findOneAndUpdate({ code: invite.code, userId: inviter.id }, { $inc: { uses: 1 } }, { upsert: true, new: true }).then(
+		(doc) => {
+			const embed = CreateEmbed(`${member.user} invited by ${inviter}.`)
+				.setThumbnail(member.user.displayAvatarURL())
+				.addFields(
+					{
+						name: "Invite Code",
+						value: invite.code,
+						inline: true,
+					},
+					{
+						name: "Uses",
+						value: doc.uses.toString(),
+						inline: true,
+					}
+				);
+			GetSpecialChannel("MiscLog").send({ embeds: [embed] });
+		}
+	);
 
 	const userConfig = await GetUserConfig(member.id, "adding invite code");
 	userConfig.joinedWith = invite.code;

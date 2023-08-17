@@ -113,7 +113,7 @@ const TicketCommand: SlashCommand = {
 					time: 120_000,
 				})
 				.then((returnmodal) => {
-					const type = returnmodal.customId.split("-")[1] as TicketType;
+					const type = returnmodal.customId.split("-").at(-1) as TicketType;
 
 					// create the ticket (result should be handled)
 					CreateTicket(returnmodal.member as GuildMember, returnmodal.fields.getTextInputValue("reason"), returnmodal, type);

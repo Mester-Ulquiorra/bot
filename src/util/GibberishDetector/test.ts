@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import gib_detect from "./gib_detect.js";
+import gib_detect from "./gibDetect.js";
 
 const lines = fs.readFileSync("test.txt").toString("utf8").split("\n");
 

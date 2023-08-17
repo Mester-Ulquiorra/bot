@@ -3,12 +3,17 @@ import { GuildMember, Message, spoiler } from "discord.js";
 import { logger } from "../Ulquiorra.js";
 import config from "../config.js";
 import LevelConfig from "../database/LevelConfig.js";
-import { GetGuild, GetSpecialChannel } from "./ClientUtils.js";
+import Cache from "./Cache.js";
+import { GetGuild, GetSpecialChannel, GetTotalInvites } from "./ClientUtils.js";
 import CreateEmbed from "./CreateEmbed.js";
-import gib_detect from "./GibberishDetector/gib_detect.js";
+import gib_detect from "./GibberishDetector/gibDetect.js";
 import ManageRole from "./ManageRole.js";
 
 // https://www.desmos.com/calculator/wkbcatlf9h
+
+const inviteCache = new Cache<string, number>();
+
+const lbPosCache = new Cache<string, number>();
 
 /**
  * A function for getting the xp from a message.
@@ -19,18 +24,22 @@ async function GetXPFromMessage(message: Message) {
 	// get the content without whitespace
 	const content = message.content.replaceAll(/\s/gu, "");
 
-	// get the level config of the user
-	const levelConfig = await GetLevelConfig(message.author.id);
-
 	// check if the message is gibberish
 	if (!gib_detect(content)) return 0;
 
+	// get invite count
+	let inviteCount = inviteCache.get(message.author.id);
+	if (!inviteCount) inviteCount = inviteCache.set(message.author.id, await GetTotalInvites(message.author.id));
+
+	const totalMultiplier = 1 + inviteCount * 0.03;
+
 	// calculate the xp gained from the message
-	const xp = LengthToXP(content.length, XPToLevel(levelConfig.xp));
+	const levelConfig = await GetLevelConfig(message.author.id);
+	const xp = LengthToXP(content.length, XPToLevel(levelConfig.xp)) * totalMultiplier;
 	if (xp === 0) return 0;
 
 	// now add it to the user
-	AddXPToUser(levelConfig, xp, message);
+	AddXPToUser(levelConfig, xp, message.url, message.member);
 
 	return xp;
 }
@@ -84,25 +93,17 @@ function LengthToXP(length: number, level: number) {
  * A function for adding xp to the user (and automatically leveling them up if they've reached the new level).
  * @param levelConfig The level config of the user.
  * @param xp The xp to add.
- * @param message The message that was sent.
+ * @param messageUrl The URL of the message that leveled up the user.
  */
-async function AddXPToUser(levelConfig: IDBLevel, xp: number, message: Message) {
-	levelConfig.xp += xp;
-	await levelConfig.save();
-	if (XPToLevel(levelConfig.xp) > XPToLevel(levelConfig.xp - xp)) {
-		// we leveled up!
-		const newLevel = XPToLevel(levelConfig.xp);
-		const newRole = ManageLevelRole(message.member, newLevel);
-
-		GetGuild()
-			.members.fetch(message.author.id)
-			.then((member) => {
-				// we got the member!
-				AlertMember(member, newLevel, message, newRole);
-			})
-			.catch(() => logger.log(`User ${message.author.id} has leveled up, but wasn't in the server???`, "warn"));
-	}
-
+function AddXPToUser(levelConfig: IDBLevel, xp: number, messageUrl: string, member: GuildMember) {
+	LevelConfig.findOneAndUpdate({ _id: levelConfig._id }, { $inc: { xp: Math.floor(xp) } }, { new: true }).then((levelConfig) => {
+		/* We leveled up! */
+		if (XPToLevel(levelConfig.xp) > XPToLevel(levelConfig.xp - xp)) {
+			const newLevel = XPToLevel(levelConfig.xp);
+			const newRole = ManageLevelRole(member, newLevel);
+			AlertMember(member, newLevel, messageUrl, newRole);
+		}
+	});
 }
 
 /**
@@ -143,11 +144,13 @@ async function GetLevelConfig(userId: string) {
  * A function for alerting a member that they've leveled up.
  * @param member The member to alert.
  * @param newlevel The member's new level.
- * @param message The message that made the member level up.
+ * @param messageUrl The message that made the member level up.
  * @param newRole The role id that was added to the user.
  */
-async function AlertMember(member: GuildMember, newlevel: number, message: Message, newRole: string = null) {
-	let embedDescription = `**Congratulations <@${member.id}>, you've successfully achieved level ${newlevel}**! ([Jump to level message](${message.url}))`;
+async function AlertMember(member: GuildMember, newlevel: number, messageUrl: string, newRole: string = null) {
+	let embedDescription = messageUrl
+		? `**Congratulations ${member}, you've successfully achieved level ${newlevel}**! ([Jump to level message](${messageUrl}))`
+		: `**Congratulations ${member}, you've successfully achieved level ${newlevel} by talking in a voice chat**!`;
 
 	// if newRole is not null, get the role name
 	if (newRole) {
@@ -171,4 +174,41 @@ async function AlertMember(member: GuildMember, newlevel: number, message: Messa
 	});
 }
 
-export { GetLevelConfig, GetXPFromMessage, LevelToXP, XPToLevel, XPToLevelUp };
+async function GetLeaderboardPos(userId: string) {
+	if (lbPosCache.has(userId)) {
+		return lbPosCache.get(userId);
+	} else {
+		await RefreshLeaderboardPos();
+	}
+	const lbPos = lbPosCache.get(userId);
+
+	if (!lbPos) return 0;
+	else return lbPos;
+}
+
+/**
+ * Refresh the leaderboard positions
+ */
+async function RefreshLeaderboardPos() {
+	await LevelConfig.aggregate([
+		{ $sort: { xp: -1 } }, // Sort documents by xp in descending order
+		{ $group: { _id: undefined, userIds: { $push: "$userId" } } }, // Create an array of user IDs
+	])
+		.exec()
+		.then((pos) => {
+			const userIds = pos[0].userIds;
+			for (const userId of userIds) {
+				const userIndex = userIds.indexOf(userId);
+
+				if (userIndex !== -1) lbPosCache.set(userId, userIndex + 1);
+				else lbPosCache.set(userId, 0);
+			}
+		})
+		.catch((err) => logger.log(`Failed to refresh leaderboard position: ${err}`, "error"));
+}
+
+// refresh leaderboard positions every 5 minutes
+setInterval(RefreshLeaderboardPos, 5 * 60 * 1000);
+RefreshLeaderboardPos();
+
+export { GetLeaderboardPos, GetLevelConfig, GetXPFromMessage, LevelToXP, RefreshLeaderboardPos, XPToLevel, XPToLevelUp, AddXPToUser };

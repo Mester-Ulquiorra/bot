@@ -4,9 +4,9 @@ import * as path from "path";
 import { GetResFolder, browser } from "../Ulquiorra.js";
 import SlashCommand from "../types/SlashCommand.js";
 import CreateEmbed from "../util/CreateEmbed.js";
-import { GetLevelConfig, LevelToXP, XPToLevel, XPToLevelUp } from "../util/LevelUtils.js";
+import { GetLeaderboardPos, GetLevelConfig, LevelToXP, XPToLevel, XPToLevelUp } from "../util/LevelUtils.js";
 
-const htmlFilePath = path.join(GetResFolder(), "rank", "rankTemplate.html");
+const htmlFilePath = path.join(GetResFolder(), "rank", "index.html");
 
 const RankCommand: SlashCommand = {
 	name: "rank",
@@ -27,41 +27,40 @@ const RankCommand: SlashCommand = {
 			// add the fields
 			AddRankFieldEmbeds(embed, levelConfig);
 
-			interaction.reply({ embeds: [embed], ephemeral: true });
-			return;
+			return void interaction.reply({ embeds: [embed], ephemeral: true });
 		}
 
 		await interaction.deferReply({ ephemeral: false });
 
 		const userLevel = XPToLevel(levelConfig.xp);
-
 		const relativexp = levelConfig.xp - LevelToXP(userLevel);
-		const levelupPercent = relativexp / XPToLevelUp(userLevel);
+		const avatar = user.displayAvatarURL({ size: 256, extension: "png", forceStatic: true });
+		const lbPos = await GetLeaderboardPos(levelConfig.userId);
 
 		const page = await browser.newPage();
+		await page.setViewport({ width: 1200, height: 300 });
 
-		// apparently we need to use Object.assign to not copy by reference.
 		const destination = new URL(htmlFilePath, "file:");
 
-		destination.searchParams.append("avatar", user.displayAvatarURL({ size: 256, extension: "png" }));
-		destination.searchParams.append("progress", `Current XP: ${relativexp} (${(levelupPercent * 100).toFixed(2)}%)`);
-		destination.searchParams.append("progressPercent", (levelupPercent * 100).toString());
-		destination.searchParams.append("username", user.tag);
-		destination.searchParams.append("totalXp", `Total XP: ${levelConfig.xp}`);
-		destination.searchParams.append("currLevel", `Level ${userLevel}`);
-		destination.searchParams.append("nextLevel", `Level ${userLevel + 1} (${XPToLevelUp(userLevel) - relativexp} XP left)`);
+		destination.searchParams.append("avatar", avatar);
+		destination.searchParams.append("leaderboard", lbPos.toString());
+		destination.searchParams.append("username", user.username);
+		destination.searchParams.append("level", userLevel.toString());
+		destination.searchParams.append("total", levelConfig.xp.toString());
+		destination.searchParams.append("current", relativexp.toString());
+		destination.searchParams.append("max", XPToLevelUp(userLevel).toString());
 
 		await page.setViewport({ width: 1200, height: 300 });
 		await page.goto(destination.toString(), { waitUntil: "networkidle0" });
 
-		const buffer = await page.screenshot({ type: "jpeg" });
+		const buffer = await page.screenshot({ type: "png" });
 
 		interaction
 			.editReply({
 				files: [
 					{
 						attachment: buffer,
-						name: "rank.jpeg",
+						name: "rank.png",
 					},
 				],
 			})

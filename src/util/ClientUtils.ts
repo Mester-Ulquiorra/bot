@@ -1,6 +1,7 @@
 import { TextChannel } from "discord.js";
 import Ulquiorra from "../Ulquiorra.js";
 import config from "../config.js";
+import InviteConfig from "../database/InviteConfig.js";
 
 type SpecialChannelName = "ModLog" | "MessageLog" | "Welcome" | "LevelUp" | "TestMode" | "Appeal" | "MiscLog" | "Automod";
 
@@ -21,6 +22,14 @@ export function GetSpecialChannel(channelName: SpecialChannelName) {
 		case "Automod":
 			return Ulquiorra.channels.cache.get(config.channels.Automod) as TextChannel;
 	}
+}
+
+export async function GetTotalInvites(userId: string) {
+	const inviteConfig = await InviteConfig.find({ userId });
+
+	if (!inviteConfig) return 0;
+
+	return inviteConfig.reduce((acc, val) => acc + val.uses, 0);
 }
 
 export function GetGuild() {

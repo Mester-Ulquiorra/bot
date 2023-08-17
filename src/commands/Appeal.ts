@@ -18,10 +18,9 @@ import { GetGuild, GetSpecialChannel } from "../util/ClientUtils.js";
 import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed, { EmbedColors } from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
+import { sendInternalMessage } from "../util/Internal.js";
 import ManageRole from "../util/ManageRole.js";
 import { CreateModEmbed } from "../util/ModUtils.js";
-import { DetectProfanity } from "../util/Reishi/CheckProfanity.js";
-import { sendInternalMessage } from "../util/Internal.js";
 
 const AppealCommand: SlashCommand = {
 	name: "appeal",
@@ -38,25 +37,6 @@ const AppealCommand: SlashCommand = {
 		if (interaction.customId === "appeal.decline") {
 			return manageAppeal(interaction, false);
 		}
-	},
-
-	async runModal(modal, client) {
-		if (!/appeal\.appealmodal-\d+/.test(modal.customId)) return;
-
-		const punishmentId = modal.customId.match(/appeal\.appealmodal-(\d+)/)[1];
-
-		// validate punishment
-		const punishment = await PunishmentConfig.findOne({
-			user: modal.user.id,
-			active: true,
-			punishmentId: punishmentId,
-		});
-
-		if (!punishment) return "The punishment ID is either invalid, or the punishment is not active anymore";
-		if (punishment.appealed) return "You've already appealed this punishment.";
-
-		if (DetectProfanity(modal.fields.getTextInputValue("reason")) || DetectProfanity(modal.fields.getTextInputValue("extra")))
-			return "Profanity detected in one of the fields, totally uncool";
 	},
 };
 
@@ -163,6 +143,7 @@ async function manageAppeal(interaction: ButtonInteraction, accepted: boolean) {
 		});
 
 	if (typeof collected === "string") return collected;
+	if (collected.size === 0) return "You didn't reply in time";
 
 	const reason = collected.first().content;
 	collected

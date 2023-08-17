@@ -18,6 +18,11 @@ export interface ReishiEvaluation {
 	 * Used to determine what was found in the message.
 	 */
 	comment: string;
+	/**
+	 * If the message should not be deleted.
+	 * @default false
+	 */
+	forceDelete?: boolean;
 }
 
 type PunishmentNames = "RepeatedText" | "BlacklistedWord" | "MassMention" | "Link" | "ProtectedPing" | "Insult" | "Language";
@@ -69,7 +74,7 @@ export async function CheckMessage(message: Message) {
 		}),
 		// check is the message is just an idiotic "hmmm"
 		new Promise<boolean>((resolve) => {
-			if (message.content.match(/^hm+$/)) {
+			if (message.content.match(/^hm+$/i)) {
 				PunishMessage(message, "BlacklistedWord", {
 					comment: "__delete__",
 				});
@@ -163,7 +168,11 @@ export async function PunishMessage(message: Message, type: PunishmentNames, res
 		message.delete();
 		return;
 	}
-	if (!(type === "RepeatedText" && message.mentions.members.size !== 0)) message.delete();
+	if (
+		!(type === "RepeatedText" && message.mentions.members.size !== 0) &&
+		(result.forceDelete === undefined || result.forceDelete === true)
+	)
+		message.delete();
 
 	// call the internal mute function
 	InternalMute(GetGuild().members.me, message.member, GetPunishmentLength(type), GetPunishmentReason(type), { detail: result.comment });
