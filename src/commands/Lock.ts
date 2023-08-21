@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, TextChannel } from "discord.js";
+import { AnyThreadChannel, ChatInputCommandInteraction, GuildTextBasedChannel, TextChannel } from "discord.js";
 import { logger } from "../Ulquiorra.js";
 import config from "../config.js";
 import SlashCommand from "../types/SlashCommand.js";
@@ -12,6 +12,8 @@ const LockCommand: SlashCommand = {
 	name: "lock",
 
 	async run(interaction, _client) {
+		if(!interaction.inGuild()) return GetError("GuildOnly");
+
 		// get the reason for the lock
 		let reason = interaction.options.getString("reason") ?? "no reason provided";
 
@@ -32,13 +34,16 @@ const LockCommand: SlashCommand = {
 		if (userConfig.mod < ModNameToLevel("Admin") && lockAll) return GetError("Permission");
 
 		const interactionChannel = interaction.channel;
+		if (!interactionChannel) return "Interaction doesn't have a channel? wtf??";
 
 		// check if channel is a text channel
-		if (interactionChannel.isDMBased() || interactionChannel.isThread()) return "This command can only be used in text channels.";
+		if (!interactionChannel.isTextBased() || interactionChannel.isThread()) return "This command can only be used in text channels which are not threads.";
 
 		if (lockAll) {
 			// fetch all channels that are in the all lock id array
-			const channelsToLock = (await GetGuild().channels.fetch()).filter((channel) => config.channels.LockAllIds.includes(channel.id));
+			const channelsToLock = (await GetGuild().channels.fetch()).filter(
+				(channel) => channel && config.channels.LockAllIds.includes(channel.id)
+			);
 
 			for (const [_, channel] of channelsToLock) {
 				lockOne(channel as TextChannel, !unlock, reason, interaction);
@@ -55,7 +60,7 @@ const LockCommand: SlashCommand = {
 		// --- This part is for a single channel only ---
 
 		// do the lock
-		lockOne(interactionChannel as TextChannel, !unlock, reason, interaction);
+		lockOne(interactionChannel, !unlock, reason, interaction);
 
 		// log
 		logger.log(
@@ -69,10 +74,12 @@ const LockCommand: SlashCommand = {
 	},
 };
 
+type LockableChannel = Exclude<GuildTextBasedChannel, AnyThreadChannel>;
+
 /**
  * A function for doing every neccessary stuff (locking, sending embed etc.) for a single channel
  */
-async function lockOne(channel: TextChannel, lock: boolean, reason: string, interaction: ChatInputCommandInteraction) {
+async function lockOne(channel: LockableChannel, lock: boolean, reason: string, interaction: ChatInputCommandInteraction) {
 	// now let's lock
 	lockChannel(channel, interaction, lock);
 
@@ -85,7 +92,11 @@ async function lockOne(channel: TextChannel, lock: boolean, reason: string, inte
 	channel.send({ embeds: [embed] });
 }
 
-async function lockChannel(channel: TextChannel, interaction: ChatInputCommandInteraction, lock = true) {
+async function lockChannel(
+	channel: LockableChannel,
+	interaction: ChatInputCommandInteraction,
+	lock = true
+) {
 	return channel.permissionOverwrites.edit(
 		config.roles.Everyone,
 		{

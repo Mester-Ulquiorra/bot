@@ -6,7 +6,6 @@ import { GetGuild } from "./ClientUtils.js";
 import { GetUserConfig } from "./ConfigHelper.js";
 import CheckFlood from "./Reishi/CheckFlood.js";
 import CheckLink from "./Reishi/CheckLink.js";
-import CheckProfanity from "./Reishi/CheckProfanity.js";
 import CheckProtectedPing from "./Reishi/CheckProtectedPing.js";
 import CheckSkull from "./Reishi/CheckSkull.js";
 import { ChannelIsTicket } from "./TicketUtils.js";
@@ -58,7 +57,7 @@ export async function CheckMessage(message: Message) {
 	if (ChannelIsTicket(message.channel.name)) return true;
 
 	return Promise.all([
-		CheckProfanity(message),
+		//CheckProfanity(message), // disable for now
 		CheckFlood(message),
 		CheckLink(message),
 		CheckProtectedPing(message),
@@ -66,7 +65,7 @@ export async function CheckMessage(message: Message) {
 		CheckSkull(message),
 		new Promise<boolean>((resolve) => {
 			if (message.mentions.members?.size >= MassMentionThreshold) {
-				PunishMessage(message, "MassMention", null);
+				PunishMessage(message, "MassMention", { comment: `Pinged more than ${MassMentionThreshold} members` });
 				resolve(true);
 			} else {
 				resolve(false);
@@ -169,11 +168,13 @@ export async function PunishMessage(message: Message, type: PunishmentNames, res
 		return;
 	}
 	if (
-		!(type === "RepeatedText" && message.mentions.members.size !== 0) &&
+		!(type === "RepeatedText" && message.mentions.members?.size !== 0) &&
 		(result.forceDelete === undefined || result.forceDelete === true)
 	)
 		message.delete();
 
 	// call the internal mute function
-	InternalMute(GetGuild().members.me, message.member, GetPunishmentLength(type), GetPunishmentReason(type), { detail: result.comment });
+	InternalMute(await GetGuild().members.fetchMe(), message.member, GetPunishmentLength(type), GetPunishmentReason(type), {
+		detail: result.comment,
+	});
 }

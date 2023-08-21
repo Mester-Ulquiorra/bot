@@ -11,14 +11,17 @@ export default async function () {
 
 		// edit the members channel
 		guild.channels.fetch(config.channels.Members).then((channel) => {
+			if (!channel) return;
 			channel.edit({ name: `Members: ${guild.memberCount - bots}` });
 		});
 
 		// edit the boost channel
 		guild.channels.fetch(config.channels.Boosts).then((channel) => {
+			if (!channel) return;
 			channel.edit({ name: `Boosts: ${guild.premiumSubscriptionCount}` });
 		});
 	} catch (error) {
+		if (!(error instanceof Error)) return;
 		logger.log(`Couldn't refresh server stats: ${error.stack}`, "warn");
 	}
 }

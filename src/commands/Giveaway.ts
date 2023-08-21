@@ -1,5 +1,5 @@
 import { GiveawayFilter, IDBGiveaway } from "@mester-ulquiorra/commonlib";
-import { ChatInputCommandInteraction, EmbedBuilder, GuildMember, PermissionsBitField, TextChannel, User } from "discord.js";
+import { ChatInputCommandInteraction, EmbedBuilder, GuildMember, GuildTextBasedChannel, PermissionsBitField, User } from "discord.js";
 import { SnowFlake, logger } from "../Ulquiorra.js";
 import config from "../config.js";
 import GiveawayConfig from "../database/GiveawayConfig.js";
@@ -26,7 +26,10 @@ const GiveawayCommand: SlashCommand = {
 				});
 				if (!giveaway) return GetError("Database");
 
-				if (giveaway.host !== interaction.user.id && !interaction.memberPermissions.has(PermissionsBitField.Flags.Administrator))
+				if (
+					giveaway.host !== interaction.user.id &&
+					!(interaction.memberPermissions && interaction.memberPermissions.has(PermissionsBitField.Flags.Administrator))
+				)
 					return GetError("Permission");
 
 				endGiveaway(giveaway);
@@ -39,21 +42,19 @@ const GiveawayCommand: SlashCommand = {
 };
 
 async function startGiveaway(interaction: ChatInputCommandInteraction) {
+	const hasAdmin = interaction.memberPermissions && interaction.memberPermissions.has(PermissionsBitField.Flags.Administrator);
 	// check if member has Giveaway role
-	if (
-		!(interaction.member as GuildMember).roles.cache.has(config.roles.Giveaway) &&
-		!interaction.memberPermissions.has(PermissionsBitField.Flags.Administrator)
-	)
-		return GetError("Permission");
+	if (!(interaction.member as GuildMember).roles.cache.has(config.roles.Giveaway) && !hasAdmin) return GetError("Permission");
 
-	if (!interaction.memberPermissions.has(PermissionsBitField.Flags.Administrator) && interaction.channelId !== config.channels.Giveaway)
+	if (interaction.channelId !== config.channels.Giveaway && !hasAdmin)
 		return `You can only use this command in <#${config.channels.Giveaway}>`;
 
-	const name = interaction.options.getString("name");
-	const duration = ConvertDuration(interaction.options.getString("duration"));
-	if (isNaN(duration)) return GetError("Duration");
-	if (!interaction.memberPermissions.has(PermissionsBitField.Flags.Administrator) && duration < 600)
-		return "The giveaway's duration must be at least 10 minutes";
+	const name = interaction.options.getString("name", true);
+	const duration = ConvertDuration(interaction.options.getString("duration", true));
+
+	if (!duration) return GetError("Duration");
+	if (duration < 600 && !hasAdmin) return "The giveaway's duration must be at least 10 minutes";
+
 	const winners = interaction.options.getInteger("winners") ?? 1;
 
 	// we need to send the message first before creating the giveaway
@@ -99,25 +100,29 @@ async function startGiveaway(interaction: ChatInputCommandInteraction) {
 }
 
 async function endGiveaway(giveaway: IDBGiveaway) {
+	giveaway.ended = true;
+
 	// get giveaway message
-	const message = await (GetGuild().channels.cache.get(giveaway.channel) as TextChannel).messages
+	const message = await (GetGuild().channels.cache.get(giveaway.channel) as GuildTextBasedChannel).messages
 		.fetch(giveaway.message)
-		.then((message) => {
-			return message;
-		})
 		.catch(() => {
 			return;
 		});
 
 	if (!message) {
-		// this is weird
+		logger.log(`Giveaway ${giveaway.giveawayId} has ended, but it's missing the message.`, "warn");
 		giveaway.deleteOne();
 		return;
 	}
 
-	const users = (await message.reactions.cache.get(GiveawayEmoji).users.fetch()).filter((user) => !user.bot).map((user) => user);
+	const reaction = message.reactions.cache.get(GiveawayEmoji);
+	if (!reaction) {
+		logger.log(`Giveaway ${giveaway.giveawayId} has ended, but it's missing the join reaction.`, "warn");
+		giveaway.deleteOne();
+		return;
+	}
 
-	giveaway.ended = true;
+	const users = (await reaction.users.fetch()).filter((user) => !user.bot).map((user) => user);
 
 	if (users.length === 0 || !users) {
 		// this is very unlikely to happen, but it's possible
@@ -130,10 +135,10 @@ async function endGiveaway(giveaway: IDBGiveaway) {
 			.setColor(EmbedColors.error);
 
 		// remove the "Ends" and "Winners" fields
-		embed.data.fields.shift();
-		embed.data.fields.shift();
+		embed.data.fields?.shift();
+		embed.data.fields?.shift();
 
-		embed.setDescription(embed.data.description.split("\n")[0] + `\nEnded on <t:${Math.floor(Date.now() / 1000)}>`);
+		embed.setDescription((embed.data.description as string).split("\n")[0] + `\nEnded on <t:${Math.floor(Date.now() / 1000)}>`);
 
 		message.edit({ embeds: [embed] });
 
@@ -153,8 +158,8 @@ async function endGiveaway(giveaway: IDBGiveaway) {
 		.setColor(EmbedColors.success);
 
 	// remove the "Ends" and "Winners" fields
-	embed.data.fields.shift();
-	embed.data.fields.shift();
+	embed.data.fields?.shift();
+	embed.data.fields?.shift();
 
 	message.edit({ embeds: [embed] });
 	message.reply(`**Congratulations to ${winnerString} for winning the giveaway!**`);

@@ -16,7 +16,7 @@ const SettingsCommand: SlashCommand = {
 };
 
 async function ManageGameInvites(interaction: ChatInputCommandInteraction): Promise<SlashCommandReturnValue> {
-	const enabled = interaction.options.getBoolean("enabled");
+	const enabled = interaction.options.getBoolean("enabled", true);
 	const userConfig = await GetUserConfig(interaction.user.id, "changing game invites setting");
 
 	userConfig.settings.allowGameInvites = enabled;
@@ -32,7 +32,7 @@ async function ManageGameInvites(interaction: ChatInputCommandInteraction): Prom
 }
 
 async function ManageProtectedDelete(interaction: ChatInputCommandInteraction): Promise<SlashCommandReturnValue> {
-	const enabled = interaction.options.getBoolean("enabled");
+	const enabled = interaction.options.getBoolean("enabled", true);
 	const userConfig = await GetUserConfig(interaction.user.id, "changing protected delete setting");
 
 	userConfig.settings.deleteProtectedMutes = enabled;

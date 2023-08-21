@@ -19,8 +19,9 @@ const MuteCommand: SlashCommand = {
 	async run(interaction, _client) {
 		const target = interaction.options.getMember("member") as GuildMember;
 		const reason = interaction.options.getString("reason") ?? "no reason provided";
+		
 		const duration = ConvertDuration(interaction.options.getString("duration"));
-		if (isNaN(duration)) return GetError("Duration");
+		if (!duration) return GetError("Duration");
 
 		const punishment = await InternalMute(interaction.member as GuildMember, target, duration, reason);
 		if (typeof punishment === "string") return punishment;
@@ -28,11 +29,12 @@ const MuteCommand: SlashCommand = {
 		const channelEmbed = CreateEmbed(`${target} has been muted: **${reason}**`);
 		const replyEmbed = CreateModEmbed(interaction.user, target.user, punishment);
 
-		interaction.channel.sendTyping().then(() => {
-			interaction.channel.send({ embeds: [channelEmbed] });
-		});
-
 		interaction.reply({ embeds: [replyEmbed], ephemeral: true });
+
+		if (interaction.channel) {
+			await interaction.channel.sendTyping();
+			interaction.channel.send({ embeds: [channelEmbed] });
+		}
 	},
 };
 
@@ -52,7 +54,7 @@ interface AdvancedMuteOptions {
  */
 export async function InternalMute(
 	mod: GuildMember,
-	target: GuildMember,
+	target: GuildMember | null,
 	duration: number,
 	reason: string,
 	options: AdvancedMuteOptions = {}
@@ -101,7 +103,9 @@ export async function InternalMute(
 
 	const object = punishment.toJSON({ versionKey: false });
 	delete object._id;
+	//@ts-expect-error - can't really figure out how to fix this
 	delete object.automated;
+
 	// set mod property to mod's username
 	object.mod = mod.user.username;
 

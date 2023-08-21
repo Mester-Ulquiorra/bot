@@ -1,5 +1,4 @@
 import { PunishmentType } from "@mester-ulquiorra/commonlib";
-import { GuildMember } from "discord.js";
 import Ulquiorra, { logger } from "../Ulquiorra.js";
 import config from "../config.js";
 import PunishmentConfig from "../database/PunishmentConfig.js";
@@ -20,6 +19,8 @@ export default async function () {
 
 	Promise.all(
 		punishments.map(async (punishment) => {
+			if (!Ulquiorra.user) return;
+
 			// get the user config for the user that was punished
 			const userConfig = await UserConfig.findOne({
 				userId: punishment.user,
@@ -37,10 +38,10 @@ export default async function () {
 			await userConfig.save();
 
 			// try to get the member from the guild (might return null if the member is not in the guild)
-			const member: GuildMember = await GetGuild()
+			const member = await GetGuild()
 				.members.fetch(punishment.user)
 				.catch(() => {
-					return null;
+					return;
 				});
 
 			switch (punishment.type) {

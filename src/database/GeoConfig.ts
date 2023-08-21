@@ -1,5 +1,5 @@
 import mongoose, { Document, SchemaTypes } from "mongoose";
-import { GeoItem } from "../commands/Geo/GeoData.js";
+import { IGeoItem } from "../commands/Geo/GeoData.js";
 
 export interface DBGeo {
 	/**
@@ -35,7 +35,7 @@ export interface DBGeo {
 		/**
 		 * The items in the user's inventory
 		 */
-		items: Array<GeoItem>;
+		items: Array<IGeoItem>;
 		/**
 		 * If the user's inventory is public
 		 */

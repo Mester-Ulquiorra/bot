@@ -1,6 +1,6 @@
+import { randomUUID } from "crypto";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, Message, bold, hyperlink } from "discord.js";
 import openAI from "openai";
-import { SnowFlake } from "../../Ulquiorra.js";
 import { InternalMute } from "../../commands/Mute.js";
 import config from "../../config.js";
 import { GetGuild, GetSpecialChannel } from "../ClientUtils.js";
@@ -11,7 +11,6 @@ const AIModel = "gpt-3.5-turbo";
 
 const requests = new Array<{
 	request: string[];
-	response: string;
 	id: string;
 }>();
 
@@ -44,7 +43,7 @@ interface InsultEvaluation {
 	requestID: string;
 }
 
-async function CheckInsult(rawRequest: string[]): Promise<InsultEvaluation> {
+async function CheckInsult(rawRequest: string[]): Promise<InsultEvaluation | null> {
 	rawRequest[rawRequest.length - 1] = `[only evaulate this] ${rawRequest[rawRequest.length - 1]}`;
 	const request = rawRequest.join("\n");
 
@@ -68,8 +67,8 @@ async function CheckInsult(rawRequest: string[]): Promise<InsultEvaluation> {
 	const level = parseInt(match[2]);
 	const comment = match[3];
 
-	const requestID = SnowFlake.getUniqueID().toString();
-	requests.push({ request: rawRequest, response: evaluation, id: requestID });
+	const requestID = randomUUID();
+	requests.push({ request: rawRequest, id: requestID });
 
 	return { type, level, comment, requestID };
 }
@@ -99,9 +98,9 @@ async function GenerateRequest(message: Message<true>) {
 	const request = new Array<string>();
 	for (const m of messages) {
 		let replyingString = "";
-		if (m.reference && m.reference.channelId === message.channelId) {
+		if (m.reference && m.reference.channelId === message.channelId && m.reference.messageId) {
 			const replyingMessage = await m.channel.messages.fetch(m.reference.messageId);
-			if (replyingMessage) replyingString = ` [replying to ${replyingMessage.author.tag}]`;
+			replyingString = ` [replying to ${replyingMessage.author.tag}]`;
 		}
 
 		request.push(
@@ -112,6 +111,9 @@ async function GenerateRequest(message: Message<true>) {
 }
 
 async function SendWarningEmbed(message: Message<true>, response: InsultEvaluation) {
+	const request = requests.find((r) => r.id === response.requestID);
+	if (!request) return;
+
 	// create a message preview, if it's over 1024 characters long, add 3 dots at the end (make sure the total length is 1024)
 	const messagePreview = message.content.length > 1024 ? message.content.substring(0, 1021) + "..." : message.content;
 	const embed = CreateEmbed(
@@ -125,7 +127,7 @@ async function SendWarningEmbed(message: Message<true>, response: InsultEvaluati
 		{ name: "Message", value: messagePreview, inline: false },
 		{
 			name: "Context",
-			value: SanitiseRequestContext(requests.find((r) => r.id === response.requestID).request),
+			value: SanitiseRequestContext(request.request),
 			inline: false,
 		},
 		{ name: "Type", value: response.type, inline: true },

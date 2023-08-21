@@ -54,8 +54,8 @@ const WarnCommand: SlashCommand = {
 			return;
 		});
 
-		interaction.channel.sendTyping().then(() => {
-			interaction.channel.send({ embeds: [channelEmbed] });
+		interaction.channel?.sendTyping().then(() => {
+			interaction.channel?.send({ embeds: [channelEmbed] });
 		});
 
 		GetSpecialChannel("ModLog").send({ embeds: [modEmbed] });

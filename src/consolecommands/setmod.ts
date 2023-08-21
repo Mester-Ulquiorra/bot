@@ -1,7 +1,7 @@
 import { SetModRole } from "../commands/SetMod.js";
-import UserConfig from "../database/UserConfig.js";
 import ConsoleCommand from "../types/ConsoleCommand.js";
 import { GetGuild } from "../util/ClientUtils.js";
+import { GetUserConfig } from "../util/ConfigHelper.js";
 
 const SetModConsoleCommand: ConsoleCommand = {
 	name: "setmod",
@@ -27,13 +27,7 @@ const SetModConsoleCommand: ConsoleCommand = {
 		const modLevel = (args[1] as number) ?? 0;
 
 		// try to get the user config
-		const userConfig = await UserConfig.findOne({ userId });
-
-		// if it doesn't exist, return
-		if (!userConfig) {
-			console.log("User not found.");
-			return;
-		}
+		const userConfig = await GetUserConfig(userId, "setting mod level from console");
 
 		// set the user config's mod level
 		userConfig.mod = modLevel;

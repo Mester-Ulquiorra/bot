@@ -10,9 +10,9 @@ const MaxXp = LevelToXP(100);
 const XpCommand: SlashCommand = {
 	name: "xp",
 
-	async run(interaction, _client) {
-		const target = interaction.options.getUser("member");
-		const value = interaction.options.getString("value");
+	async run(interaction, client) {
+		const target = interaction.options.getUser("member", true);
+		const value = interaction.options.getString("value", true);
 
 		// if value ends with L, set levelmode to true, otherwise set it to false
 		const levelMode = value.endsWith("L");

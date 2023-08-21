@@ -12,7 +12,7 @@ export function HandleConsoleCommand(line: string, client: Client) {
 	const args = line.trim().split(" ");
 	const commandName = args.shift();
 
-	if (commandName.length === 0) return;
+	if (!commandName || commandName.length === 0) return;
 
 	// check if commandName is help
 	if (commandName === "help") {
@@ -35,10 +35,10 @@ export function HandleConsoleCommand(line: string, client: Client) {
 		return;
 	}
 
-	consoleCommands
-		.get(commandName)
-		.run(args, client)
-		.catch((error) => {
-			console.error(error);
-		});
+	const command = consoleCommands.get(commandName);
+	if (!command) return;
+
+	command.run(args, client).catch((error: Error) => {
+		console.error(error);
+	});
 }

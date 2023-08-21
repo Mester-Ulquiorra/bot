@@ -35,10 +35,10 @@ async function setBirthday(interaction: ChatInputCommandInteraction): SlashComma
 	const birthday = interaction.options.getString("birthday");
 
 	if (birthday) {
-		if (!birthdayRegex.test(birthday)) return GetError("BadValue", "birthday");
-
 		const match = birthday.match(birthdayRegex);
 		console.log(match);
+		if (!match) return GetError("BadValue", "birthday");
+
 		const year = parseInt(match[1]) ?? 0;
 		const month = match[2];
 		const day = match[3];
@@ -65,7 +65,7 @@ async function setBirthday(interaction: ChatInputCommandInteraction): SlashComma
 }
 
 async function getBirthday(interaction: ChatInputCommandInteraction): SlashCommandReturnValue {
-	const target = interaction.options.getUser("member");
+	const target = interaction.options.getUser("member", true);
 
 	const targetConfig = await GetUserConfig(target.id, "getting birthday of the user");
 

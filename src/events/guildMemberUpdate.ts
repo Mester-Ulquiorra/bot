@@ -58,7 +58,7 @@ async function nicknameChange(oldMember: GuildMember, newMember: GuildMember) {
 	// check if a moderator has changed the nick of the person
 	if (
 		auditLogs.entries.find((entry) => {
-			if (entry.executor.id === newMember.id) return false;
+			if (entry.executor?.id === newMember.id) return false;
 			const changes = entry.changes;
 
 			for (const change of changes) {
@@ -71,7 +71,7 @@ async function nicknameChange(oldMember: GuildMember, newMember: GuildMember) {
 		return;
 
 	// the member has changed it
-	InternalKick(GetGuild().members.me, newMember, "Profanity in nickname");
+	InternalKick(await GetGuild().members.fetchMe(), newMember, "Profanity in nickname");
 }
 
 export default GuildMemberUpdateEvent;

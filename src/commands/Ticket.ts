@@ -35,14 +35,16 @@ const TicketCommand: SlashCommand = {
 	name: "ticket",
 	userContextCommandNames: ["Create Ticket"],
 
-	async run(interaction: ChatInputCommandInteraction, _client: Client) {
+	async run(interaction, client) {
+		if(!interaction.inGuild()) return;
+		
 		const userConfig = await GetUserConfig(interaction.user.id, "using the ticket command");
 
 		// check if user's mod is 0 (if it is, return)
 		if (userConfig.mod === 0) return GetError("Permission");
 
 		// check if we're in a ticket
-		if (!ChannelIsTicket(interaction.channel.name)) return "You can only use this comand in a ticket.";
+		if (!ChannelIsTicket(interaction.channel?.name ?? "")) return "You can only use this comand in a ticket.";
 
 		const subcommand = interaction.options.getSubcommand();
 
@@ -329,8 +331,8 @@ async function sendto(interaction: ChatInputCommandInteraction, userConfig: DBUs
 	if (!CanManageTicket(ticket, userConfig)) return GetError("Permission");
 
 	// get the mod level and reason
-	const modLevel = interaction.options.getInteger("modlevel");
-	const reason = interaction.options.getString("reason") ?? "no reason provided";
+	const modLevel = interaction.options.getInteger("modlevel", true);
+	const reason = interaction.options.getString("reason", false) ?? "no reason provided";
 
 	// check if the ticket is already waiting for a moderator (head mods and higher bypass this check)
 	if (ticket.waitingfor != 0 && userConfig.mod < ModNameToLevel("Head")) return "This ticket is already waiting for a moderator.";

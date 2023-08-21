@@ -21,7 +21,7 @@ import { ModName, ModNameToId, ModNameToLevel } from "./ModUtils.js";
 export async function CreateTicket(
 	ticketOwner: GuildMember,
 	reason = "no reason provided",
-	interaction: RepliableInteraction = null,
+	interaction: RepliableInteraction | null = null,
 	type: TicketType = "general",
 	usersToAdd: Array<string> = []
 ) {

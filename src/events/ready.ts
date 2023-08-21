@@ -24,13 +24,13 @@ const ReadyEvent: Event = {
 			.invites.fetch()
 			.then((guildInvites) => {
 				for (const guildInvite of guildInvites.map((i) => i)) {
-					invites.set(guildInvite.code, guildInvite.uses);
+					invites.set(guildInvite.code, guildInvite.uses ?? 0);
 				}
 			});
 
 		setupVoiceXp();
 
-		logger.log(`Successfully logged in as ${client.user.tag}!`);
+		logger.log(`Successfully logged in as ${client.user?.tag}!`);
 		console.timeEnd("Boot");
 	},
 };
@@ -50,8 +50,11 @@ function setupVoiceXp() {
 	});
 
 	connection.receiver.speaking.on("end", async (userId) => {
-		const total = Date.now() - voiceTimes.get(userId);
-		const xp = total * 0.0069;
+		const voiceTime = voiceTimes.get(userId);
+		if (!voiceTime) return;
+
+		const total = Date.now() - voiceTime;
+		const xp = total * 0.0005;
 
 		voiceTimes.delete(userId);
 

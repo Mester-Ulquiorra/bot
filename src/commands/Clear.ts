@@ -11,6 +11,9 @@ import { ModNameToLevel } from "../util/ModUtils.js";
 const ClearCommmand: SlashCommand = {
 	name: "clear",
 	async run(interaction, client) {
+		if (!interaction.inGuild()) return GetError("GuildOnly");
+		if (!interaction.channel) return new Error("Interaction is missing a channel? wtf??");
+
 		const userConfig = await GetUserConfig(interaction.user.id, "clearing messages");
 		if (userConfig.mod < ModNameToLevel("Head")) return GetError("InsufficentModLevel");
 

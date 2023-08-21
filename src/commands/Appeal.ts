@@ -5,10 +5,9 @@ import {
 	ButtonInteraction,
 	ButtonStyle,
 	EmbedBuilder,
-	GuildMember,
 	bold,
 	inlineCode,
-	time,
+	time
 } from "discord.js";
 import Ulquiorra, { logger } from "../Ulquiorra.js";
 import config from "../config.js";
@@ -26,7 +25,7 @@ const AppealCommand: SlashCommand = {
 	name: "appeal",
 
 	async runButton(interaction, client) {
-		const userConfig = await GetUserConfig(interaction.user.id, null, false);
+		const userConfig = await GetUserConfig(interaction.user.id, "appealing a punishment");
 
 		if (!userConfig || userConfig.mod < 2) return GetError("Permission");
 
@@ -114,8 +113,11 @@ export async function createAppeal(userId: string, punishment: DBPunishment, rea
 }
 
 async function manageAppeal(interaction: ButtonInteraction, accepted: boolean) {
+	const punishmentId = interaction.message.embeds[0].footer?.text.match(/\d+/)?.[0];
+	if (!punishmentId) return new Error("No punishment ID was found in embed footer, that's a code error!!");
+
 	const punishment = await PunishmentConfig.findOne({
-		punishmentId: interaction.message.embeds[0].footer.text.match(/\d+/)?.[0],
+		punishmentId,
 	});
 	if (!punishment) return GetError("Database");
 
@@ -145,13 +147,14 @@ async function manageAppeal(interaction: ButtonInteraction, accepted: boolean) {
 	if (typeof collected === "string") return collected;
 	if (collected.size === 0) return "You didn't reply in time";
 
-	const reason = collected.first().content;
-	collected
-		.first()
-		.delete()
-		.then(() => {
-			reasonMessage.delete();
-		});
+	const message = collected.first();
+	if (!message) return new Error("No message found, but collected size is not 0? wtf??");
+
+	const reason = message.content;
+	message.delete().then(() => {
+		reasonMessage.delete();
+	});
+
 	if (reason === "cancel") return;
 	if (reason.length > 500) return "Sorry, that's too long!";
 
@@ -184,11 +187,8 @@ async function manageAppeal(interaction: ButtonInteraction, accepted: boolean) {
 
 				const targetMember = await GetGuild()
 					.members.fetch(target.id)
-					.then((member) => {
-						return member;
-					})
 					.catch(() => {
-						return null as GuildMember;
+						return null;
 					});
 
 				if (!targetMember) break;

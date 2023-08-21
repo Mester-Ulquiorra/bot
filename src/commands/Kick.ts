@@ -22,8 +22,8 @@ const KickCommand: SlashCommand = {
 		const channelEmbed = CreateEmbed(`${target} has been kicked: **${reason}**`);
 		const replyEmbed = CreateModEmbed(interaction.user, target.user, punishment);
 
-		interaction.channel.sendTyping().then(() => {
-			interaction.channel.send({ embeds: [channelEmbed] });
+		interaction.channel?.sendTyping().then(() => {
+			interaction.channel?.send({ embeds: [channelEmbed] });
 		});
 
 		interaction.reply({ embeds: [replyEmbed], ephemeral: true });

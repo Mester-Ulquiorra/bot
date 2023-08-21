@@ -12,6 +12,8 @@ const RankCommand: SlashCommand = {
 	name: "rank",
 
 	async run(interaction, _client) {
+		if(!browser) return "Puppeteer is not available, cannot render rank card.";
+		
 		let user = interaction.options.getUser("member");
 		if (!user) user = interaction.user;
 

@@ -71,7 +71,7 @@ const browser = await puppeteer
 	})
 	.catch(() => {
 		logger.log("Could not launch puppeteer, some functionalities might not work", "warn");
-		return null as puppeteer.Browser;
+		return null;
 	});
 
 process.on("exit", () => {
@@ -122,8 +122,10 @@ Register(join(__dirname, "commands"), join(__dirname, "events"), join(__dirname,
 		}).on("line", (line) => {
 			HandleConsoleCommand(line, Ulquiorra);
 		});
-	} catch (err) {
-		logger.log(`Failed to start console, console commands are unavailable: ${err.stack}`, "error");
+	} catch (err: unknown) {
+		if (err instanceof Error) {
+			logger.log(`Failed to start console, console commands are unavailable: ${err.message}, ${err.stack ?? "no stack"}`, "error");
+		}
 	}
 });
 

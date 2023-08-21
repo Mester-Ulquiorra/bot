@@ -29,7 +29,7 @@ const GuildMemberAddEvent: Event = {
 		ManageRole(member, config.roles.Member, "Add", "new member");
 
 		// create the embed
-		const embed = CreateEmbed(undefined)
+		const embed = CreateEmbed(null)
 			.addFields([
 				{
 					// field for when the member joined
@@ -58,7 +58,9 @@ async function manageInvite(client: Client, member: GuildMember) {
 	const newInvites = await member.guild.invites.fetch();
 
 	// find the invite that was used to join the server
-	const invite = newInvites.find((i) => i.uses > invites.get(i.code));
+	const invite = newInvites.find((i) => (i.uses ?? 0) > (invites.get(i.code) ?? 0));
+	if(!invite || !invite.uses || !invite.inviterId) return;
+
 	invites.set(invite.code, invite.uses);
 	const inviter = await client.users.fetch(invite.inviterId);
 	

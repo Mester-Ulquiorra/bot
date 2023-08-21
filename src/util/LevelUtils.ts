@@ -12,7 +12,6 @@ import ManageRole from "./ManageRole.js";
 // https://www.desmos.com/calculator/wkbcatlf9h
 
 const inviteCache = new Cache<string, number>();
-
 const lbPosCache = new Cache<string, number>();
 
 /**
@@ -20,7 +19,9 @@ const lbPosCache = new Cache<string, number>();
  * @param message The message to extract the xp from.
  * @returns The amount of xp gained from the message.
  */
-async function GetXPFromMessage(message: Message) {
+async function GetXPFromMessage(message: Message<true>) {
+	if(!message.member) return;
+
 	// get the content without whitespace
 	const content = message.content.replaceAll(/\s/gu, "");
 
@@ -95,8 +96,10 @@ function LengthToXP(length: number, level: number) {
  * @param xp The xp to add.
  * @param messageUrl The URL of the message that leveled up the user.
  */
-function AddXPToUser(levelConfig: IDBLevel, xp: number, messageUrl: string, member: GuildMember) {
+function AddXPToUser(levelConfig: IDBLevel, xp: number, messageUrl: string | null, member: GuildMember) {
 	LevelConfig.findOneAndUpdate({ _id: levelConfig._id }, { $inc: { xp: Math.floor(xp) } }, { new: true }).then((levelConfig) => {
+		if(!levelConfig) return;
+
 		/* We leveled up! */
 		if (XPToLevel(levelConfig.xp) > XPToLevel(levelConfig.xp - xp)) {
 			const newLevel = XPToLevel(levelConfig.xp);
@@ -147,7 +150,7 @@ async function GetLevelConfig(userId: string) {
  * @param messageUrl The message that made the member level up.
  * @param newRole The role id that was added to the user.
  */
-async function AlertMember(member: GuildMember, newlevel: number, messageUrl: string, newRole: string = null) {
+async function AlertMember(member: GuildMember, newlevel: number, messageUrl: string | null, newRole: string | null = null) {
 	let embedDescription = messageUrl
 		? `**Congratulations ${member}, you've successfully achieved level ${newlevel}**! ([Jump to level message](${messageUrl}))`
 		: `**Congratulations ${member}, you've successfully achieved level ${newlevel} by talking in a voice chat**!`;
@@ -157,6 +160,7 @@ async function AlertMember(member: GuildMember, newlevel: number, messageUrl: st
 		const roleName = await GetGuild()
 			.roles.fetch(newRole)
 			.then((role) => {
+				if (!role) return "Unknown Role";
 				return role.name;
 			});
 
@@ -176,7 +180,7 @@ async function AlertMember(member: GuildMember, newlevel: number, messageUrl: st
 
 async function GetLeaderboardPos(userId: string) {
 	if (lbPosCache.has(userId)) {
-		return lbPosCache.get(userId);
+		return lbPosCache.get(userId) as number;
 	} else {
 		await RefreshLeaderboardPos();
 	}

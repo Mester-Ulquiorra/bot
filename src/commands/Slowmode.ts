@@ -9,17 +9,17 @@ const SlowmodeCommand: SlashCommand = {
 	name: "slowmode",
 
 	async run(interaction, _client) {
+		if(!interaction.inGuild()) return "You must be in a server to do this";
+
 		const userConfig = await GetUserConfig(interaction.user.id, "setting slowmode");
 		if (userConfig.mod < ModNameToLevel("Head")) return GetError("Permission");
 
 		// get the duration format and try to convert it
 		const duration = ConvertDuration(interaction.options.getString("duration"));
-
-		if (isNaN(duration) || duration > 21600) return GetError("Duration");
+		if (!duration || duration > 21600) return GetError("Duration");
 
 		const channel = interaction.channel;
-
-		if (channel.isThread()) return "You cannot use this command in threads";
+		if(!channel) return "Interaction doesn't have a channel?? wtf??";
 
 		channel.edit({
 			rateLimitPerUser: duration,

@@ -5,7 +5,7 @@ import testMode from "../../testMode.js";
 import SlashCommand from "../../types/SlashCommand.js";
 import CreateEmbed from "../../util/CreateEmbed.js";
 import GeoFight from "./Fight.js";
-import GeoData, { ArtifactNames, GeoChance, GeoEvent, GeoItems, RelicNames } from "./GeoData.js";
+import GeoData, { ArtifactNames, GeoChance, GeoEvent, GeoItem, RelicNames } from "./GeoData.js";
 import { GetGeoConfig, GetGeoMultiplier, extractWeights } from "./Util.js";
 
 const ExploreCommand: SlashCommand = {
@@ -91,7 +91,7 @@ const ExploreCommand: SlashCommand = {
 	},
 };
 
-function addItemToInventory(geoConfig: DBGeo, itemName: GeoItems, count = 1) {
+function addItemToInventory(geoConfig: DBGeo, itemName: GeoItem, count = 1) {
 	// check if user already has that artifact in inventory and if so, add to count
 	const relicIndex = geoConfig.inventory.items.findIndex((item) => item.name === itemName);
 	if (relicIndex !== -1) {

@@ -17,9 +17,10 @@ export default class {
 		this.langFiles = langFiles;
 	}
 
-	get(lang: LocLanguage, key: string, ...args: string[]) {
+	get(lang: LocLanguage, key: string, ...args: string[]): string {
 		if (this.langFiles[lang]?.[key] == null) return this.get("en", key, ...args);
-		const data = this.langFiles[lang][key];
+		const data = this.langFiles[lang]?.[key] ?? "#error#";
+
 		// replace {\d} with the arguments
 		return data.replace(/{(\d+)}/g, (match, number) => {
 			return args[number] ?? "#error#";

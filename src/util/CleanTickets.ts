@@ -17,11 +17,15 @@ export default async function () {
 			GetGuild()
 				.channels.fetch(ticket.channel)
 				.then((channel) => {
+					if (!channel) return logger.log(`Couldn't find channel ${ticket.channel} to delete`, "warn");
+
 					channel.delete(`Ticket deleted - passed expiration time`);
 				});
 
 			ticket.deleteOne();
-		} catch (error) {
+		} catch (error: unknown) {
+			if (!(error instanceof Error)) return;
+
 			logger.log(`Couldn't automatically delete ticket: ${error.stack}`, "warn");
 		}
 	}

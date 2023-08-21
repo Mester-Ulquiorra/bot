@@ -65,7 +65,7 @@ export function ModNameToLevel(name: ModName) {
  * A function to convert a mod name to the role id
  */
 export function ModNameToId(name: ModName) {
-	return config.ModRoleIds.get(name);
+	return config.ModRoleIds[name];
 }
 
 export function CanManageUser(user: DBUser, target: DBUser) {
@@ -76,24 +76,6 @@ export function CanManageUser(user: DBUser, target: DBUser) {
 
 	return true;
 }
-
-/**
- * A map to hold all the max mutes.
- */
-const maxMutes = new Map(
-	config.MaxMutes.map((object) => {
-		return [object.mod, object.duration];
-	})
-);
-
-/**
- * A map to hold all the max bans.
- */
-const maxBans = new Map(
-	config.MaxBans.map((object) => {
-		return [object.mod, object.duration];
-	})
-);
 
 /**
  * A function to check if a mod can perform a punishment
@@ -109,13 +91,13 @@ export function CanPerformPunishment(mod: DBUser, punishmentType: PunishmentType
 
 	if (duration === -1) return false;
 
-	const checkDuration = punishmentType === PunishmentType.Mute ? maxMutes.get(mod.mod) : maxBans.get(mod.mod);
+	const checkDuration = punishmentType === PunishmentType.Mute ? config.MaxMutes[mod.mod] : config.MaxBans[mod.mod];
 	return checkDuration !== 0 && checkDuration >= duration;
 }
 
 interface CreateModEmbedOptions<T extends boolean, U extends boolean> {
 	anti?: U;
-	backupType?: number;
+	backupType?: PunishmentType;
 	userEmbed?: T;
 	detail?: string;
 	reason?: string;
@@ -125,7 +107,7 @@ interface CreateModEmbedOptions<T extends boolean, U extends boolean> {
 /**
  * A function for turning a punishmentType into "muted", "unbanned", "kicked" etc.
  */
-function getModActionName(punishmentType: number, anti = false) {
+function getModActionName(punishmentType: PunishmentType | undefined, anti = false) {
 	const base = anti ? "un" : "";
 	switch (punishmentType) {
 		case PunishmentType.Warn:
@@ -144,7 +126,7 @@ function getModActionName(punishmentType: number, anti = false) {
 /**
  * A function for adding the "Muted until", "Banned until" field to an embed
  */
-function addDurationField(embed: EmbedBuilder, punishmentType: number, actionName: string, until: number) {
+function addDurationField(embed: EmbedBuilder, punishmentType: PunishmentType | undefined, actionName: string, until: number) {
 	if (punishmentType !== PunishmentType.Ban && punishmentType !== PunishmentType.Mute) return;
 	embed.addFields({
 		// uppercase the first letter of the mod action
@@ -162,6 +144,7 @@ type ModEmbed<T extends boolean, U extends boolean> = T extends true
 		  }
 		: EmbedBuilder
 	: EmbedBuilder;
+
 /**
  * A function for creating an universal mod embed
  * @param mod The mod who performed the action
@@ -172,7 +155,7 @@ type ModEmbed<T extends boolean, U extends boolean> = T extends true
 export function CreateModEmbed<T extends boolean = false, U extends boolean = false>(
 	mod: User,
 	target: User | string,
-	punishment: DBPunishment,
+	punishment: DBPunishment | null,
 	options: CreateModEmbedOptions<T, U> = {}
 ): ModEmbed<T, U> {
 	// first get a string representation of the action
@@ -204,7 +187,7 @@ export function CreateModEmbed<T extends boolean = false, U extends boolean = fa
 	// set the footer to the punishment id
 	const footer =
 		`Punishment ID: ${punishment?.punishmentId ?? "#unknown#"} ` +
-		(punishment.automated && options.userEmbed && !options.anti
+		(punishment?.automated && options.userEmbed && !options.anti
 			? "(this is an automated punishment, false positives might occur)"
 			: "");
 	embed.setFooter({ text: footer });

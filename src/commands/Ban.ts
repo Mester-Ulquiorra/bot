@@ -18,10 +18,9 @@ const BanCommand: SlashCommand = {
 		if (!target) return GetError("UserUnavailable");
 
 		const reason = interaction.options.getString("reason") ?? "no reason provided";
-		const duration = ConvertDuration(interaction.options.getString("duration"));
 
-		// if duration is NaN, we have an error
-		if (isNaN(duration)) return GetError("Duration");
+		const duration = ConvertDuration(interaction.options.getString("duration"));
+		if (!duration) return GetError("Duration");
 
 		// get the user config for both the interaction and the target user
 		const userConfig = await GetUserConfig(interaction.user.id, "banning user");
@@ -73,8 +72,8 @@ const BanCommand: SlashCommand = {
 					});
 			});
 
-		interaction.channel.sendTyping().then(() => {
-			interaction.channel.send({ embeds: [channelEmbed] });
+		interaction.channel?.sendTyping().then(() => {
+			interaction.channel?.send({ embeds: [channelEmbed] });
 		});
 
 		GetSpecialChannel("ModLog").send({ embeds: [modEmbed] });

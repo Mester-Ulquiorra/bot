@@ -33,6 +33,7 @@ const allowLocalhostOnly = (req: Request, res: Response, next: NextFunction) => 
 const app = express();
 app.use(express.text({ type: "text/plain" }));
 
+// @ts-expect-error - This works fine
 app.post("/internal", allowLocalhostOnly, processInternalMessage(publicKey), async (req: RequestWithMessage, res) => {
 	const message = req.message;
 
@@ -43,6 +44,8 @@ app.post("/internal", allowLocalhostOnly, processInternalMessage(publicKey), asy
 		const punishment = await PunishmentConfig.findOne({
 			punishmentId: message.data.punishmentId,
 		});
+
+		if(!punishment) return res.status(400).send("Punishment not found");
 
 		if(punishment.appealed) return res.status(400).send("Punishment already appealed");
 		punishment.appealed = true;

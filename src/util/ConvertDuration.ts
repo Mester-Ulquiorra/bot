@@ -5,9 +5,9 @@ import config from "../config.js";
  * @param stringDuration The duration string.
  * @returns The duration in seconds. Returns NaN if the format is incorrect
  */
-export default function (stringDuration: string) {
+export default function (stringDuration: string | null) {
 	// if string_duration is null or empty, return -1
-	if (stringDuration == null || stringDuration == "") return -1;
+	if (stringDuration === null || stringDuration == "") return -1;
 
 	let duration = 0;
 
@@ -45,6 +45,6 @@ export default function (stringDuration: string) {
 		}
 	}
 
-	if (duration === 0) return NaN;
+	if (duration === 0) return null;
 	else return Math.min(duration, config.MaxDuration);
 }

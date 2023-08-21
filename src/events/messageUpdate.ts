@@ -18,7 +18,8 @@ const MessageUpdateEvent: Event = {
 
 		// create a new embed
 		const embed = CreateEmbed(
-			`**Message sent by <@${oldMessage.author.id}> has been edited in ${oldMessage.channel}** [Jump to message](${newMessage.url})`
+			`**Message sent by <@${oldMessage.author.id}> has been edited in ${oldMessage.channel}** [Jump to message](${newMessage.url})`,
+			{ color: "warning" }
 		).setFooter({
 			text: `Member ID: ${oldMessage.author.id} | Message ID: ${oldMessage.id}`,
 		});

@@ -6,13 +6,16 @@ const StatsCommand: SlashCommand = {
 
 	async run(interaction, client) {
 		if (interaction.options.getSubcommandGroup() === "steam") {
-			return SteamStatsCommand.run(interaction, client);
+			if (SteamStatsCommand.run) return SteamStatsCommand.run(interaction, client);
+			return "Unloaded Steam stats command";
 		}
 	},
 
 	async runAutocomplete(interaction, client) {
 		if (interaction.options.getSubcommandGroup() === "steam") {
-			return SteamStatsCommand.runAutocomplete(interaction, client);
+			if (SteamStatsCommand.runAutocomplete) return SteamStatsCommand.runAutocomplete(interaction, client);
+
+			interaction.respond([{ name: "This is an error", value: "okbro" }]);
 		}
 	},
 };

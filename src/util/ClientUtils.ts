@@ -3,7 +3,7 @@ import Ulquiorra from "../Ulquiorra.js";
 import config from "../config.js";
 import InviteConfig from "../database/InviteConfig.js";
 
-type SpecialChannelName = "ModLog" | "MessageLog" | "Welcome" | "LevelUp" | "TestMode" | "Appeal" | "MiscLog" | "Automod";
+type SpecialChannelName = "ModLog" | "MessageLog" | "Welcome" | "LevelUp" | "Appeal" | "MiscLog" | "Automod";
 
 export function GetSpecialChannel(channelName: SpecialChannelName) {
 	switch (channelName) {
@@ -33,5 +33,9 @@ export async function GetTotalInvites(userId: string) {
 }
 
 export function GetGuild() {
-	return Ulquiorra.guilds.cache.get(config.GuildId);
+	const guild = Ulquiorra.guilds.cache.get(config.GuildId);
+	if(!guild) {
+		throw new Error("Guild not found");
+	}
+	return guild;
 }

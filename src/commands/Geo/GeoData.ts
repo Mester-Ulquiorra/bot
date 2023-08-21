@@ -3,14 +3,14 @@ import testMode from "../../testMode.js";
 
 export const GeoChance = new Chance();
 
-export interface GeoItem {
-	name: GeoItems;
+export interface IGeoItem {
+	name: GeoItem;
 	count: number;
 }
 
 export interface GeoMultipler {
-	geo?: number;
-	exploreEvents?: ItemsWithWeight<ExploreEvent>;
+	geo: number;
+	exploreEvents: ItemsWithWeight<ExploreEvent>;
 }
 
 // ------- global name types ------- //
@@ -38,22 +38,28 @@ export const IRelicItems = <const>[
 	"wanderers_journal",
 	"lifeblood_core",
 ];
-export type RelicItems = (typeof IRelicItems)[number];
+export type RelicItem = (typeof IRelicItems)[number];
 
 /**
  * All artifacts
  */
 export const IArtifactItems = <const>["void_crystal", "crystal_heart", "pale_ore", "mask_shard"];
-export type ArtifactItems = (typeof IArtifactItems)[number];
+export type ArtifactItem = (typeof IArtifactItems)[number];
 
 /**
  * All items
  */
-export const IGeoItems = [...IRelicItems, ...IArtifactItems];
-export type GeoItems = (typeof IGeoItems)[number];
+export const IGeoItem = [...IRelicItems, ...IArtifactItems];
+export type GeoItem = (typeof IGeoItem)[number];
+
+/**
+ * Sellable items
+ */
+export const ISellableGeoItems = [...IRelicItems];
+export type SellableGeoItem = (typeof ISellableGeoItems)[number];
 // --------------------------------- //
 
-export type WeightedItems = ExploreEvent | GeoEvent | RelicItems | ArtifactItems;
+export type WeightedItems = ExploreEvent | GeoEvent | RelicItem | ArtifactItem;
 export type ItemsWithWeight<T extends WeightedItems> = Array<[T, number]>;
 
 const GeoIcon = testMode ? "<:Geo:1078043983177072640>" : "<:Geo:1078044252765950072>";
@@ -61,7 +67,7 @@ const GeoIcon = testMode ? "<:Geo:1078043983177072640>" : "<:Geo:107804425276595
 /**
  * Names of all relics
  */
-export const RelicNames: { [key in RelicItems]: string } = {
+export const RelicNames: { [key in RelicItem]: string } = {
 	dreamstone_shard: "Dreamstone Shard",
 	kings_idol: "King's Idol",
 	luminous_ore: "Luminous Ore",
@@ -74,7 +80,7 @@ export const RelicNames: { [key in RelicItems]: string } = {
 /**
  * Names of all artifacts
  */
-export const ArtifactNames: { [key in ArtifactItems]: string } = {
+export const ArtifactNames: { [key in ArtifactItem]: string } = {
 	void_crystal: "Void Crystal",
 	crystal_heart: "Crystal Heart",
 	pale_ore: "Pale Ore",
@@ -89,7 +95,7 @@ export const ItemNames = Object.assign({}, RelicNames, ArtifactNames);
 /**
  * Descriptions of all relics
  */
-export const RelicDescriptions: { [key in RelicItems]: string } = {
+export const RelicDescriptions: { [key in RelicItem]: string } = {
 	dreamstone_shard:
 		"[Common] A small shard of shimmering crystal that glows with a soft light. It's said to hold fragments of the dreams of ancient beings.",
 	wanderers_journal:
@@ -108,7 +114,7 @@ export const RelicDescriptions: { [key in RelicItems]: string } = {
 /**
  * Descriptions of all artifacts
  */
-export const ArtifactDescriptions: { [key in ArtifactItems]: string } = {
+export const ArtifactDescriptions: { [key in ArtifactItem]: string } = {
 	void_crystal:
 		"[Rare] A dark, crystalline substance that seems to absorb all light around it. Its jagged edges shimmer with an otherworldly energy.",
 	mask_shard:
@@ -133,7 +139,7 @@ const rarityPrices: {
 };
 
 export const RelicPrices: {
-	[key in RelicItems]: { min: number; max: number };
+	[key in RelicItem]: { min: number; max: number };
 } = {
 	dreamstone_shard: rarityPrices.common,
 	kings_idol: rarityPrices.uncommon,
@@ -144,7 +150,10 @@ export const RelicPrices: {
 	lifeblood_core: rarityPrices.rare,
 };
 
-export const ItemPrices = Object.assign({}, RelicPrices);
+/**
+ * Combined array of all sellable items and their prices
+ */
+export const ItemPrices = Object.assign({}, RelicPrices) as Record<SellableGeoItem, { min: number; max: number }>;
 // -------------------- //
 
 export default {
@@ -206,7 +215,7 @@ export default {
 			["lifeblood_core", 1],
 			["mothwing_cloak", 1],
 			["arcane_egg", 1],
-		] as ItemsWithWeight<RelicItems>,
+		] as ItemsWithWeight<RelicItem>,
 
 		/**
 		 * The different types of artifacts that can be found when exploring and their weights
@@ -219,6 +228,6 @@ export default {
 			["mask_shard", 35],
 			["crystal_heart", 35],
 			["pale_ore", 1],
-		] as ItemsWithWeight<ArtifactItems>,
+		] as ItemsWithWeight<ArtifactItem>,
 	},
 };

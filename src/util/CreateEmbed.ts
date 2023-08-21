@@ -23,7 +23,7 @@ interface EmbedOptions {
  * @param options Extra options for the embed, including the author field, color and title
  * @returns The EmbedBuilder object that can be used for post-processing or sending right away
  */
-export default function (description: string, options: EmbedOptions = {}) {
+export default function (description: string | null, options: EmbedOptions = {}) {
 	const embed = new EmbedBuilder().setColor(EmbedColors[options?.color ?? "info"]);
 
 	if (description) embed.setDescription(description);

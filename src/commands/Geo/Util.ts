@@ -1,8 +1,8 @@
 import { GuildMember, User } from "discord.js";
-import GeoConfig, { DBGeo } from "../../database/GeoConfig.js";
-import { GeoItems, GeoMultipler, IGeoItems, ItemsWithWeight, WeightedItems } from "./GeoData.js";
-import ManageRole from "../../util/ManageRole.js";
 import config from "../../config.js";
+import GeoConfig, { DBGeo } from "../../database/GeoConfig.js";
+import ManageRole from "../../util/ManageRole.js";
+import { GeoItem, GeoMultipler, IGeoItem, ISellableGeoItems, ItemsWithWeight, SellableGeoItem, WeightedItems } from "./GeoData.js";
 
 export async function GetGeoConfig(userId: string) {
 	let geoConfig = await GeoConfig.findOne({ userId });
@@ -16,7 +16,7 @@ export async function GetGeoConfig(userId: string) {
  * @param multipliers The multipliers to apply to the weights
  * @returns The names and weights of the items
  */
-export function extractWeights<T extends WeightedItems>(items: ItemsWithWeight<T>, multipliers: GeoMultipler = null): [T[], number[]] {
+export function extractWeights<T extends WeightedItems>(items: ItemsWithWeight<T>, multipliers: GeoMultipler | null = null): [T[], number[]] {
 	// extract both the names and weights from the array
 	const names = new Array<T>();
 	const weights = new Array<number>();
@@ -41,6 +41,7 @@ export function extractWeights<T extends WeightedItems>(items: ItemsWithWeight<T
 export async function GetGeoMultiplier(member: GuildMember | User, geoConfig: DBGeo) {
 	const multipliers: GeoMultipler = {
 		geo: 1,
+		exploreEvents: []
 	};
 
 	if (member instanceof User) return multipliers;
@@ -57,6 +58,10 @@ export async function GetGeoMultiplier(member: GuildMember | User, geoConfig: DB
 	return multipliers;
 }
 
-export function IsGeoItem(item: string): item is GeoItems {
-	return IGeoItems.includes(item as GeoItems);
+export function IsGeoItem(item: string): item is GeoItem {
+	return IGeoItem.includes(item as GeoItem);
+}
+
+export function IsSellableItem(item: string): item is SellableGeoItem {
+	return ISellableGeoItems.includes(item as SellableGeoItem);
 }

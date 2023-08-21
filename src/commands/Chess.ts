@@ -3,6 +3,7 @@ import * as chess from "chess.js";
 import { format } from "date-fns";
 import {
 	ActionRowBuilder,
+	APIMessageComponentEmoji,
 	APISelectMenuOption,
 	ButtonBuilder,
 	ButtonInteraction,
@@ -18,7 +19,7 @@ import { readFileSync } from "fs";
 import * as path from "path";
 import config from "../config.js";
 import SlashCommand from "../types/SlashCommand.js";
-import { GetResFolder, SnowFlake } from "../Ulquiorra.js";
+import { GetResFolder, logger, SnowFlake } from "../Ulquiorra.js";
 import { GetGuild } from "../util/ClientUtils.js";
 import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed from "../util/CreateEmbed.js";
@@ -98,11 +99,13 @@ const ChessCommand: SlashCommand = {
 			}
 
 			case "cancel": {
-				const [game, player] = ChessGame.getGameByPlayer(interaction.user.id);
+				const game = ChessGame.getGameByPlayer(interaction.user.id);
 				if (!game) return "You aren't in a game!";
 
-				game.winner = player === 1 ? game.player2 : game.player1;
-				game.end(`**${interaction.user} has forfeited the game, ${game.winner} wins!**`);
+				const { game: gameInstance, player } = game;
+
+				gameInstance.winner = player === 1 ? gameInstance.player2 : gameInstance.player1;
+				gameInstance.end(`**${interaction.user} has forfeited the game, ${gameInstance.winner} wins!**`);
 
 				interaction.reply({
 					content: "You have forfeited the game!",
@@ -131,11 +134,11 @@ class ChessGame {
 	/**
 	 * The winner player (null if game ended with time up)
 	 */
-	winner: GuildMember;
+	winner: GuildMember | null;
 	/**
 	 * Player currently on turn
 	 */
-	turnPlayer: GuildMember;
+	turnPlayer: GuildMember | null;
 	/**
 	 * The epoch second when the game will expire (+5 minutes after each turn)
 	 */
@@ -160,8 +163,8 @@ class ChessGame {
 	 * Chess controller
 	 */
 	chessGame: chess.Chess;
-	lastMoveFrom: chess.Square;
-	lastMoveTo: chess.Square;
+	lastMoveFrom: chess.Square | null = null;
+	lastMoveTo: chess.Square | null = null;
 
 	/**
 	 *
@@ -179,7 +182,7 @@ class ChessGame {
 			[this.player1, this.player2] = [this.player2, this.player1];
 		}
 
-		this.winner = null;
+		this.winner = this.turnPlayer = null;
 
 		this.chessGame = new chess.Chess();
 		this.chessGame.header(
@@ -218,7 +221,17 @@ class ChessGame {
 			})
 			.on("collect", this.executeComponent.bind(this));
 
-		this.performTurn();
+		// this is kind of a hack to make sure TypeScript is happy
+		this.inputMessage = message;
+
+		this.message
+			.reply({
+				content: `Loading game, please wait...`,
+			})
+			.then((message) => {
+				this.inputMessage = message;
+				this.performTurn();
+			});
 	}
 
 	async executeComponent(button: ButtonInteraction) {
@@ -340,7 +353,7 @@ class ChessGame {
 	/**
 	 * Perform a single turn of the game
 	 */
-	async performTurn() {
+	async performTurn(): Promise<void> {
 		if (this.ended) return;
 
 		this.turnPlayer = this.chessGame.turn() === chess.WHITE ? this.player1 : this.player2;
@@ -369,7 +382,7 @@ class ChessGame {
 					label: position,
 					description: `Move your piece on ${position}!`,
 					emoji: {
-						name: emoji instanceof GuildEmoji ? emoji.name : emoji,
+						name: emoji instanceof GuildEmoji ? emoji.name ?? "unknown" : emoji,
 						id: emoji instanceof GuildEmoji ? emoji.id : undefined,
 					},
 				});
@@ -389,163 +402,157 @@ class ChessGame {
 				.toJSON(),
 		];
 
-		// create the input message and ask for the piece to move
-		if (!this.inputMessage) {
-			const inputMessage = await this.message.reply({
-				content: `${this.turnPlayer}, please select the piece you want to move`,
-				components,
-			});
+		// ask for the piece to move
+		await this.inputMessage.edit({
+			content: `${this.turnPlayer}, please select the piece you want to move`,
+			components,
+		});
 
-			this.inputMessage = inputMessage;
-		} else {
-			await this.inputMessage.edit({
-				content: `${this.turnPlayer}, please select the piece you want to move`,
-				components,
-			});
-		}
-
-		this.message.channel
-			.awaitMessageComponent({
+		try {
+			const interaction1 = await this.message.channel.awaitMessageComponent({
 				componentType: ComponentType.StringSelect,
 				filter: (i) =>
-					i.message.id === this.inputMessage.id && i.user.id === this.turnPlayer.id && i.customId === "chess.piecetomove",
-			})
-			.then(async (interaction1) => {
-				await interaction1.deferUpdate();
-				if (this.ended) return;
+					i.message.id === this.inputMessage.id &&
+					!!this.turnPlayer &&
+					i.user.id === this.turnPlayer.id &&
+					i.customId === "chess.piecetomove",
+			});
+			await interaction1.deferUpdate();
+			if (this.ended) return;
 
-				const selection = interaction1.values[0];
+			let selection = interaction1.values[0];
 
-				const pieceToMove = this.chessGame.get(selection as chess.Square);
+			const pieceToMove = this.chessGame.get(selection as chess.Square);
 
-				// get all possible moves for that piece
-				const moves = this.chessGame.moves({
-					verbose: true,
-					square: selection as chess.Square,
-				}) as chess.Move[];
+			// get all possible moves for that piece
+			const moves = this.chessGame.moves({
+				verbose: true,
+				square: selection as chess.Square,
+			}) as chess.Move[];
 
-				// generate a string that shows allowed moves
-				const movesOption: Array<APISelectMenuOption> = [
-					{
-						label: "Cancel",
-						value: "cancel",
-						emoji: { name: "❌" },
-						description: "Cancel this move",
-					},
-				];
+			// generate a string that shows allowed moves
+			const movesOption: Array<APISelectMenuOption> = [
+				{
+					label: "Cancel",
+					value: "cancel",
+					emoji: { name: "❌" },
+					description: "Cancel this move",
+				},
+			];
 
-				for (const move of moves) {
-					let thisMoveString = move.to;
+			for (const move of moves) {
+				let thisMoveString = move.to;
 
-					const pieceToHit = this.chessGame.get(move.to as chess.Square);
-					let emoji: Awaited<ReturnType<typeof ChessGame.getPieceEmoji>>;
+				const pieceToHit = this.chessGame.get(move.to as chess.Square);
+				let emoji: Awaited<ReturnType<typeof ChessGame.getPieceEmoji>> | undefined;
 
-					if (move.promotion) {
-						emoji = await ChessGame.getPieceEmoji({
-							type: move.promotion,
-							color: this.chessGame.turn(),
-						});
-					}
-					if (pieceToHit) emoji = await ChessGame.getPieceEmoji(pieceToHit);
-
-					let finalEmoji = undefined;
-					if (emoji) {
-						finalEmoji = {
-							name: emoji instanceof GuildEmoji ? emoji.name : emoji,
-							id: emoji instanceof GuildEmoji ? emoji.id : undefined,
-						};
-					}
-
-					if (move.flags.includes("p")) thisMoveString += ` (Promotion)`;
-					if (move.flags.includes("c") || move.flags.includes("e")) thisMoveString += ` (Capture)`;
-					if (move.flags.includes("k") || move.flags.includes("q")) thisMoveString += ` (Castle)`;
-
-					movesOption.push({
-						label: thisMoveString,
-						value: `${move.from}-${move.to}-${move.promotion || "none"}`,
-						emoji: finalEmoji,
-						description: `Move your piece to ${move.to} ${move.promotion ? `and promote it to a ${move.promotion}` : ""}`,
+				if (move.promotion) {
+					emoji = await ChessGame.getPieceEmoji({
+						type: move.promotion,
+						color: this.chessGame.turn(),
 					});
 				}
+				if (pieceToHit) emoji = await ChessGame.getPieceEmoji(pieceToHit);
 
-				// create a new message that will serve as the move selector
-				const components = [
-					new ActionRowBuilder<StringSelectMenuBuilder>().addComponents([
-						new StringSelectMenuBuilder()
-							.setOptions(movesOption)
-							.setCustomId("chess.movedest")
-							.setMaxValues(1)
-							.setMinValues(1)
-							.setPlaceholder("Select the destination of your piece!"),
-					]),
-				];
+				const finalEmoji: APIMessageComponentEmoji | undefined = emoji
+					? {
+							name: emoji instanceof GuildEmoji ? emoji.name ?? "unknown" : emoji,
+							id: emoji instanceof GuildEmoji ? emoji.id : undefined,
+					  }
+					: undefined;
 
-				const pieceEmoji = await ChessGame.getPieceEmoji(pieceToMove);
+				if (move.flags.includes("p")) thisMoveString += ` (Promotion)`;
+				if (move.flags.includes("c") || move.flags.includes("e")) thisMoveString += ` (Capture)`;
+				if (move.flags.includes("k") || move.flags.includes("q")) thisMoveString += ` (Castle)`;
 
-				await this.inputMessage.edit({
-					content: `Great, now please choose where you want to move your ${pieceEmoji}`,
-					components,
+				movesOption.push({
+					label: thisMoveString,
+					value: `${move.from}-${move.to}-${move.promotion || "none"}`,
+					emoji: finalEmoji,
+					description: `Move your piece to ${move.to} ${move.promotion ? `and promote it to a ${move.promotion}` : ""}`,
 				});
+			}
 
-				this.message.channel
-					.awaitMessageComponent({
-						componentType: ComponentType.StringSelect,
-						filter: (i) =>
-							i.message.id === this.inputMessage.id && i.user.id === this.turnPlayer.id && i.customId === "chess.movedest",
-					})
-					.then(async (interaction2) => {
-						await interaction2.deferUpdate();
-						if (this.ended) return;
+			// create a new message that will serve as the move selector
+			const destComponents = [
+				new ActionRowBuilder<StringSelectMenuBuilder>().addComponents([
+					new StringSelectMenuBuilder()
+						.setOptions(movesOption)
+						.setCustomId("chess.movedest")
+						.setMaxValues(1)
+						.setMinValues(1)
+						.setPlaceholder("Select the destination of your piece!"),
+				]),
+			];
 
-						const selection = interaction2.values[0];
-						if (selection === "cancel") return this.performTurn();
+			const pieceEmoji = await ChessGame.getPieceEmoji(pieceToMove);
 
-						const selectionMatch = selection.match(/(.*)-(.*)-(.*)/);
-						const promotion = selectionMatch[3] === "none" ? undefined : (selectionMatch[3] as chess.PieceSymbol);
+			await this.inputMessage.edit({
+				content: `Great, now please choose where you want to move your ${pieceEmoji}`,
+				components: destComponents,
+			});
 
-						// move the piece
-						this.chessGame.move({
-							from: selectionMatch[1] as chess.Square,
-							to: selectionMatch[2] as chess.Square,
-							promotion,
-						});
+			const interaction2 = await this.message.channel.awaitMessageComponent({
+				componentType: ComponentType.StringSelect,
+				filter: (i) =>
+					i.message.id === this.inputMessage.id &&
+					!!this.turnPlayer &&
+					i.user.id === this.turnPlayer.id &&
+					i.customId === "chess.movedest",
+			});
+			await interaction2.deferUpdate();
+			if (this.ended) return;
 
-						this.lastMoveFrom = selectionMatch[1] as chess.Square;
-						this.lastMoveTo = selectionMatch[2] as chess.Square;
+			selection = interaction2.values[0];
+			if (selection === "cancel") return this.performTurn();
 
-						// check if the game is over
-						if (this.chessGame.isGameOver()) {
-							if (this.chessGame.isDraw()) this.end("Lmao, it's a draw", true);
-							else {
-								this.winner = this.chessGame.turn() === chess.WHITE ? this.player2 : this.player1;
-								this.end(`${this.winner} has won the game!`, false);
-							}
+			const selectionMatch = selection.match(/(.*)-(.*)-(.*)/) as RegExpMatchArray;
+			const promotion = selectionMatch[3] === "none" ? undefined : (selectionMatch[3] as chess.PieceSymbol);
 
-							return;
-						}
+			// move the piece
+			this.chessGame.move({
+				from: selectionMatch[1] as chess.Square,
+				to: selectionMatch[2] as chess.Square,
+				promotion,
+			});
 
-						// add expiration time
-						this.expires = Math.floor(Date.now() / 1000) + 5 * 60;
+			this.lastMoveFrom = selectionMatch[1] as chess.Square;
+			this.lastMoveTo = selectionMatch[2] as chess.Square;
 
-						// redraw the game board
-						const { embed, components, board } = this.generateMessage();
+			// check if the game is over
+			if (this.chessGame.isGameOver()) {
+				if (this.chessGame.isDraw()) this.end("Lmao, it's a draw", true);
+				else {
+					this.winner = this.chessGame.turn() === chess.WHITE ? this.player2 : this.player1;
+					this.end(`${this.winner} has won the game!`, false);
+				}
 
-						this.message.edit({
-							embeds: [embed],
-							components,
-							files: [
-								{
-									attachment: board,
-									name: "board.png",
-								},
-							],
-						});
+				return;
+			}
 
-						this.performTurn();
-					})
-					.catch(console.error);
-			})
-			.catch(console.error);
+			// add expiration time
+			this.expires = Math.floor(Date.now() / 1000) + 5 * 60;
+
+			// redraw the game board
+			const { embed, components, board } = this.generateMessage();
+
+			this.message.edit({
+				embeds: [embed],
+				components,
+				files: [
+					{
+						attachment: board,
+						name: "board.png",
+					},
+				],
+			});
+		} catch (err: unknown) {
+			if (err instanceof Error) {
+				logger.log(`Error in chess game: ${err.message}, ${err.stack ?? "no stack"}`, "error");
+			}
+		} finally {
+			this.performTurn();
+		}
 	}
 
 	/**
@@ -695,7 +702,7 @@ class ChessGame {
 
 		const embed = CreateEmbed(
 			`${
-				originalDescription.embeds[0].description.split("\n")[0]
+				(originalDescription.embeds[0].description as string).split("\n")[0]
 			}\n\n**${reason}**\n\nThe PGN file of this game has been attached for you.\nFEN: ${this.chessGame.fen()}`,
 			{ color: this.chessGame.isDraw() || isDraw ? "warning" : "success" }
 		);
@@ -730,18 +737,18 @@ class ChessGame {
 	 * @param id The ID of the user to check
 	 * @returns An array with the game the user is in and which player they are, or null if they are not in a game
 	 */
-	static getGameByPlayer(id: string): [ChessGame, 1 | 2] {
+	static getGameByPlayer(id: string): { game: ChessGame; player: 1 | 2 } | null {
 		if (ChessGame.ActiveGames.size === 0) return null;
 
 		for (const [_key, game] of ChessGame.ActiveGames) {
 			if (game.player1.id === id || game.player2.id === id) {
-				return [game, game.player1.id === id ? 1 : 2];
+				return { game, player: game.player1.id === id ? 1 : 2 };
 			}
 		}
 		return null;
 	}
 
-	static IconCache: ChessIcons = null;
+	static IconCache: ChessIcons | null = null;
 
 	/**
 	 * A static function to get the icons for every piece

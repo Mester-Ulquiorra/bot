@@ -1,28 +1,20 @@
-type ErrorType = "Default" | "Permission" | "Database" | "BadUser" | "Duration" | "BadValue" | "UserUnavailable" | "InsufficentModLevel";
+type ErrorType = "Default" | "Permission" | "Database" | "BadUser" | "Duration" | "BadValue" | "UserUnavailable" | "InsufficentModLevel" | "GuildOnly";
+
+const errorMessages: Record<ErrorType, string> = {
+	Default: "Something has went wrong, please try again. If this keeps happening, open a ticket.",
+	Permission: "You are not allowed to perform this action.",
+	Database: "Database error, please try again. If this keeps happening, open a ticket.",
+	BadUser: "You are not allowed to perform this action on this user.",
+	Duration: "Incorrect duration formatting.",
+	BadValue: "Incorrect value for the following option: {info}",
+	UserUnavailable: "The user is not available (either left the server or deleted account).",
+	InsufficentModLevel: "Your mod level is not allowed to run that command / use those parameters.",
+	GuildOnly: "This command can only be used in guilds.",
+};
 
 /**
- * Get a unified error message.
- * @param {ErrorType} error The type of error
- * @param {string} info Additional information to the error
- * @returns {string} The error message
+ * Get a unified error message
  */
-export default function (error: ErrorType = "Default", info = "[unknown]") {
-	switch (error) {
-		case "Default":
-			return "Something has went wrong, please try again. If this keeps happening, open a ticket.";
-		case "Permission":
-			return "You are not allowed to perform this action.";
-		case "Database":
-			return "Database error, please try again. If this keeps happening, open a ticket.";
-		case "BadUser":
-			return "You are not allowed to perform this action on this user.";
-		case "Duration":
-			return "Incorrect duration formatting.";
-		case "BadValue":
-			return `Incorrect value for the following option: ${info}`;
-		case "UserUnavailable":
-			return "The user is not available (either left the server or deleted account).";
-		case "InsufficentModLevel":
-			return "Your mod level is not allowed to run that command / use those parameters.";
-	}
+export default function (error: ErrorType = "Default", info = "[unknown]"): string {
+	return errorMessages[error].replace("{info}", info);
 }

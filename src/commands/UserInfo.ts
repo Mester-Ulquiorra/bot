@@ -26,7 +26,8 @@ const UserInfoCommand: SlashCommand = {
 	},
 
 	async runButton(interaction, client) {
-		const userId = interaction.customId.match(/userinfo\.showu-(\d+)/)[1];
+		const userId = interaction.customId.match(/userinfo\.showu-(\d+)/)?.[1];
+		if(!userId) throw new Error("Couldn't find user ID in custom ID, this is a code error");
 
 		const target = (await GetGuild().members.fetch(userId)) || (await client.users.fetch(userId));
 		GenerateUserInfo(interaction, target);
@@ -35,9 +36,7 @@ const UserInfoCommand: SlashCommand = {
 
 async function GenerateUserInfo(interaction: ChatInputCommandInteraction | ButtonInteraction, target: GuildMember | User) {
 	await interaction.deferReply({ ephemeral: true });
-	const targetConfig = await GetUserConfig(target.id, null, true);
-
-	if (!targetConfig) return "The user has never joined the server.";
+	const targetConfig = await GetUserConfig(target.id, "generating user info");
 
 	// get the member's roles
 	let targetRoles = "Not found";

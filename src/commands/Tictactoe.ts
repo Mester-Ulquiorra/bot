@@ -1,11 +1,10 @@
-import { DBTictactoe } from "@mester-ulquiorra/commonlib";
+import { DBTictactoe, IDBTictactoe } from "@mester-ulquiorra/commonlib";
 import {
-	ActionRowBuilder,
 	APIActionRowComponent,
 	APIButtonComponent,
 	APISelectMenuOption,
+	ActionRowBuilder,
 	ButtonBuilder,
-	ButtonInteraction,
 	ButtonStyle,
 	ChatInputCommandInteraction,
 	Client,
@@ -14,30 +13,30 @@ import {
 	GuildMember,
 	Message,
 	StringSelectMenuBuilder,
-	User,
+	User
 } from "discord.js";
+import { SnowFlake } from "../Ulquiorra.js";
 import TictactoeConfig from "../database/TictactoeConfig.js";
 import SlashCommand from "../types/SlashCommand.js";
-import { SnowFlake } from "../Ulquiorra.js";
 import { GetGuild } from "../util/ClientUtils.js";
+import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import { CalculateMaxPage } from "../util/MathUtils.js";
-import { GetUserConfig } from "../util/ConfigHelper.js";
 
 const ActiveGames = new Map<string, TicTacToeGame>();
 
-const NumberToEmoji = new Map([
-	[1, "1️⃣"],
-	[2, "2️⃣"],
-	[3, "3️⃣"],
-	[4, "4️⃣"],
-	[5, "5️⃣"],
-	[6, "6️⃣"],
-	[7, "7️⃣"],
-	[8, "8️⃣"],
-	[9, "9️⃣"],
-]);
+const NumberToEmoji: Record<number, string> = {
+	1: "1️⃣",
+	2: "2️⃣",
+	3: "3️⃣",
+	4: "4️⃣",
+	5: "5️⃣",
+	6: "6️⃣",
+	7: "7️⃣",
+	8: "8️⃣",
+	9: "9️⃣",
+};
 
 const TictactoeCommand: SlashCommand = {
 	name: "tictactoe",
@@ -72,7 +71,7 @@ const TictactoeCommand: SlashCommand = {
 		const levels = await TictactoeConfig.find().sort({ elo: -1 });
 
 		// check if the page is cached
-		if (!PageInCache(page)) await CachePage(levels, page, client);
+		if (!TTTLbCache.has(page)) await CachePage(levels, page, client);
 
 		// now let's read it
 		const embed = await ReadPage(page, maxPage);
@@ -158,13 +157,14 @@ async function play(interaction: ChatInputCommandInteraction) {
 
 async function cancel(interaction: ChatInputCommandInteraction) {
 	// check if the user is in a game
-	const [game, playernumber] = TicTacToeGame.getGameByPlayer(interaction.user.id);
-
+	const game = TicTacToeGame.getGameByPlayer(interaction.user.id);
 	if (!game) return "You are not in a game.";
 
-	game.winner = playernumber === 1 ? 2 : 1;
+	const { game: gameInstance, player: playerNumber } = game;
 
-	game.end(`${interaction.user} cancelled the game.`);
+	gameInstance.winner = playerNumber === 1 ? 2 : 1;
+
+	gameInstance.end(`${interaction.user} cancelled the game.`);
 
 	interaction.deferReply().then(() => {
 		interaction.deleteReply();
@@ -236,7 +236,7 @@ async function leaderboard(interaction: ChatInputCommandInteraction, client: Cli
 	if (page != 1 && page > maxPage) return "That page is not available.";
 
 	// check if the page is cached
-	if (!PageInCache(page)) await CachePage(stats, page, client);
+	if (!TTTLbCache.has(page)) await CachePage(stats, page, client);
 
 	// we should now have the page in cache
 	const embed = await ReadPage(page, maxPage);
@@ -253,11 +253,7 @@ async function leaderboard(interaction: ChatInputCommandInteraction, client: Cli
  * @param user The id of the user.
  */
 async function getTictactoeStat(user: string) {
-	let stats = await TictactoeConfig.findOne({ user });
-
-	if (stats == null) stats = await TictactoeConfig.create({ user });
-
-	return stats;
+	return (await TictactoeConfig.findOne({ user })) ?? (await TictactoeConfig.create({ user }));
 }
 
 class TicTacToeGame {
@@ -276,7 +272,7 @@ class TicTacToeGame {
 	/**
 	 * The game board, a 3x3 array of numbers. null = empty, 1 = player1, 2 = player2
 	 */
-	board: Array<Array<number>>;
+	board: Array<Array<number | null>>;
 	/**
 	 * Whose turn is it? 1 = player1, 2 = player2
 	 */
@@ -296,7 +292,7 @@ class TicTacToeGame {
 	/**
 	 * Arrray containing the stats of the players
 	 */
-	stats = [null, null];
+	stats: [IDBTictactoe | null, IDBTictactoe | null] = [null, null];
 
 	/**
 	 *
@@ -325,14 +321,13 @@ class TicTacToeGame {
 			stats1.gamesPlayed++;
 			await stats1.save();
 
-			getTictactoeStat(player2.id).then(async (stats2) => {
-				this.stats[1] = stats2;
-				stats2.gamesPlayed++;
-				await stats2.save();
+			const stats2 = await getTictactoeStat(player2.id);
+			this.stats[1] = stats2;
+			stats2.gamesPlayed++;
+			await stats2.save();
 
-				// perform the first turn
-				this.performTurn();
-			});
+			// perform the first turn
+			this.performTurn();
 		});
 	}
 
@@ -340,14 +335,12 @@ class TicTacToeGame {
 	 * A function used to perform a turn
 	 */
 	performTurn() {
-		// create a filter for the buttons
-		const filter = (button: ButtonInteraction) =>
-			button.customId.match(/tictactoe.board[1-9]/) && button.user.id === (this.turn === 1 ? this.player1.id : this.player2.id);
-
 		// wait for a button to be pressed
 		this.message
 			.awaitMessageComponent({
-				filter,
+				filter: (button) =>
+					!!button.customId.match(/tictactoe.board[1-9]/) &&
+					button.user.id === (this.turn === 1 ? this.player1.id : this.player2.id),
 				time: 60_000,
 				componentType: ComponentType.Button,
 			})
@@ -426,34 +419,34 @@ class TicTacToeGame {
 	/**
 	 * A function for checking the winner. 0 = no winner, 1 = player1, 2 = player2, 3 = draw
 	 */
-	checkWinner() {
+	checkWinner(): number {
 		// check rows
 		for (let y = 0; y < 3; y++) {
-			if (this.board[0][y] === this.board[1][y] && this.board[1][y] === this.board[2][y] && this.board[0][y] != null) {
-				return this.board[0][y];
+			if (this.board[0][y] === this.board[1][y] && this.board[1][y] === this.board[2][y] && this.board[0][y] !== null) {
+				return this.board[0][y] as number;
 			}
 		}
 
 		// check columns
 		for (let x = 0; x < 3; x++) {
-			if (this.board[x][0] === this.board[x][1] && this.board[x][1] === this.board[x][2] && this.board[x][0] != null) {
-				return this.board[x][0];
+			if (this.board[x][0] === this.board[x][1] && this.board[x][1] === this.board[x][2] && this.board[x][0] !== null) {
+				return this.board[x][0] as number;
 			}
 		}
 
 		// check diagonals
-		if (this.board[0][0] === this.board[1][1] && this.board[1][1] === this.board[2][2] && this.board[0][0] != null) {
+		if (this.board[0][0] === this.board[1][1] && this.board[1][1] === this.board[2][2] && this.board[0][0] !== null) {
 			return this.board[0][0];
 		}
 
-		if (this.board[0][2] === this.board[1][1] && this.board[1][1] === this.board[2][0] && this.board[0][2] != null) {
+		if (this.board[0][2] === this.board[1][1] && this.board[1][1] === this.board[2][0] && this.board[0][2] !== null) {
 			return this.board[0][2];
 		}
 
 		// check for a draw
 		for (let x = 0; x < 3; x++) {
 			for (let y = 0; y < 3; y++) {
-				if (this.board[x][y] == null) {
+				if (this.board[x][y] === null) {
 					return 0;
 				}
 			}
@@ -490,42 +483,50 @@ class TicTacToeGame {
 	}
 
 	/**
-	 *
+	 * Generate a button interaction to be used for placing a piece on the board
 	 * @param x The x coordinate of the button
 	 * @param y The y coordinate of the button
 	 */
 	generateGameBoardButton(x: number, y: number) {
-		const number_position = y * 3 + x + 1;
+		const numberPosition = y * 3 + x + 1;
 
 		let emoji = "";
 
 		if (this.board[x][y] === null) {
-			emoji = NumberToEmoji.get(number_position);
+			emoji = NumberToEmoji[numberPosition];
 		} else {
 			emoji = this.board[x][y] === 1 ? "❌" : "⭕";
 		}
 
 		return new ButtonBuilder()
-			.setCustomId(`tictactoe.board${number_position}`)
+			.setCustomId(`tictactoe.board${numberPosition}`)
 			.setEmoji(emoji)
 			.setDisabled(this.board[x][y] !== null)
 			.setStyle(ButtonStyle.Primary);
 	}
 
 	/**
-	 *
+	 * End the game
 	 * @param reason The reason for the game ending
 	 */
 	async end(reason?: string) {
 		ActiveGames.delete(this.id);
 
+		if (reason != null) {
+			const embed = CreateEmbed(`**${reason}**`, { color: "error" });
+
+			this.message.edit({ embeds: [embed] });
+		}
+
+		if (this.stats[0] == null || this.stats[1] == null) return;
+
 		// change the stats based on winner
 		if (this.winner === 1) {
-			this.stats[0].games_won++;
-			this.stats[1].games_lost++;
+			this.stats[0].gamesWon++;
+			this.stats[1].gamesLost++;
 		} else if (this.winner === 2) {
-			this.stats[1].games_won++;
-			this.stats[0].games_lost++;
+			this.stats[1].gamesWon++;
+			this.stats[0].gamesLost++;
 		}
 
 		this.stats[0].elo = getElo(this.stats[0]);
@@ -533,12 +534,6 @@ class TicTacToeGame {
 
 		await this.stats[0].save();
 		await this.stats[1].save();
-
-		if (reason != null) {
-			const embed = CreateEmbed(`**${reason}**`, { color: "error" });
-
-			this.message.edit({ embeds: [embed] });
-		}
 	}
 
 	/* ----- Static utility methods ----- */
@@ -548,12 +543,12 @@ class TicTacToeGame {
 	 * @param {string} id The ID of the user to check
 	 * @returns An array with the game the user is in and which player they are, or null if they are not in a game
 	 */
-	static getGameByPlayer(id: string): [TicTacToeGame, number] {
+	static getGameByPlayer(id: string): { game: TicTacToeGame; player: 1 | 2 } | null {
 		if (ActiveGames.size === 0) return null;
 
 		for (const [_key, game] of ActiveGames) {
 			if (game.player1.id === id || game.player2.id === id) {
-				return [game, game.player1.id === id ? 1 : 2];
+				return { game, player: game.player1.id === id ? 1 : 2 };
 			}
 		}
 		return null;
@@ -582,20 +577,11 @@ const PageSize = 10;
 /**
  * A map to hold all the pages as a cache.
  */
-const CACHE = new Map<number, PageCache[]>();
+const TTTLbCache = new Map<number, PageCache[]>();
 
 interface PageCache {
 	name: string;
 	stat: DBTictactoe;
-}
-
-/**
- * A function for checking if a page is in cache.
- * @param page The page to check.
- * @returns If the page is in cache.
- */
-function PageInCache(page: number) {
-	return CACHE.has(page);
 }
 
 /**
@@ -606,9 +592,9 @@ function PageInCache(page: number) {
  * @returns
  */
 function GetPageFromCache(page: number, force = false, values?: PageCache[]) {
-	if (force) return CACHE.set(page, values);
+	if (force && values) return TTTLbCache.set(page, values);
 
-	return PageInCache(page) ? CACHE.get(page) : null;
+	return TTTLbCache.has(page) ? TTTLbCache.get(page) : null;
 }
 
 /**
@@ -617,7 +603,7 @@ function GetPageFromCache(page: number, force = false, values?: PageCache[]) {
  * @param maxPage The max page available.
  */
 async function ReadPage(page: number, maxPage: number) {
-	if (!PageInCache(page)) return "That page is not cached, which should NOT happen";
+	if (!TTTLbCache.has(page)) return "That page is not cached, which should NOT happen";
 
 	// get page from cache
 	const cachepage = GetPageFromCache(page) as PageCache[];
@@ -727,14 +713,14 @@ async function CachePage(stats: DBTictactoe[], page: number, client: Client) {
 	}
 
 	// write buffer to cache
-	CACHE.set(page, buffer);
+	TTTLbCache.set(page, buffer);
 }
 
 // let's set up a one hour timer to reset the cache
 setInterval(
 	() => {
-		if (CACHE.size === 0) return;
-		CACHE.clear();
+		if (TTTLbCache.size === 0) return;
+		TTTLbCache.clear();
 	},
 	1000 * 60 * 15
 ); // 15 minutes

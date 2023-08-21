@@ -9,26 +9,28 @@ const MessageDeleteEvent: Event = {
 	name: "messageDelete",
 
 	async run(client, message: Message) {
+		if(!client.user) return;
 		if (message.author.bot || message.channel.type === ChannelType.DM) return;
 
 		// check if the message is a reply and if that's true, store the replied message in repliedMessage
-		const repliedMessage = message.reference
+		const repliedMessage = message.reference?.messageId
 			? await message.channel.messages.fetch(message.reference.messageId).catch(() => {
-					return null as Message<true>;
+					return null;
 			  })
 			: null;
 
 		// if the message is 2 characters long and replying to us, skip logging
 		if (message.content.length === 2 && repliedMessage?.author.id === client.user.id) return;
 
-		const repliedWithPing = repliedMessage != null && message.mentions.has(message.mentions.repliedUser) ? `Yes` : "No";
+		const repliedUser = message.mentions.repliedUser;
+		const repliedWithPing = repliedMessage != null && repliedUser && message.mentions.has(repliedUser) ? `Yes` : "No";
 
 		let realContent = message.content;
 		// this weird thing appends "..." to the end of the message content if it's too long
 		if (realContent.length > MaxContentLength) realContent = `${realContent.substring(0, MaxContentLength)}...`;
 
 		// create the embed
-		const embed = CreateEmbed(`**Message sent by ${message.author} has been deleted in ${message.channel}**`);
+		const embed = CreateEmbed(`**Message sent by ${message.author} has been deleted in ${message.channel}**`, { color: "error" });
 		if (realContent.length > 0)
 			embed.addFields({
 				name: "Content",

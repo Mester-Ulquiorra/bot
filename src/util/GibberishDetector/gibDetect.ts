@@ -4,14 +4,14 @@ import { GetResFolder } from "../../Ulquiorra.js";
 
 const resRoot = join(GetResFolder(), "gibberish");
 
-const accepted_chars = "abcdefghijklmnopqrstuvwxyz ";
+const accepted_Chars = "abcdefghijklmnopqrstuvwxyz ";
 
-const k = accepted_chars.length;
+const k = accepted_Chars.length;
 
-const pos = {};
+const pos: { [char: string]: number } = {};
 
 for (let i = 0; i < k; i++) {
-	pos[accepted_chars[i]] = i;
+	pos[accepted_Chars[i]] = i;
 }
 
 const trainFile = "big.txt";
@@ -27,7 +27,7 @@ const modelFile = "gib_model.json";
 function normalize(line: string): string[] {
 	const arr = line.toLowerCase().split("");
 	return arr.filter(function (item) {
-		return accepted_chars.indexOf(item) > -1;
+		return accepted_Chars.indexOf(item) > -1;
 	});
 }
 
@@ -155,5 +155,7 @@ try {
  * @returns True if the string is gibberish, false otherwise
  */
 export default function (line: string) {
+	if (!model_data || !model_data.matrix || !model_data.threshold) return;
+
 	return averageTransitionProbability(line, model_data.matrix) > model_data.threshold;
 }

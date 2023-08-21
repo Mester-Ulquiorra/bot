@@ -41,7 +41,7 @@ const LeaderboardCommand: SlashCommand = {
 		if (page != 1 && page > maxPage) return loc.get(userLang, "error.invalidPage");
 
 		// check if the page is cached
-		if (!PageInCache(page)) await CachePage(levels, page, client);
+		if (!Cache.has(page)) await CachePage(levels, page, client);
 
 		// we should now have the page in cache
 		const embed = await ReadFromPage(page, maxPage, userLang);
@@ -70,7 +70,7 @@ const LeaderboardCommand: SlashCommand = {
 		const levels = await LevelConfig.find().sort({ xp: -1 });
 
 		// check if the page is cached
-		if (!PageInCache(page)) await CachePage(levels, page, client);
+		if (!Cache.has(page)) await CachePage(levels, page, client);
 
 		// now let's read it
 		const embed = await ReadFromPage(page, maxPage, userLang);
@@ -93,23 +93,15 @@ interface PageCache {
 }
 
 /**
- * A function for checking if a page is in cache.
- * @param page The page to check.
- */
-function PageInCache(page: number) {
-	return Cache.has(page);
-}
-
-/**
  * A function for getting a page from the cache.
  * @param page The page to get.
  * @param force If set to true, it will CREATE that page.
  * @param values Only works if force is true, basically the values to add to cache.
  */
-function GetPageFromCache(page: number, force = false, values: Array<PageCache> = null) {
-	if (force) return Cache.set(page, values);
+function GetPageFromCache(page: number, force = false, values?: Array<PageCache>) {
+	if (force && values) return Cache.set(page, values);
 
-	return PageInCache(page) ? Cache.get(page) : null;
+	return Cache.has(page) ? Cache.get(page) : null;
 }
 
 /**
@@ -118,7 +110,7 @@ function GetPageFromCache(page: number, force = false, values: Array<PageCache> 
  * @param maxPage The max page available.
  */
 async function ReadFromPage(page: number, maxPage: number, lang: LocLanguage) {
-	if (!PageInCache(page)) return loc.get(lang, "error.uncachedPage");
+	if (!Cache.has(page)) return loc.get(lang, "error.uncachedPage");
 
 	// get page from cache
 	const cachedPage = GetPageFromCache(page) as Array<PageCache>;

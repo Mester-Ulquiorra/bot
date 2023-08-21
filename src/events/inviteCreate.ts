@@ -6,7 +6,7 @@ const inviteCreateEvent: Event = {
     name: "inviteCreate",
 
     async run(client, invite: Invite) {
-        invites.set(invite.code, invite.uses);
+        invites.set(invite.code, invite.uses ?? 0);
     }
 };
 

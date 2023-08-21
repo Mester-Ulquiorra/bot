@@ -6,9 +6,7 @@ const GuildBanAddEvent: Event = {
 	name: "guildBanAdd",
 	async run(client, ban: GuildBan) {
 		// try to get user config
-		const userConfig = await GetUserConfig(ban.user.id, null, false);
-
-		if (!userConfig) return;
+		const userConfig = await GetUserConfig(ban.user.id, "marking user as banned");
 
 		userConfig.banned = true;
 		await userConfig.save();

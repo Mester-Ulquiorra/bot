@@ -11,7 +11,7 @@ const StatsCommand: SlashCommand = {
 		const geoConfig = await GetGeoConfig(interaction.user.id);
 
 		// create embed
-		const embed = CreateEmbed(undefined, { title: `**Player stats of ${interaction.user.username}**` });
+		const embed = CreateEmbed(null, { title: `**Player stats of ${interaction.user.username}**` });
 		embed.addFields(
 			{ name: "Max health", value: `${geoConfig.stats.hp}`, inline: true },
 			{ name: "Attack", value: geoConfig.stats.attack.toString(), inline: true },

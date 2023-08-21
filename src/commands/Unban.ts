@@ -13,8 +13,8 @@ const UnbanCommand: SlashCommand = {
 
 	async run(interaction, _client) {
 		// get the member and reason
-		const target = interaction.options.getUser("member");
-		const reason = interaction.options.getString("reason") ?? "no reason provided";
+		const target = interaction.options.getUser("member", true);
+		const reason = interaction.options.getString("reason", true);
 
 		const userConfig = await GetUserConfig(interaction.user.id, "unban a user");
 		if (userConfig.mod == 0) return GetError("Permission");
@@ -64,8 +64,8 @@ const UnbanCommand: SlashCommand = {
 
 		const channelEmbed = CreateEmbed(`${member} has been unbanned: **${reason}**`);
 
-		interaction.channel.sendTyping().then(() => {
-			interaction.channel.send({ embeds: [channelEmbed] });
+		interaction.channel?.sendTyping().then(() => {
+			interaction.channel?.send({ embeds: [channelEmbed] });
 		});
 
 		GetSpecialChannel("ModLog").send({ embeds: [modEmbed] });

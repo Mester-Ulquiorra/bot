@@ -1,6 +1,7 @@
 import { Message } from "discord.js";
 import config from "../../config.js";
-import { PunishMessage, ReishiEvaluation } from "../Reishi.js";
+import { PunishMessage } from "../Reishi.js";
+
 export const DiscordInviteRegExp = /discord(?:app)?\.com\/(?:(friend-)?invite|servers)?\/([a-z0-9-]+)|discord\.gg\/(?:\S+\/)?([a-z0-9-]+)/;
 export const UrlRegExp = /https?:\/\/(?:www\.)?([\w@:%.+~#=]{2,256}\.[a-z]{2,6}\b)*(\/[/\w.-]*)*(?:[?])*(.+)*/i;
 export const DiscordLink = /^https?:\/\/(?:www\.)?(?:(media|canary|ptb|cdn)\.?)(discord(?:app)?\.(?:com|net))(?:\/.*|\/?)$/;
@@ -27,12 +28,12 @@ export default function (message: Message<true>) {
 	// check if we're in an excluded channel
 	if (config.channels.ExcludeNormalSearch.includes(message.channelId)) return false;
 
-	const evaulation: ReishiEvaluation = { comment: DetectLink(message.content) };
-	if (evaulation.comment) {
-		PunishMessage(message, "Link", evaulation);
+	const found = DetectLink(message.content);
+	if (found) {
+		PunishMessage(message, "Link", { comment: found });
 		return true;
 	}
-	
+
 	return false;
 }
 
@@ -42,5 +43,5 @@ export default function (message: Message<true>) {
  */
 export function DetectLink(string: string) {
 	// try to find a link and return it (either null or the link)
-	return string.match(DiscordInviteRegExp)?.[0] || string.match(UrlRegExp)?.[0];
+	return string.match(DiscordInviteRegExp)?.[0] || string.match(UrlRegExp)?.[0] || null;
 }

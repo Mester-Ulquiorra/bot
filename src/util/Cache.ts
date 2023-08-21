@@ -35,14 +35,14 @@ export default class<T, U> {
 	get(key: T): U | undefined {
 		if (!this.#data.has(key)) return undefined;
 
-		const elementOld = this.#data.has(key) && Date.now() - this.#data.get(key).lastRefresh > this.refreshTime;
+		const elementOld = this.#data.has(key) && Date.now() - (this.#data.get(key)?.lastRefresh ?? 0) > this.refreshTime;
 
 		if (elementOld) {
 			this.#data.delete(key);
 			return undefined;
 		}
 
-		return this.#data.get(key).data;
+		return this.#data.get(key)?.data ?? undefined;
 	}
 
 	delete(key: T): boolean {

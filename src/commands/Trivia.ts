@@ -15,7 +15,7 @@ import {
 	Message,
 	StringSelectMenuBuilder,
 } from "discord.js";
-import { CategoryNames, getQuestions, Question } from "open-trivia-db";
+import { getQuestions, Question } from "open-trivia-db";
 import SlashCommand from "../types/SlashCommand.js";
 import CreateEmbed, { EmbedColor } from "../util/CreateEmbed.js";
 import { shuffleArray } from "../util/MiscUtils.js";
@@ -24,7 +24,9 @@ const TriviaCommmand: SlashCommand = {
 	name: "trivia",
 
 	async run(interaction, _client) {
-		const category = Number.parseInt(interaction.options.getString("category"));
+		const rawCategory = interaction.options.getString("category", false);
+		// if the category is not a number, default to random number between 9 and 32 (inclusive)
+		const category = rawCategory ? Number.parseInt(rawCategory) : Math.floor(Math.random() * (32 - 9 + 1) + 9);
 
 		const message = await interaction.reply({
 			embeds: [CreateEmbed("Setting up the game...")],
@@ -35,7 +37,7 @@ const TriviaCommmand: SlashCommand = {
 		new TriviaGame(
 			message,
 			interaction.member as GuildMember,
-			isNaN(category) ? CategoryNames["General Knowledge"] : category,
+			category,
 			(interaction.options.getString("difficulty") as TriviaDifficulty) ?? "medium",
 			interaction.options.getInteger("rounds") ?? 5
 		);
@@ -53,7 +55,7 @@ class TriviaGame {
 	message: Message;
 	correctAnswers: number;
 	componentCollector: InteractionCollector<ButtonInteraction>;
-	summaryEmbed: EmbedBuilder;
+	summaryEmbed: EmbedBuilder | null;
 
 	/**
 	 * @param message The game's messages
@@ -69,6 +71,8 @@ class TriviaGame {
 		this.message = message;
 		this.turn = 0;
 		this.correctAnswers = 0;
+		this.questions = [];
+		this.summaryEmbed = null;
 
 		// set up component collector for the Continue and Quit buttons
 		this.componentCollector = this.message
@@ -232,7 +236,7 @@ class TriviaGame {
 				// get the id
 				const id = Number.parseInt(interaction.values[0]);
 
-				const userAnswer = this.questions[this.turn].shuffledAnswers.find((a) => a.id === id).answer;
+				const userAnswer = this.questions[this.turn].shuffledAnswers?.find((a) => a.id === id)?.answer as string;
 
 				// save user's answer
 				this.questions[this.turn].userAnswer = userAnswer;
@@ -285,10 +289,10 @@ class TriviaGame {
 	 * @param isCorrect Whether the answer was correct or not
 	 * @param reason Optional reason why the answer was (in)correct
 	 */
-	generateMessage(isCorrect: boolean = null, reason: string = null) {
+	generateMessage(isCorrect: boolean | null = null, reason: string | null = null) {
 		let description = `**${this.questions[this.turn].value}**`;
 
-		if (isCorrect != null && reason != null) description = reason;
+		if (isCorrect !== null && reason !== null) description = reason;
 
 		let color: EmbedColor = "info";
 		if (isCorrect != null) color = isCorrect ? "success" : "error";

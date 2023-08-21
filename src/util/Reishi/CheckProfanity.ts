@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
 import { ReverseLeetSpeak, StripString } from "../MessageUtils.js";
-import { PunishMessage, ReishiEvaluation } from "../Reishi.js";
+import { PunishMessage } from "../Reishi.js";
 import blacklist from "./blacklist.js";
 
 /**
@@ -9,9 +9,9 @@ import blacklist from "./blacklist.js";
  * @returns True if the message contains profanity.
  */
 export default function (message: Message<true>) {
-	const evaulation: ReishiEvaluation = { comment: DetectProfanity(message.content) };
-	if (evaulation.comment) {
-		PunishMessage(message, "BlacklistedWord", evaulation);
+	const found = DetectProfanity(message.content);
+	if (found) {
+		PunishMessage(message, "BlacklistedWord", { comment: found });
 		return true;
 	}
 	return false;
@@ -51,7 +51,7 @@ export function DetectProfanity(string: string) {
 }
 
 function CheckBack(backCheck: Array<string>) {
-	let wordResult: string = null;
+	let wordResult: string | null = "";
 	for (let j = 0; j < backCheck.length; j++) {
 		wordResult = CheckWord(backCheck.slice(j).join(""));
 		if (wordResult) return wordResult;

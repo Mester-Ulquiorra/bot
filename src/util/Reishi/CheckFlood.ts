@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
 import { ReverseLeetSpeak, StripString } from "../MessageUtils.js";
-import { PunishMessage, ReishiEvaluation } from "../Reishi.js";
+import { PunishMessage } from "../Reishi.js";
 
 /**
  * minimum length of a word that is checked
@@ -31,10 +31,10 @@ const NewLineThreshold = 10;
  * @returns True if the message contains flood.
  */
 export default function (message: Message<true>) {
-	const evaulation: ReishiEvaluation = { comment: DetectFlood(message.content) };
+	const found = DetectFlood(message.content);
 
-	if (evaulation.comment) {
-		PunishMessage(message, "RepeatedText", evaulation);
+	if (found) {
+		PunishMessage(message, "RepeatedText", { comment: found });
 		return true;
 	}
 	return false;
@@ -47,10 +47,10 @@ export default function (message: Message<true>) {
  */
 export function DetectFlood(string: string) {
 	// check if message contains new lines over the threshold
-	if (string.match(/\n/g)?.length >= NewLineThreshold) return "too many newlines";
+	if (string.match(/\n/g)?.length ?? 0 >= NewLineThreshold) return "too many newlines";
 
 	// check if there are 4 new lines in a row
-	if (string.match(/\n{4,}/g)?.length >= 1) return "too many newlines in a row";
+	if (string.match(/\n{4,}/g)) return "too many newlines in a row";
 
 	return CheckRepeatedText(string);
 }

@@ -8,7 +8,8 @@ interface Event {
 	/**
 	 * The main function that executes when the event is run
 	 */
-	run: (client: Client, ...args: Array<object>) => Promise<void>;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	run: (client: Client, ...args: Array<any>) => Promise<void>;
 }
 
 export default Event;

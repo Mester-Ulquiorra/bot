@@ -14,7 +14,7 @@ const SetModCommand: SlashCommand = {
 		const target = interaction.options.getMember("member") as GuildMember;
 		if (!target) return "The member has left the server";
 
-		const modLevel = interaction.options.getInteger("modlevel");
+		const modLevel = interaction.options.getInteger("modlevel", true);
 		const reason = interaction.options.getString("reason") ?? "no reason provided";
 
 		const userConfig = await GetUserConfig(interaction.user.id, "changing mod level of user");

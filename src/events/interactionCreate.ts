@@ -2,7 +2,7 @@ import { BaseInteraction, Client, GuildMember, InteractionReplyOptions } from "d
 import { logger } from "../Ulquiorra.js";
 import langs from "../lang/events/interactionCreate.js";
 import Event from "../types/Event.js";
-import { SlashCommandReturnValue } from "../types/SlashCommand.js";
+import SlashCommand, { SlashCommandReturnValue } from "../types/SlashCommand.js";
 import { GetGuild } from "../util/ClientUtils.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import Localisatior, { GetMemberLanguage } from "../util/Localisatior.js";
@@ -36,7 +36,7 @@ const InteractionCreateEvent: Event = {
 		const userLang = await GetMemberLanguage(member);
 
 		// find the command and store its return value in return_message
-		let commandName = null;
+		let commandName: string | null = null;
 		if (!interaction.isCommand() && !interaction.isMessageComponent() && !interaction.isModalSubmit() && !interaction.isAutocomplete())
 			return;
 
@@ -60,7 +60,7 @@ const InteractionCreateEvent: Event = {
 		}
 
 		// now we can see if such command exists
-		if (!commands.has(commandName)) {
+		if (!commandName || !commands.has(commandName)) {
 			const embed = CreateEmbed(loc.get(userLang, "error.unloaded"), {
 				color: "warning",
 				title: loc.get(userLang, "error.unloaded_short"),
@@ -70,29 +70,32 @@ const InteractionCreateEvent: Event = {
 			return;
 		}
 
-		const command = commands.get(commandName);
+		const command = commands.get(commandName) as SlashCommand;
 
 		// let the game begin
 		let returnMessage: string | Error | void;
 
 		try {
-			let returnStatus: SlashCommandReturnValue;
-			if (interaction.isChatInputCommand()) returnStatus = command.run(interaction, client);
-			if (interaction.isButton()) returnStatus = command.runButton(interaction, client);
-			if (interaction.isModalSubmit()) returnStatus = command.runModal(interaction, client);
-			if (interaction.isStringSelectMenu()) returnStatus = command.runStringSelectMenu(interaction, client);
-			if (interaction.isRoleSelectMenu()) returnStatus = command.runRoleSelectMenu(interaction, client);
-			if (interaction.isMentionableSelectMenu()) returnStatus = command.runMentionableSelectMenu(interaction, client);
-			if (interaction.isMessageContextMenuCommand()) returnStatus = command.runMessageContextCommand(interaction, client);
-			if (interaction.isUserContextMenuCommand()) returnStatus = command.runUserContextCommand(interaction, client);
-			if (interaction.isAutocomplete()) returnStatus = command.runAutocomplete(interaction, client);
-			returnMessage = await returnStatus
-				.then((result) => {
-					return result;
-				})
-				.catch((error) => {
-					return error;
-				});
+			let returnStatus: SlashCommandReturnValue | undefined;
+			if (interaction.isChatInputCommand() && command.run) returnStatus = command.run(interaction, client);
+			if (interaction.isButton() && command.runButton) returnStatus = command.runButton(interaction, client);
+			if (interaction.isModalSubmit() && command.runModal) returnStatus = command.runModal(interaction, client);
+			if (interaction.isStringSelectMenu() && command.runStringSelectMenu)
+				returnStatus = command.runStringSelectMenu(interaction, client);
+			if (interaction.isRoleSelectMenu() && command.runRoleSelectMenu) returnStatus = command.runRoleSelectMenu(interaction, client);
+			if (interaction.isMentionableSelectMenu() && command.runMentionableSelectMenu)
+				returnStatus = command.runMentionableSelectMenu(interaction, client);
+			if (interaction.isMessageContextMenuCommand() && command.runMessageContextCommand)
+				returnStatus = command.runMessageContextCommand(interaction, client);
+			if (interaction.isUserContextMenuCommand() && command.runUserContextCommand)
+				returnStatus = command.runUserContextCommand(interaction, client);
+			if (interaction.isAutocomplete() && command.runAutocomplete) returnStatus = command.runAutocomplete(interaction, client);
+
+			if (!returnStatus) throw new Error("No valid command type found");
+
+			returnMessage = await returnStatus.catch((error) => {
+				return error;
+			});
 		} catch (error) {
 			// most likely the command doesn't support that "type" of command we're trying to run
 			const embed = CreateEmbed(loc.get(userLang, "error.unregistered"), {
@@ -133,7 +136,8 @@ const InteractionCreateEvent: Event = {
 
 		// bigger oops
 		if (returnMessage instanceof Error) {
-			logger.log(returnMessage.stack, "error");
+			logger.log(returnMessage.message, "error");
+			logger.log(returnMessage.stack ?? "no stack", "error");
 
 			const embed = CreateEmbed(loc.get(userLang, "error.uncompleted", returnMessage.message), {
 				title: loc.get(userLang, "error.uncompleted_short"),

@@ -1,4 +1,4 @@
-import { Message } from "discord.js";
+import { Message, MessageReaction } from "discord.js";
 import config from "../../config.js";
 import CreateEmbed from "../CreateEmbed.js";
 import ManageRole from "../ManageRole.js";
@@ -14,6 +14,8 @@ type ProtectionDecision = "yes" | "no";
 const protectionCache = new Cache<string, ProtectionDecision>(10 * 60 * 1000);
 
 export default async function (message: Message<true>) {
+	if(!message.member) return;
+	
 	if (
 		(await ManageRole(message.member, config.roles.Friend, "Check")) ||
 		(await ManageRole(message.member, config.roles.Protected, "Check"))
@@ -85,11 +87,12 @@ export default async function (message: Message<true>) {
 	return inputMessage
 		.awaitReactions({
 			max: 1,
-			filter: (reaction, reactionUser) => reactionUser.id === user.id && ["✅", "❌"].includes(reaction.emoji.name),
+			filter: (reaction, reactionUser) => reactionUser.id === user.id && ["✅", "❌"].includes(String(reaction.emoji.name)),
 			time: 30_000,
 		})
 		.then((reactions) => {
-			const reaction = reactions.first();
+			if(reactions.size === 0) return false;
+			const reaction = reactions.first() as MessageReaction;
 
 			if (reaction.emoji.name === "✅") {
 				protectionCache.set(user.id, "yes");

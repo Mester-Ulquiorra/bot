@@ -1,4 +1,12 @@
-import { ActionRowBuilder, ChatInputCommandInteraction, Client, ComponentType, StringSelectMenuBuilder, hyperlink, time } from "discord.js";
+import {
+	ActionRowBuilder,
+	ApplicationCommandOptionChoiceData,
+	ChatInputCommandInteraction,
+	ComponentType,
+	StringSelectMenuBuilder,
+	hyperlink,
+	time
+} from "discord.js";
 import SteamAPI from "steamapi";
 import config from "../../config.js";
 import testMode from "../../testMode.js";
@@ -17,36 +25,37 @@ const SteamStatsCommand: SlashCommand = {
 
 	async run(interaction, client) {
 		if (interaction.options.getSubcommand() === "app") {
-			return getSteamApp(interaction, client);
+			return getSteamApp(interaction);
 		}
 
 		if (interaction.options.getSubcommand() === "user") {
-			return getUserProfile(interaction, client);
+			return getUserProfile(interaction);
 		}
 
 		if (interaction.options.getSubcommand() === "achievements") {
-			return getUserAchievements(interaction, client);
+			return getUserAchievements(interaction);
 		}
 	},
 
 	async runAutocomplete(interaction, client) {
 		const apps = (await cachedApps)
-			.filter((app) => app.name.toLowerCase().includes(interaction.options.getString("app").toLowerCase()))
+			.filter((app) => app.name.toLowerCase().includes(interaction.options.getString("app", true).toLowerCase()))
 			.slice(0, 25);
+
 		interaction.respond(
 			apps.map((app) => {
 				return {
 					name: app.name.slice(0, 100),
 					value: app.appid.toString(),
-				};
+				} as ApplicationCommandOptionChoiceData<string>;
 			})
 		);
 	},
 };
 
-async function getUserAchievements(interaction: ChatInputCommandInteraction, client: Client) {
-	const userId = await getUserID(interaction.options.getString("user"));
-	const appId = interaction.options.getString("app");
+async function getUserAchievements(interaction: ChatInputCommandInteraction) {
+	const userId = await getUserID(interaction.options.getString("user", true));
+	const appId = interaction.options.getString("app", true);
 
 	if (userId instanceof Error) {
 		return userId.message;
@@ -123,8 +132,8 @@ async function getUserAchievements(interaction: ChatInputCommandInteraction, cli
 	});
 }
 
-async function getUserProfile(interaction: ChatInputCommandInteraction, client: Client) {
-	const userId = await getUserID(interaction.options.getString("user"));
+async function getUserProfile(interaction: ChatInputCommandInteraction) {
+	const userId = await getUserID(interaction.options.getString("user", true));
 
 	if (userId instanceof Error) {
 		return userId.message;
@@ -198,17 +207,17 @@ async function getUserProfile(interaction: ChatInputCommandInteraction, client: 
 	interaction.reply({ embeds: [embed] });
 }
 
-async function getSteamApp(interaction: ChatInputCommandInteraction, client: Client) {
-	const appId = interaction.options.getString("app");
+async function getSteamApp(interaction: ChatInputCommandInteraction) {
+	const appId = interaction.options.getString("app", true);
 	const details = await steam.getGameDetails(appId);
 
 	if (testMode) console.log(details);
 
+	const app = (await cachedApps).find((a) => a.appid === Number.parseInt(appId));
+	if (!app) return "Steam app was not found in local cache, was it recently added?";
+
 	const embed = CreateEmbed(
-		`**Information about ${(await cachedApps).find((a) => a.appid === Number.parseInt(appId)).name}** ${hyperlink(
-			"Steam Store",
-			`https://store.steampowered.com/app/${appId}`
-		)}`
+		`**Information about ${app.name}** ${hyperlink("Steam Store", `https://store.steampowered.com/app/${appId}`)}`
 	);
 	embed.addFields({
 		name: "Description",
@@ -253,11 +262,12 @@ async function getSteamApp(interaction: ChatInputCommandInteraction, client: Cli
 		embed.addFields({ name: "Trailers", value: trailersFinal.join(" ") });
 	}
 
-	if (Array.isArray(details.dlc)) {
+	const DLCs = details["dlc"];
+	if (isDLC(DLCs)) {
 		const dlcFinal = new Array<string>();
-		for (let i = 0; i < details.dlc.length; i++) {
-			const dlc = (await cachedApps).find((a) => a.appid === details.dlc[i]);
-			if (dlc) dlcFinal.push(hyperlink(dlc.name + (i + 1).toString(), `https://store.steampowered.com/app/${details.dlc[i]}`));
+		for (let i = 0; i < DLCs.length; i++) {
+			const dlc = (await cachedApps).find((a) => a.appid === DLCs[i]);
+			if (dlc) dlcFinal.push(hyperlink(dlc.name + (i + 1).toString(), `https://store.steampowered.com/app/${DLCs[i]}`));
 		}
 		embed.addFields({ name: "DLCs", value: dlcFinal.join(" ") });
 	}
@@ -295,25 +305,35 @@ async function getSteamApp(interaction: ChatInputCommandInteraction, client: Cli
  * @param data The raw data that should be converted to a steam user id
  * @returns A promise that resolves to the steam user id or an Error if the user couldn't be found
  */
-function getUserID(data: string) {
+async function getUserID(data: string) {
 	// if user doesn't start with https, assume it's a user name and append it to the url
 	let userURL = data;
 	if (/^\d+/.test(userURL)) userURL = `https://steamcommunity.com/profiles/${userURL}`;
 	else if (!userURL.startsWith("https")) userURL = `https://steamcommunity.com/id/${userURL}`;
 
-	return steam
-		.resolve(userURL)
-		.then((id) => {
-			return id;
-		})
-		.catch(() => {
-			return new Error("Couldn't find user.");
-		});
+	try {
+		const id = await steam.resolve(userURL);
+		return id;
+	} catch {
+		return new Error("Couldn't find user.");
+	}
+}
+
+function isDLC(obj: unknown): obj is number[] {
+	if (!Array.isArray(obj)) {
+		return false;
+	}
+
+	return obj.every((item) => typeof item === "number");
+}
+
+interface Price {
+	final_formatted: string;
 }
 
 // Helper functions for Steam details
 function isPrice(obj: unknown): obj is { final_formatted: string } {
-	return typeof obj === "object" && obj !== null && typeof obj["final_formatted"] === "string";
+	return typeof obj === "object" && obj !== null && typeof (obj as Price)["final_formatted"] === "string";
 }
 
 function isTrailers(obj: unknown): obj is { mp4: { max: string } }[] {
@@ -332,16 +352,34 @@ function isTrailers(obj: unknown): obj is { mp4: { max: string } }[] {
 	);
 }
 
-function isReleaseDate(obj: unknown): obj is { coming_soon: boolean; date: string } {
-	return typeof obj === "object" && obj !== null && typeof obj["coming_soon"] === "boolean" && typeof obj["date"] === "string";
+interface ReleaseDate {
+	coming_soon: boolean;
+	date: string;
+}
+
+function isReleaseDate(obj: unknown): obj is ReleaseDate {
+	return (
+		typeof obj === "object" &&
+		obj !== null &&
+		typeof (obj as ReleaseDate)["coming_soon"] === "boolean" &&
+		typeof (obj as ReleaseDate)["date"] === "string"
+	);
+}
+
+interface Achievements {
+	total: number;
 }
 
 function isAchievements(obj: unknown): obj is { total: number } {
-	return typeof obj === "object" && obj !== null && typeof obj["total"] === "number";
+	return typeof obj === "object" && obj !== null && typeof (obj as Achievements)["total"] === "number";
+}
+
+interface ContentDescriptors {
+	notes: string;
 }
 
 function isContentDescriptors(obj: unknown): obj is { notes: string } {
-	return typeof obj === "object" && obj !== null && typeof obj["notes"] === "string";
+	return typeof obj === "object" && obj !== null && typeof (obj as ContentDescriptors)["notes"] === "string";
 }
 
 export default SteamStatsCommand;

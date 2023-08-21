@@ -22,14 +22,16 @@ const PunishmentInfoCommand: SlashCommand = {
 	async run(interaction, _client) {
 		// check for subcommand
 		switch (interaction.options.getSubcommand()) {
-			case "id":
-				return showPunishmentById(interaction, interaction.options.getString("id"));
-			case "member":
+			case "id": {
+				return showPunishmentById(interaction, interaction.options.getString("id", true));
+			}
+			case "member": {
 				return showPunishmentsOfMember(
 					interaction,
-					interaction.options.getUser("member"),
+					interaction.options.getUser("member", true),
 					interaction.options.getInteger("page") ?? 1
 				);
+			}
 		}
 
 		return new Error("Incorrect subcommand");
@@ -38,7 +40,8 @@ const PunishmentInfoCommand: SlashCommand = {
 	async runStringSelectMenu(interaction, client) {
 		if (interaction.customId === "punishmentinfo.pageselector") {
 			// get the user id using this very shitty and messy way
-			const userId = interaction.message.embeds[0].footer.text.match(/\d{17,}/)[0].replaceAll(/[<@>]/gi, "");
+			const userId = interaction.message.embeds[0].footer?.text.match(/\d{17,}/)?.[0];
+			if (!userId) return new Error("User ID was not found in embed footer, this is a code error!!");
 
 			const user = await client.users
 				.fetch(userId)
@@ -58,7 +61,8 @@ const PunishmentInfoCommand: SlashCommand = {
 	async runButton(interaction, client) {
 		if (interaction.customId === "punishmentinfo.showactivep") {
 			// get the user id using this very shitty and messy way
-			const userId = interaction.message.embeds[0].footer.text.match(/\d{17,}/)[0].replaceAll(/[<@>]/gi, "");
+			const userId = interaction.message.embeds[0].footer?.text.match(/\d{17,}/)?.[0];
+			if (!userId) return new Error("User ID was not found in embed footer, this is a code error!!");
 
 			// find the user's latest punishment
 			const punishment = await PunishmentConfig.findOne({
@@ -74,7 +78,8 @@ const PunishmentInfoCommand: SlashCommand = {
 
 		if (interaction.customId.startsWith("punishmentinfo.showallp-")) {
 			// get the user id using this very shitty and messy way
-			const userId = interaction.customId.match(/punishmentinfo\.showallp-(\d+)/)[1];
+			const userId = interaction.customId.match(/punishmentinfo\.showallp-(\d+)/)?.[1];
+			if (!userId) return new Error("User ID was not found in interaction custom ID, this is a code error!!");
 
 			const user = await client.users
 				.fetch(userId)
@@ -91,7 +96,8 @@ const PunishmentInfoCommand: SlashCommand = {
 		}
 
 		if (interaction.customId.startsWith("punishmentinfo.showp-")) {
-			const punishmentId = interaction.customId.match(/punishmentinfo\.showp-(\d+)/)[1];
+			const punishmentId = interaction.customId.match(/punishmentinfo\.showp-(\d+)/)?.[1];
+			if (!punishmentId) return new Error("Punishment ID was not found in interaction custom ID, this is a code error!!");
 
 			return showPunishmentById(interaction, punishmentId);
 		}

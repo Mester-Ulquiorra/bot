@@ -8,10 +8,9 @@ import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import PunishmentInfoCommand from "./PunishmentInfo.js";
 import UserInfoCommand from "./UserInfo.js";
+import Cache from "../util/Cache.js";
 
 const lngDetector = new LanguageDetect();
-
-const TranslateCooldown = new Map<string, number>();
 
 interface TranslationCacheObject {
 	messageId: string;
@@ -20,8 +19,10 @@ interface TranslationCacheObject {
 	language: string;
 }
 
-const TranslationCache = new Array<TranslationCacheObject>();
 const MaxTranslationCacheLength = 1000;
+const TranslationCache = new Array<TranslationCacheObject>();
+
+const TranslationCooldown = new Cache<string, number>();
 
 const LanguageNames = new Intl.DisplayNames(["en"], { type: "language" });
 
@@ -37,10 +38,10 @@ const InfoCommand: SlashCommand = {
 		if (userConfig.mod === 0) return GetError("Permission");
 
 		// check if the subcommand group is punishment
-		if (interaction.options.getSubcommandGroup(false) === "punishment") return PunishmentInfoCommand.run(interaction, client);
+		if (interaction.options.getSubcommandGroup(false) === "punishment" && PunishmentInfoCommand.run) return PunishmentInfoCommand.run(interaction, client);
 
 		// if we don't have a subcommand group, we might have "member" as subcommand
-		if (interaction.options.getSubcommand(false) === "member") return UserInfoCommand.run(interaction, client);
+		if (interaction.options.getSubcommand(false) === "member" && UserInfoCommand.run) return UserInfoCommand.run(interaction, client);
 	},
 
 	async runMessageContextCommand(interaction, _client) {
@@ -60,13 +61,9 @@ const InfoCommand: SlashCommand = {
 
 		if (interaction.commandName === "Translate message") {
 			// get the cooldown
-			const cooldown = TranslateCooldown.has(interaction.user.id)
-				? TranslateCooldown.get(interaction.user.id)
-				: TranslateCooldown.set(interaction.user.id, 0).get(interaction.user.id);
-
-			if (Date.now() - cooldown <= 2_000) return "Sorry, you're still in cooldown";
-
-			TranslateCooldown.set(interaction.user.id, Date.now());
+			const cooldown = TranslationCooldown.get(interaction.user.id);
+			if (!cooldown) return "Sorry, you're still in cooldown";
+			TranslationCooldown.set(interaction.user.id, 0);
 
 			// check for message length
 			if (interaction.targetMessage.cleanContent.length > 3_000) return "Sorry, translation of really long messages are not allowed";
@@ -121,7 +118,7 @@ const InfoCommand: SlashCommand = {
 			// save it to cache
 			TranslationCache.push({
 				checksum: messageChecksum,
-				language: LanguageNames.of(translation.detectedSourceLang),
+				language: LanguageNames.of(translation.detectedSourceLang) ?? "Unknown",
 				messageId: interaction.targetMessage.id,
 				translation: translation.text,
 			});
@@ -137,7 +134,7 @@ const InfoCommand: SlashCommand = {
 						.setFooter({ text: "Translation provided by DeepL" })
 						.addFields({
 							name: "Detected language:",
-							value: LanguageNames.of(translation.detectedSourceLang),
+							value: LanguageNames.of(translation.detectedSourceLang) ?? "Unknown",
 						}),
 				],
 				ephemeral: true,

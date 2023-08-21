@@ -2,17 +2,17 @@ import { GuildMember } from "discord.js";
 import SlashCommand from "../../types/SlashCommand.js";
 import CreateEmbed from "../../util/CreateEmbed.js";
 import GeoData, { GeoChance, ItemNames, ItemPrices } from "./GeoData.js";
-import { GetGeoConfig, GetGeoMultiplier, IsGeoItem } from "./Util.js";
+import { GetGeoConfig, GetGeoMultiplier, IsSellableItem } from "./Util.js";
 
 const SellCommand: SlashCommand = {
 	name: "_",
 	async run(interaction, client) {
 		const geoConfig = await GetGeoConfig(interaction.user.id);
 
-		const itemName = interaction.options.getString("item");
+		const itemName = interaction.options.getString("item", true);
 		const amount = interaction.options.getNumber("amount") ?? 1;
 
-		if (!IsGeoItem(itemName)) return "That item doesn't even exist, yet you somehow managed to sell it, are you a cheater?";
+		if (!IsSellableItem(itemName)) return "That item cannot be sold, yet you somehow tried to sell it, are you a cheater?";
 
 		const userItem = geoConfig.inventory.items.find((i) => i.name === itemName);
 		if (!userItem) return "You don't have that item in your inventory.";

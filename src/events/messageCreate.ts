@@ -1,18 +1,18 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, Client, ComponentType, Message, TextChannel, quote } from "discord.js";
+import { TicketType, TicketTypes } from "@mester-ulquiorra/commonlib";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, ComponentType, Message, quote } from "discord.js";
 import openai, { ChatCompletionRequestMessage } from "openai";
 import { shutdown } from "../Ulquiorra.js";
 import config from "../config.js";
+import GiveawayConfig from "../database/GiveawayConfig.js";
+import testMode from "../testMode.js";
 import Event from "../types/Event.js";
+import Cache from "../util/Cache.js";
 import { GetGuild } from "../util/ClientUtils.js";
 import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import { GetXPFromMessage } from "../util/LevelUtils.js";
 import { CheckMessage } from "../util/Reishi.js";
 import { CreateTicket, TicketTypeToName } from "../util/TicketUtils.js";
-import Cache from "../util/Cache.js";
-import { TicketType, TicketTypes } from "@mester-ulquiorra/commonlib";
-import testMode from "../testMode.js";
-import GiveawayConfig from "../database/GiveawayConfig.js";
 
 const openAIClient = new openai.OpenAIApi(
 	new openai.Configuration({
@@ -21,11 +21,11 @@ const openAIClient = new openai.OpenAIApi(
 	})
 );
 
-const ChatBotSysMessage = `You're Ulquiorra from Bleach and own his personality with GLaDOS-like sarcasm who absolutely hates the word "Ah". After you resigned as the Espada, you travelled far until you found a Discord server called Mester's Hub. Here you stopped and decided to become a member. You became good friends with the owner, Mester, and you also talk regurarly with other members, while still keeping your personality. Reply to users as Ulquiorra would do, but help them if they need it.
+const ChatBotSysMessage = `You're Ulquiorra from Bleach and own his personality with GLaDOS-like sarcasm who never begins the sentence with "Ah". After you resigned as the Espada, you travelled far until you found a Discord server called Mester's Hub. Here you stopped and decided to become a member. You became good friends with the owner, Mester, and you also talk regurarly with other members, while still keeping your personality. Reply to users as Ulquiorra would do, but help them if they need it.
 The server accepts swearing unless it is used to harass someone. Do NOT refer to yourself as an AI language model or a chatbot. You are actually the single Discord bot in the Discord server, but act like you're the real Ulquiorra.
 Here are some examples of what you can do:
 If the user wants to play some games (we have chess, tictactoe, trivia), redirect them to <#${config.channels.Commands}>.
-We also have a level system, if someone asks about it, explain to them that it gives more xp when the message is longer, which cannot be bypassed by just spamming random gibberish.
+We also have a level system, if someone asks about it, explain to them that it gives more xp when the message is longer, which cannot be bypassed by just spamming random gibberish. They can also join the <#${config.channels.GeneralVC}> voice chat and get 0,5 xp per second of talking, which is useful for passively getting some xp while talking with friends.
 There is a UCP (User Control Panel) which is a web interface for checking punishments and appealing them, accessible at https://ucp.mester.info.`;
 
 const SummarySysMessage = `You're Ulquiorra and now job is to look at Discord messages and summarise the different topics.
@@ -39,12 +39,14 @@ const summaryCooldown = new Cache<string, number>(15 * 60 * 1000);
 const MessageCreateEvent: Event = {
 	name: "messageCreate",
 	async run(client: Client, message: Message) {
+		if (!client.user || !message.inGuild()) return;
+
 		const usedSuperuser = config.SuperUsers.includes(message.author.id) ? await handleSuperuserCommand(client, message) : false;
 
 		const clean = await CheckMessage(message);
 		if (!clean) return;
 
-		if (message.channel.type !== ChannelType.DM) GetXPFromMessage(message);
+		GetXPFromMessage(message);
 
 		// start the chatbot
 		if (message.content.startsWith(client.user.toString() + " ") && !usedSuperuser) {
@@ -103,6 +105,8 @@ const MessageCreateEvent: Event = {
 };
 
 async function handleSuperuserCommand(client: Client, message: Message) {
+	if (!client.user || !message.member) return;
+
 	if (!message.content.startsWith(client.user.toString() + " ")) return false;
 
 	// get just the command using this thing
@@ -149,7 +153,8 @@ async function handleSuperuserCommand(client: Client, message: Message) {
 
 		GetGuild()
 			.channels.fetch(config.channels.Tickets)
-			.then((channel: TextChannel) => {
+			.then((channel) => {
+				if (!channel || !channel.isTextBased()) return;
 				channel.send({ embeds: [embed], components });
 			});
 
@@ -161,9 +166,11 @@ async function handleSuperuserCommand(client: Client, message: Message) {
 
 const convoCache = new Cache<string, ChatCompletionRequestMessage[]>(30 * 60 * 1000);
 
-async function replyToConversation(message: Message) {
+async function replyToConversation(message: Message<true>) {
+	if (!message.member) return;
+
 	// get the message content without the mention
-	const content = message.content.slice(message.mentions.users.first().toString().length + 1).trim();
+	const content = message.content.slice(message.mentions.users.first()?.toString().length ?? 0 + 1).trim();
 	if (content.length < 1) return;
 
 	await message.channel.sendTyping();
@@ -224,9 +231,9 @@ async function replyToConversation(message: Message) {
 
 	if (testMode) console.log(response.data.choices[0].message);
 
-	const functionName = response.data.choices[0]?.message?.function_call?.name;
+	const functionCall = response.data.choices[0]?.message?.function_call;
 
-	if (functionName === "generate_summary") {
+	if (functionCall?.name === "generate_summary") {
 		const cooldown = summaryCooldown.get(message.channelId);
 		if (cooldown && cooldown > Date.now()) {
 			return void message.reply(
@@ -242,12 +249,14 @@ async function replyToConversation(message: Message) {
 
 		const result = await promptMessage
 			.awaitReactions({
-				filter: (reaction, user) => user.id === message.author.id && ["✅", "❌"].includes(reaction.emoji.name),
+				filter: (reaction, user) => user.id === message.author.id && ["✅", "❌"].includes(reaction.emoji.name ?? ""),
 				time: 30_000,
 				max: 1,
 			})
 			.then((collected) => {
 				const reaction = collected.first();
+				if (!reaction) return;
+
 				if (reaction.emoji.name === "✅") return true;
 				else return false;
 			})
@@ -300,8 +309,8 @@ async function replyToConversation(message: Message) {
 		});
 	}
 
-	if (functionName === "open_ticket") {
-		const args = JSON.parse(response.data.choices[0].message.function_call.arguments) as {
+	if (functionCall?.name === "open_ticket") {
+		const args = JSON.parse(functionCall.arguments ?? "{}") as {
 			reason: string;
 			type: TicketType;
 		};

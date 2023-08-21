@@ -2,13 +2,13 @@ import SlashCommand from "../../types/SlashCommand.js";
 import CreateEmbed from "../../util/CreateEmbed.js";
 import { CalculateMaxPage } from "../../util/MathUtils.js";
 import GeoData, { ItemDescriptions, ItemNames, ItemPrices } from "./GeoData.js";
-import { GetGeoConfig } from "./Util.js";
+import { GetGeoConfig, IsSellableItem } from "./Util.js";
 
 const InventoryCommand: SlashCommand = {
 	name: "_",
 	async run(interaction, client) {
 		const geoConfig = await GetGeoConfig(interaction.user.id);
-		const embed = CreateEmbed(undefined, { title: `Inventory of ${interaction.user.username}` });
+		const embed = CreateEmbed(null, { title: `Inventory of ${interaction.user.username}` });
 		const page = interaction.options.getNumber("page") ?? 1;
 
 		// check if the page is valid
@@ -26,7 +26,7 @@ const InventoryCommand: SlashCommand = {
 
 		for (const item of geoConfig.inventory.items.slice((page - 1) * 10, page * 10)) {
 			const friendlyName = ItemNames[item.name];
-			const price = ItemPrices[item.name];
+			const price = IsSellableItem(item.name) ? ItemPrices[item.name] : null;
 
 			const itemText = `${item.count}x ${friendlyName}`;
 			const sellText = price ? `\n**Sell:** ${price.min}-${price.max} ${GeoData.GeoIcon}` : "";
