@@ -1,42 +1,12 @@
 {
-    "env": {
-        "es6": true,
-        "node": true
-    },
-    "extends": [
-        "eslint:recommended",
-        "plugin:@typescript-eslint/recommended"
-    ],
-    "ignorePatterns": ["node_modules/**/*", "*.js"],
-    // hi people this is a comment!!!
+    "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended", "prettier"],
     "parser": "@typescript-eslint/parser",
-    "parserOptions": {
-        "ecmaVersion": "latest",
-        "sourceType": "module"
-    },
-    "plugins": [
-        "@typescript-eslint",
-        "unused-imports"
-    ],
+    "plugins": ["@typescript-eslint", "prettier"],
+    "root": true,
+    "ignorePatterns": ["build", "node_modules"],
     "rules": {
-        "indent": "off",
-        "no-mixed-spaces-and-tabs": "off",
-        "linebreak-style": [
-            "error",
-            "unix"
-        ],
-        "quotes": [
-            "error",
-            "double",
-            { "allowTemplateLiterals": true }
-        ],
-        "semi": [
-            "error",
-            "always"
-        ],
-        "no-cond-assign": "off",
-        "@typescript-eslint/no-unused-vars": "off",
-        "unused-imports/no-unused-imports": "error",
-        "no-unreachable": "error"
+        "@typescript-eslint/no-empty-function": "off",
+        "curly": "error",
+        "prettier/prettier": "error"
     }
 }

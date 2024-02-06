@@ -18,32 +18,39 @@ type ModuleType = "slash" | "console" | "event";
  * @param consoleCommandPath The path to the consolecommands folder.
  */
 async function Register(commandPath: string, eventPath: string, consoleCommandPath: string) {
-	return Promise.all([processFiles(eventPath, "event"), processFiles(commandPath, "slash"), processFiles(consoleCommandPath, "console")]);
+    return Promise.all([processFiles(eventPath, "event"), processFiles(commandPath, "slash"), processFiles(consoleCommandPath, "console")]);
 }
 
 async function processFiles(root: string, type: ModuleType) {
-	const filteredFiles = readdirSync(root).filter((file) => file.endsWith(".js") || (file.endsWith(".ts") && !file.startsWith("#")));
+    const filteredFiles = readdirSync(root).filter((file) => file.endsWith(".js") || (file.endsWith(".ts") && !file.startsWith("#")));
 
-	for (const file of filteredFiles) {
-		const urlPath = pathToFileURL(join(root, file)).toString();
-		loadModule(urlPath, type).catch((error) => {
-			logger.log(`Error while trying to load ${file}: ${error.stack}`, "error");
-		});
-	}
+    for (const file of filteredFiles) {
+        const urlPath = pathToFileURL(join(root, file)).toString();
+        loadModule(urlPath, type).catch((error) => {
+            logger.log(`Error while trying to load ${file}: ${error.stack}`, "error");
+        });
+    }
 }
 
 async function loadModule(urlPath: string, type: ModuleType) {
-	const module = (await import(urlPath)).default;
-	if (testMode) console.log(module);
+    const module = (await import(urlPath)).default;
+    if (testMode) {
+        console.log(module);
+    }
 
-	if (type === "slash") commands.set(module.name, module);
-	if (type === "console") consoleCommands.set(module.name, module);
-	if (type === "event")
-		Ulquiorra.on(module.name, (...args) => {
-			module.run(Ulquiorra, ...args).catch((error: Error) => {
-				logger.log(`Error while trying to run ${module.name}: ${error.stack}`, "error");
-			});
-		});
+    if (type === "slash") {
+        commands.set(module.name, module);
+    }
+    if (type === "console") {
+        consoleCommands.set(module.name, module);
+    }
+    if (type === "event") {
+        Ulquiorra.on(module.name, (...args) => {
+            module.run(Ulquiorra, ...args).catch((error: Error) => {
+                logger.log(`Error while trying to run ${module.name}: ${error.stack}`, "error");
+            });
+        });
+    }
 }
 
-export { Register, commands, consoleCommands };
+export { commands, consoleCommands, Register };

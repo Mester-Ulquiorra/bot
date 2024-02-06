@@ -4,7 +4,7 @@ import { Chance } from "chance";
  * A function for calculating the maximum pages available for a given amount of elements.
  */
 export function CalculateMaxPage(totalCount: number, pageSize: number) {
-	return Math.ceil(Math.max(totalCount, 1) / pageSize);
+    return Math.ceil(Math.max(totalCount, 1) / pageSize);
 }
 
 /**
@@ -15,23 +15,23 @@ export function CalculateMaxPage(totalCount: number, pageSize: number) {
  * @returns The clamped number.
  */
 export function ClampNumber(number: number, min: number, max: number) {
-	return Math.min(Math.max(number, min), max);
+    return Math.min(Math.max(number, min), max);
 }
 
 export function RandomIntWithLinearlyDecreasingChance(min: number, max: number, lowestChance = 0.2) {
-	const chance = new Chance();
+    const chance = new Chance();
 
-	const k = (1 - lowestChance) / (min - max);
-	const d = 1 - k * min;
+    const k = (1 - lowestChance) / (min - max);
+    const d = 1 - k * min;
 
-	const arr = Array.from({ length: max - min + 1 }, (_, i) => i + min);
+    const arr = Array.from({ length: max - min + 1 }, (_, i) => i + min);
 
-	const result = chance.weighted(
-		arr,
-		arr.map((n) => n * k + d)
-	);
+    const result = chance.weighted(
+        arr,
+        arr.map((n) => n * k + d)
+    );
 
-	return result;
+    return result;
 }
 
 /**
@@ -41,6 +41,6 @@ export function RandomIntWithLinearlyDecreasingChance(min: number, max: number, 
  * @returns The rounded number
  */
 export function RoundNumber(number: number, precision = 2) {
-	// use an ugly toFixed hack to round the number
-	return Number(number.toFixed(precision));
+    // use an ugly toFixed hack to round the number
+    return Number(number.toFixed(precision));
 }

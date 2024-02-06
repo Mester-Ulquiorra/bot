@@ -12,29 +12,31 @@ export const DiscordLink = /^https?:\/\/(?:www\.)?(?:(media|canary|ptb|cdn)\.?)(
  * @returns The link that was found (if none, it's null).
  */
 export default function (message: Message<true>) {
-	// check if we have a discord link
-	if (DiscordLink.test(message.content)) {
-		PunishMessage(message, "Link", { comment: "__delete__" });
-		return true;
-	}
+    // check if we have a discord link
+    if (DiscordLink.test(message.content)) {
+        PunishMessage(message, "Link", { comment: "__delete__" });
+        return true;
+    }
 
-	// check if we have a discord invite
-	const discordInvite = message.content.match(DiscordInviteRegExp);
-	if (discordInvite) {
-		PunishMessage(message, "Link", { comment: discordInvite[0] });
-		return true;
-	}
+    // check if we have a discord invite
+    const discordInvite = message.content.match(DiscordInviteRegExp);
+    if (discordInvite) {
+        PunishMessage(message, "Link", { comment: discordInvite[0] });
+        return true;
+    }
 
-	// check if we're in an excluded channel
-	if (config.channels.ExcludeNormalSearch.includes(message.channelId)) return false;
+    // check if we're in an excluded channel
+    if (config.channels.ExcludeNormalSearch.includes(message.channelId)) {
+        return false;
+    }
 
-	const found = DetectLink(message.content);
-	if (found) {
-		PunishMessage(message, "Link", { comment: found });
-		return true;
-	}
+    const found = DetectLink(message.content);
+    if (found) {
+        PunishMessage(message, "Link", { comment: found });
+        return true;
+    }
 
-	return false;
+    return false;
 }
 
 /**
@@ -42,6 +44,6 @@ export default function (message: Message<true>) {
  * @param string The string to detect links in
  */
 export function DetectLink(string: string) {
-	// try to find a link and return it (either null or the link)
-	return string.match(DiscordInviteRegExp)?.[0] || string.match(UrlRegExp)?.[0] || null;
+    // try to find a link and return it (either null or the link)
+    return string.match(DiscordInviteRegExp)?.[0] || string.match(UrlRegExp)?.[0] || null;
 }

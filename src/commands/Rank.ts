@@ -1,75 +1,78 @@
-import { DBLevel } from "@mester-ulquiorra/commonlib";
+import { DBLevel, LevelToXP, XPToLevel, XPToLevelUp } from "@mester-ulquiorra/commonlib";
 import { EmbedBuilder } from "discord.js";
 import * as path from "path";
 import { GetResFolder, browser } from "../Ulquiorra.js";
 import SlashCommand from "../types/SlashCommand.js";
 import CreateEmbed from "../util/CreateEmbed.js";
-import { GetLeaderboardPos, GetLevelConfig, LevelToXP, XPToLevel, XPToLevelUp } from "../util/LevelUtils.js";
+import { GetLeaderboardPos, GetLevelConfig } from "../util/LevelManager.js";
 
 const htmlFilePath = path.join(GetResFolder(), "rank", "index.html");
 
 const RankCommand: SlashCommand = {
-	name: "rank",
+    name: "rank",
 
-	async run(interaction, _client) {
-		if(!browser) return "Puppeteer is not available, cannot render rank card.";
-		
-		let user = interaction.options.getUser("member");
-		if (!user) user = interaction.user;
+    async run(interaction) {
+        if (!browser) {
+            return "Puppeteer is not available, cannot render rank card.";
+        }
 
-		// get level config
-		const levelConfig = await GetLevelConfig(user.id);
+        let user = interaction.options.getUser("member");
+        if (!user) {
+            user = interaction.user;
+        }
 
-		if (interaction.options.getBoolean("textmode")) {
-			// create the embed
-			const embed = CreateEmbed(`Level rank of <@${levelConfig.userId}>`, {
-				author: user,
-			});
+        // get level config
+        const levelConfig = await GetLevelConfig(user.id);
 
-			// add the fields
-			AddRankFieldEmbeds(embed, levelConfig);
+        if (interaction.options.getBoolean("textmode")) {
+            // create the embed
+            const embed = CreateEmbed(`Level rank of <@${levelConfig.userId}>`, {
+                author: user
+            });
 
-			return void interaction.reply({ embeds: [embed], ephemeral: true });
-		}
+            // add the fields
+            AddRankFieldEmbeds(embed, levelConfig);
 
-		await interaction.deferReply({ ephemeral: false });
+            return void interaction.reply({ embeds: [embed], ephemeral: true });
+        }
 
-		const userLevel = XPToLevel(levelConfig.xp);
-		const relativexp = levelConfig.xp - LevelToXP(userLevel);
-		const avatar = user.displayAvatarURL({ size: 256, extension: "png", forceStatic: true });
-		const lbPos = await GetLeaderboardPos(levelConfig.userId);
+        await interaction.deferReply({ ephemeral: false });
 
-		const page = await browser.newPage();
-		await page.setViewport({ width: 1200, height: 300 });
+        const userLevel = XPToLevel(levelConfig.xp);
+        const relativexp = levelConfig.xp - LevelToXP(userLevel);
+        const avatar = user.displayAvatarURL({ size: 256, extension: "png", forceStatic: true });
+        const lbPos = await GetLeaderboardPos(levelConfig.userId);
 
-		const destination = new URL(htmlFilePath, "file:");
+        const page = await browser.newPage();
+        await page.setViewport({ width: 1200, height: 300 });
 
-		destination.searchParams.append("avatar", avatar);
-		destination.searchParams.append("leaderboard", lbPos.toString());
-		destination.searchParams.append("username", user.username);
-		destination.searchParams.append("level", userLevel.toString());
-		destination.searchParams.append("total", levelConfig.xp.toString());
-		destination.searchParams.append("current", relativexp.toString());
-		destination.searchParams.append("max", XPToLevelUp(userLevel).toString());
+        const destination = new URL(htmlFilePath, "file:");
 
-		await page.setViewport({ width: 1200, height: 300 });
-		await page.goto(destination.toString(), { waitUntil: "networkidle0" });
+        destination.searchParams.append("avatar", avatar);
+        destination.searchParams.append("leaderboard", lbPos.toString());
+        destination.searchParams.append("username", user.username);
+        destination.searchParams.append("level", userLevel.toString());
+        destination.searchParams.append("total", levelConfig.xp.toString());
+        destination.searchParams.append("current", relativexp.toString());
+        destination.searchParams.append("max", XPToLevelUp(userLevel).toString());
 
-		const buffer = await page.screenshot({ type: "png" });
+        await page.goto(destination.toString(), { waitUntil: "networkidle0" });
 
-		interaction
-			.editReply({
-				files: [
-					{
-						attachment: buffer,
-						name: "rank.png",
-					},
-				],
-			})
-			.then(() => {
-				page.close();
-			});
-	},
+        const buffer = await page.screenshot({ type: "png" });
+
+        interaction
+            .editReply({
+                files: [
+                    {
+                        attachment: buffer,
+                        name: "rank.png"
+                    }
+                ]
+            })
+            .then(() => {
+                page.close();
+            });
+    }
 };
 
 /**
@@ -78,33 +81,33 @@ const RankCommand: SlashCommand = {
  * @param levelConfig The level config to get the information from.
  */
 export function AddRankFieldEmbeds(embed: EmbedBuilder, levelConfig: DBLevel) {
-	const userLevel = XPToLevel(levelConfig.xp);
+    const userLevel = XPToLevel(levelConfig.xp);
 
-	/**
-	 * The xp relative to the user's level.
-	 */
-	const relativexp = levelConfig.xp - LevelToXP(userLevel);
+    /**
+     * The xp relative to the user's level.
+     */
+    const relativexp = levelConfig.xp - LevelToXP(userLevel);
 
-	embed.addFields([
-		{
-			name: `Level (XP)`,
-			value: `${userLevel} (${relativexp})`,
-			inline: true,
-		},
-		{
-			name: `Total XP`,
-			value: `${levelConfig.xp}`,
-			inline: true,
-		},
-		{
-			name: `XP until next level (%)`,
+    embed.addFields([
+        {
+            name: `Level (XP)`,
+            value: `${userLevel} (${relativexp})`,
+            inline: true
+        },
+        {
+            name: `Total XP`,
+            value: `${levelConfig.xp}`,
+            inline: true
+        },
+        {
+            name: `XP until next level (%)`,
 
-			// this weird part calculates the percentage of the xp until the next level
-			value: `${XPToLevelUp(userLevel) - relativexp} (${((100 * relativexp) / XPToLevelUp(userLevel)).toFixed(2)}%)`,
+            // this weird part calculates the percentage of the xp until the next level
+            value: `${XPToLevelUp(userLevel) - relativexp} (${((100 * relativexp) / XPToLevelUp(userLevel)).toFixed(2)}%)`,
 
-			inline: true,
-		},
-	]);
+            inline: true
+        }
+    ]);
 }
 
 export default RankCommand;

@@ -1,85 +1,60 @@
 import {
-	InternalMessage,
-	InternalMessageType,
-	RequestWithMessage,
-	isCreateAppealMessage,
-	processInternalMessage,
-	sendInternalMessage as _sendInternalMessage,
+    InternalMessage,
+    InternalMessageType,
+    InternalServer,
+    sendInternalMessage,
+    isCreateAppealMessage
 } from "@mester-ulquiorra/commonlib";
-import express, { NextFunction, Request, Response } from "express";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { fileURLToPath } from "url";
+import { logger } from "../Ulquiorra.js";
 import { createAppeal } from "../commands/Appeal.js";
 import PunishmentConfig from "../database/PunishmentConfig.js";
-import { logger } from "../Ulquiorra.js";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-const privateKey = readFileSync(join(__dirname, "..", "..", "internal-private.pem"));
-const publicKey = readFileSync(join(__dirname, "..", "..", "internal-public.pem"));
-
-const allowLocalhostOnly = (req: Request, res: Response, next: NextFunction) => {
-	const remoteAddress = req.socket.remoteAddress;
-	if (remoteAddress === "::1" || remoteAddress === "127.0.0.1" || remoteAddress === "::ffff:127.0.0.1" || remoteAddress === "localhost") {
-		// Request comes from localhost, allow it to continue
-		next();
-	} else {
-		// Request comes from a different IP address, block it with a 403 Forbidden response
-		res.status(403).send("Access forbidden. Only requests from localhost are allowed.");
-	}
-};
-
-// start express server
-const app = express();
-app.use(express.text({ type: "text/plain" }));
-
-// @ts-expect-error - This works fine
-app.post("/internal", allowLocalhostOnly, processInternalMessage(publicKey), async (req: RequestWithMessage, res) => {
-	const message = req.message;
-
-	if (!message) return res.sendStatus(500);
-
-	// handle the message
-	if (isCreateAppealMessage(message)) {
-		const punishment = await PunishmentConfig.findOne({
-			punishmentId: message.data.punishmentId,
-		});
-
-		if(!punishment) return res.status(400).send("Punishment not found");
-
-		if(punishment.appealed) return res.status(400).send("Punishment already appealed");
-		punishment.appealed = true;
-		await punishment.save();
-		
-		const userId = punishment.user;
-
-		const result = await createAppeal(userId, punishment, message.data.reason, message.data.additional);
-		if (!result) return res.sendStatus(500);
-	}
-
-	res.sendStatus(200);
-});
-
-app.listen(5658, () => {
-	logger.log("Internal server started");
-});
+const secretKey = Buffer.from(readFileSync(join(__dirname, "..", "..", "internal-secret"), "utf-8"), "hex");
 
 /**
- * Sends an internal message to the UCP API which is accepting messages at /internal HTTP post with port 5659.
+ * Sends an internal message to the UCP API which is accepting messages at TCP with port 5659.
  * @param message The message to send
  */
-export async function sendInternalMessage<T extends InternalMessageType>(message: InternalMessage<T>) {
-	const success = await _sendInternalMessage(privateKey, message, "http://localhost:5659/internal");
+export async function sendIMessageToAPI<T extends InternalMessageType>(message: InternalMessage<T>) {
+    const success = await sendInternalMessage(secretKey, message, 5659);
 
-	if (typeof success !== "string") {
-		logger.log(`Failed to send internal message: ${success}`, "error");
-		return false;
-	}
+    if (typeof success === "string") {
+        logger.log(`Failed to send internal message: ${success}`, "error");
+        return false;
+    }
 
-	if (success !== "") {
-		logger.log(`Internal message failed: ${success}`, "error");
-		return false;
-	}
-
-	return true;
+    return true;
 }
+
+const internalServer = new InternalServer(5658, secretKey, async (message) => {
+    if (isCreateAppealMessage(message)) {
+        const punishment = await PunishmentConfig.findOne({
+            punishmentId: message.data.punishmentId
+        });
+
+        if (!punishment) {
+            return "Punishment not found";
+        }
+
+        if (punishment.appealed) {
+            return "Punishment already appealed";
+        }
+        punishment.appealed = true;
+        await punishment.save();
+
+        const userId = punishment.user;
+
+        const result = await createAppeal(userId, punishment, message.data.reason, message.data.additional);
+        if (!result) {
+            return "Internal error";
+        }
+    }
+
+    return "ok";
+});
+
+export default internalServer;

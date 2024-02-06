@@ -1,0 +1,10 @@
+{
+	"editor.tokenColorCustomizations": {
+		"comments": "#888888",
+		"textMateRules": []
+	},
+	"sonarlint.connectedMode.project": {
+		"connectionId": "GV",
+		"projectKey": "Mester-Ulquiorra_bot_AYugtA9WkEolNbGd59LP"
+	}
+}

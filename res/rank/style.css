@@ -1,9 +1,6 @@
 html, body {
     max-width: 1200px;
     max-height: 300px;
-}
-
-body, html {
     margin: 0;
     padding: 0;
 }
@@ -14,7 +11,7 @@ body, html {
     --text: 255 255 255;
     --secondary: 1 71 78;
 
-    font-family: "Montserrat";
+    font-family: "Montserrat", sans-serif;
 }
 
 main {

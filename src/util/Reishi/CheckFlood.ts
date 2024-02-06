@@ -31,13 +31,13 @@ const NewLineThreshold = 10;
  * @returns True if the message contains flood.
  */
 export default function (message: Message<true>) {
-	const found = DetectFlood(message.content);
+    const found = DetectFlood(message.content);
 
-	if (found) {
-		PunishMessage(message, "RepeatedText", { comment: found });
-		return true;
-	}
-	return false;
+    if (found) {
+        PunishMessage(message, "RepeatedText", { comment: found });
+        return true;
+    }
+    return false;
 }
 
 /**
@@ -46,13 +46,17 @@ export default function (message: Message<true>) {
  * @returns The detected error or null if the string is safe
  */
 export function DetectFlood(string: string) {
-	// check if message contains new lines over the threshold
-	if (string.match(/\n/g)?.length ?? 0 >= NewLineThreshold) return "too many newlines";
+    // check if message contains new lines over the threshold
+    if ((string.match(/\n/g)?.length ?? 0) >= NewLineThreshold) {
+        return "too many newlines";
+    }
 
-	// check if there are 4 new lines in a row
-	if (string.match(/\n{4,}/g)) return "too many newlines in a row";
+    // check if there are 4 new lines in a row
+    if (string.match(/\n{4,}/g)) {
+        return "too many newlines in a row";
+    }
 
-	return CheckRepeatedText(string);
+    return CheckRepeatedText(string);
 }
 
 /**
@@ -61,37 +65,43 @@ export function DetectFlood(string: string) {
  * @returns If the string contains repeated text.
  */
 function CheckRepeatedText(string: string) {
-	// remove characters like - _ and so on + split the string into words
-	const words = StripString(string).map((s) => ReverseLeetSpeak(s));
+    // remove characters like - _ and so on + split the string into words
+    const words = StripString(string).map((s) => ReverseLeetSpeak(s));
 
-	// create wordMap
-	const wordMap = new Map<string, number>();
+    // create wordMap
+    const wordMap = new Map<string, number>();
 
-	// go through the words
-	for (const word of words) {
-		// if the word is not longer than threshold, then skip
-		if (word.length < WordLengthThreshold) continue;
+    // go through the words
+    for (const word of words) {
+        // if the word is not longer than threshold, then skip
+        if (word.length < WordLengthThreshold) {
+            continue;
+        }
 
-		// check the letters
-		const letter_result = CheckLetters(word);
-		if (letter_result) return letter_result;
+        // check the letters
+        const letter_result = CheckLetters(word);
+        if (letter_result) {
+            return letter_result;
+        }
 
-		// increase the count of the word
-		wordMap.set(word, (wordMap.get(word) || 0) + 1);
-	}
+        // increase the count of the word
+        wordMap.set(word, (wordMap.get(word) ?? 0) + 1);
+    }
 
-	// check if there is a word that exceeds the count threshold
-	for (const [word, count] of wordMap) {
-		const wordPercent = (count * 100) / words.length;
+    // check if there is a word that exceeds the count threshold
+    for (const [word, count] of wordMap) {
+        const wordPercent = (count * 100) / words.length;
 
-		// only do the percentage calculation if there are more than 5 words
-		const overPercent = wordPercent >= WordCountThresholdPercent && words.length > 5;
-		// this part is checking if the word is repeated more than the absolute threshold
-		const overAbsoluteCount = word.length >= WordCountAbsoluteLengthThreshold && count >= WordCountAbsoluteThreshold;
+        // only do the percentage calculation if there are more than 5 words
+        const overPercent = wordPercent >= WordCountThresholdPercent && words.length > 5;
+        // this part is checking if the word is repeated more than the absolute threshold
+        const overAbsoluteCount = word.length >= WordCountAbsoluteLengthThreshold && count >= WordCountAbsoluteThreshold;
 
-		if ((overPercent || overAbsoluteCount) && words.length != 1) return `repeated word ${word}`;
-	}
-	return null;
+        if ((overPercent || overAbsoluteCount) && words.length != 1) {
+            return `repeated word ${word}`;
+        }
+    }
+    return null;
 }
 
 /**
@@ -99,22 +109,26 @@ function CheckRepeatedText(string: string) {
  * @returns The repeated letter (if none, it's null).
  */
 function CheckLetters(word: string) {
-	// variables used to check if there are multiple letters in a row
-	let lettersInRow = 0;
-	let tempLetter = "";
+    // variables used to check if there are multiple letters in a row
+    let lettersInRow = 0;
+    let tempLetter = "";
 
-	// go through the letters of the word and increase the letter count
-	for (const letter of word) {
-		// if the letter is the same as the previous letter, increase the count
-		if (letter === tempLetter) lettersInRow++;
-		// if the letter is different, reset the count
-		else {
-			lettersInRow = 1;
-			tempLetter = letter;
-		}
+    // go through the letters of the word and increase the letter count
+    for (const letter of word) {
+        // if the letter is the same as the previous letter, increase the count
+        if (letter === tempLetter) {
+            lettersInRow++;
+        }
+        // if the letter is different, reset the count
+        else {
+            lettersInRow = 1;
+            tempLetter = letter;
+        }
 
-		// if the letter is repeated more than the threshold, return the letter
-		if (lettersInRow >= LetterCountThreshold) return `__delete__`;
-	}
-	return null;
+        // if the letter is repeated more than the threshold, return the letter
+        if (lettersInRow >= LetterCountThreshold) {
+            return `__delete__`;
+        }
+    }
+    return null;
 }

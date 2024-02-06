@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 /**
  * @typedef {Object} UserValues
  * @prop {string} userImage
@@ -34,10 +36,10 @@ function setUserValues({ userImage, leaderboard, username, level, totalXP, curre
     usernameElem.innerHTML = username;
     levelElem.innerHTML = level;
     totalXPElem.innerHTML = totalXP;
-    currentXPElem.innerHTML = `${currentXP}&nbsp`;;
+    currentXPElem.innerHTML = `${currentXP}&nbsp`;
     maxXPElem.innerHTML = `	&nbsp;${maxXP}`;
 
-    percentageElem.innerHTML = Math.floor(currentXP / maxXP * 100);
+    percentageElem.innerHTML = Math.floor((currentXP / maxXP) * 100);
 
     XPProgressElem.max = maxXP;
     XPProgressElem.value = currentXP;

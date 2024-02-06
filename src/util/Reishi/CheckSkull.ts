@@ -1,35 +1,33 @@
 import { Message } from "discord.js";
-import { Configuration, OpenAIApi } from "openai";
-import config from "../../config.js";
 import { PunishMessage } from "../Reishi.js";
 
-const emojiRegex = /<a?:\w+:\d+>/g;
+// const emojiRegex = /<a?:\w+:\d+>/g;
 
-const openaiClient = new OpenAIApi(
-	new Configuration({
-		accessToken: config.DANGER.OPENAI_KEY,
-		organization: config.DANGER.OPENAI_ORG,
-	})
-);
+// const openaiClient = new OpenAIApi(
+//     new Configuration({
+//         accessToken: config.DANGER.OPENAI_KEY,
+//         organization: config.DANGER.OPENAI_ORG
+//     })
+// );
 
 export default async function (message: Message<true>) {
-	// goal: extract emojis and check if any of them are a skull
+    // goal: extract emojis and check if any of them are a skull
 
-	// check the basic skull emoji
-	if (message.content.includes("💀")) {
-		PunishMessage(message, "BlacklistedWord", { comment: "__delete__" });
-		return true;
-	}
+    // check the basic skull emoji
+    if (message.content.includes("💀")) {
+        PunishMessage(message, "BlacklistedWord", { comment: "__delete__" });
+        return true;
+    }
 
-	// check the skull and crossbones emoji
-	if (message.content.includes("☠️")) {
-		PunishMessage(message, "BlacklistedWord", { comment: "__delete__" });
-		return true;
-	}
+    // check the skull and crossbones emoji
+    if (message.content.includes("☠️")) {
+        PunishMessage(message, "BlacklistedWord", { comment: "__delete__" });
+        return true;
+    }
 
-	// TODO: extract custom emojis when OpenAI supports image analysis
+    // TODO: extract custom emojis when OpenAI supports image analysis
 
-	/*
+    /*
     // extract all custom emojis and put them into an array
     const customEmojis = message.content.match(emojiRegex);
 

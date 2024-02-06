@@ -1,15 +1,11 @@
 .test
 
-.vscode
-.scannerwork
 archive
 
 build
 
-package-lock.json
+internal-secret
 *.pem
-sonar-project.properties
-pnpm-lock.yaml
 src/config.ts
 src/CreateCommands.ts
 src/CleanCommands.ts

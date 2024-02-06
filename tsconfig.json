@@ -6,12 +6,12 @@
         ],
         // enable latest features
         "lib": [
-            "esnext"
+            "ESNext"
         ],
-        "module": "esnext",
-        "target": "esnext",
+        "module": "ESNext",
+        "target": "ESNext",
         // if TS 5.x+
-        "moduleResolution": "nodenext",
+        "moduleResolution": "Bundler",
         //"allowImportingTsExtensions": true,
         "moduleDetection": "force",
         //"noEmit": true,

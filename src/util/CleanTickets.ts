@@ -5,28 +5,34 @@ import { GetGuild } from "./ClientUtils.js";
 const TicketExpirationTime = 60 * 60 * 24; // 1 day
 
 export default async function () {
-	// get every closed ticket
-	const tickets = await TicketConfig.find({ closed: true }, {}, { sort: { closedat: 1 } });
+    // get every closed ticket
+    const tickets = await TicketConfig.find({ closed: true }, {}, { sort: { closedat: 1 } });
 
-	// for each ticket
-	for (const ticket of tickets) {
-		// check if the ticket is expired
-		if (Math.floor(Date.now() / 1000) - ticket.closedat < TicketExpirationTime) continue;
+    // for each ticket
+    for (const ticket of tickets) {
+        // check if the ticket is expired
+        if (Math.floor(Date.now() / 1000) - ticket.closedat < TicketExpirationTime) {
+            continue;
+        }
 
-		try {
-			GetGuild()
-				.channels.fetch(ticket.channel)
-				.then((channel) => {
-					if (!channel) return logger.log(`Couldn't find channel ${ticket.channel} to delete`, "warn");
+        try {
+            GetGuild()
+                .channels.fetch(ticket.channel)
+                .then((channel) => {
+                    if (!channel) {
+                        return logger.log(`Couldn't find channel ${ticket.channel} to delete`, "warn");
+                    }
 
-					channel.delete(`Ticket deleted - passed expiration time`);
-				});
+                    channel.delete(`Ticket deleted - passed expiration time`);
+                });
 
-			ticket.deleteOne();
-		} catch (error: unknown) {
-			if (!(error instanceof Error)) return;
+            ticket.deleteOne();
+        } catch (error: unknown) {
+            if (!(error instanceof Error)) {
+                return;
+            }
 
-			logger.log(`Couldn't automatically delete ticket: ${error.stack}`, "warn");
-		}
-	}
+            logger.log(`Couldn't automatically delete ticket: ${error.stack}`, "warn");
+        }
+    }
 }

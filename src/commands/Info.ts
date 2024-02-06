@@ -1,5 +1,6 @@
+import { Cache } from "@mester-ulquiorra/commonlib";
 import { createHash } from "crypto";
-import { ChatInputCommandInteraction, Client } from "discord.js";
+import { MessageContextMenuCommandInteraction } from "discord.js";
 import LanguageDetect from "languagedetect";
 import { DeeplTranslator } from "../Ulquiorra.js";
 import SlashCommand from "../types/SlashCommand.js";
@@ -8,15 +9,14 @@ import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import PunishmentInfoCommand from "./PunishmentInfo.js";
 import UserInfoCommand from "./UserInfo.js";
-import Cache from "../util/Cache.js";
 
 const lngDetector = new LanguageDetect();
 
 interface TranslationCacheObject {
-	messageId: string;
-	translation: string;
-	checksum: string;
-	language: string;
+    messageId: string;
+    translation: string;
+    checksum: string;
+    language: string;
 }
 
 const MaxTranslationCacheLength = 1000;
@@ -27,120 +27,145 @@ const TranslationCooldown = new Cache<string, number>();
 const LanguageNames = new Intl.DisplayNames(["en"], { type: "language" });
 
 const InfoCommand: SlashCommand = {
-	name: "info",
-	messageContextCommandNames: ["Show punishment ID", "Show message ID", "Translate message"],
+    name: "info",
+    messageContextCommandNames: ["Show punishment ID", "Show message ID", "Translate message"],
 
-	async run(interaction: ChatInputCommandInteraction, client: Client) {
-		// get user config
-		const userConfig = await GetUserConfig(interaction.user.id, "using info command");
+    async run(interaction, client) {
+        // get user config
+        const userConfig = await GetUserConfig(interaction.user.id, "using info command");
 
-		// check if user's mod is 0
-		if (userConfig.mod === 0) return GetError("Permission");
+        // check if user's mod is 0
+        if (userConfig.mod === 0) {
+            return GetError("Permission");
+        }
 
-		// check if the subcommand group is punishment
-		if (interaction.options.getSubcommandGroup(false) === "punishment" && PunishmentInfoCommand.run) return PunishmentInfoCommand.run(interaction, client);
+        // check if the subcommand group is punishment
+        if (interaction.options.getSubcommandGroup(false) === "punishment" && PunishmentInfoCommand.run) {
+            return PunishmentInfoCommand.run(interaction, client);
+        }
 
-		// if we don't have a subcommand group, we might have "member" as subcommand
-		if (interaction.options.getSubcommand(false) === "member" && UserInfoCommand.run) return UserInfoCommand.run(interaction, client);
-	},
+        // if we don't have a subcommand group, we might have "member" as subcommand
+        if (interaction.options.getSubcommand(false) === "member" && UserInfoCommand.run) {
+            return UserInfoCommand.run(interaction, client);
+        }
+    },
 
-	async runMessageContextCommand(interaction, _client) {
-		if (interaction.commandName === "Show punishment ID") {
-			const punishmentId = interaction.targetMessage.embeds[0]?.footer?.text.match(/Punishment ID: (\d+)/);
-			if (!punishmentId || punishmentId.length === 0) return "No punishments were found";
+    async runMessageContextCommand(interaction) {
+        if (interaction.commandName === "Show punishment ID") {
+            const punishmentId = interaction.targetMessage.embeds[0]?.footer?.text.match(/Punishment ID: (\d+)/);
+            if (!punishmentId || punishmentId.length === 0) {
+                return "No punishments were found";
+            }
 
-			interaction.reply({ content: punishmentId[1], ephemeral: true });
-		}
+            interaction.reply({ content: punishmentId[1], ephemeral: true });
+        }
 
-		if (interaction.commandName === "Show message ID") {
-			const messageId = interaction.targetMessage.embeds[0]?.footer?.text.match(/Message ID: (\d+)/);
-			if (!messageId || messageId.length === 0) return "No messages were found";
+        if (interaction.commandName === "Show message ID") {
+            const messageId = interaction.targetMessage.embeds[0]?.footer?.text.match(/Message ID: (\d+)/);
+            if (!messageId || messageId.length === 0) {
+                return "No messages were found";
+            }
 
-			interaction.reply({ content: messageId[1], ephemeral: true });
-		}
+            interaction.reply({ content: messageId[1], ephemeral: true });
+        }
 
-		if (interaction.commandName === "Translate message") {
-			// get the cooldown
-			const cooldown = TranslationCooldown.get(interaction.user.id);
-			if (!cooldown) return "Sorry, you're still in cooldown";
-			TranslationCooldown.set(interaction.user.id, 0);
-
-			// check for message length
-			if (interaction.targetMessage.cleanContent.length > 3_000) return "Sorry, translation of really long messages are not allowed";
-
-			// now check if the message is already in the cache
-			const cachedTranslation = TranslationCache.find((translation) => {
-				return translation.messageId === interaction.targetMessage.id;
-			});
-
-			const messageChecksum = createHash("md5").update(interaction.targetMessage.cleanContent).digest("hex");
-
-			if (cachedTranslation) {
-				if (cachedTranslation.checksum !== messageChecksum) TranslationCache.splice(TranslationCache.indexOf(cachedTranslation), 1);
-				else {
-					interaction.reply({
-						embeds: [
-							CreateEmbed(`Translated text (from cache):\n${cachedTranslation.translation}`)
-								.setFooter({
-									text: "Translation provided by DeepL",
-								})
-								.addFields({
-									name: "Detected language:",
-									value: cachedTranslation.language,
-								}),
-						],
-						ephemeral: true,
-					});
-
-					return;
-				}
-			}
-
-			// at this point, we know it's not cached
-
-			// get the language
-			const messageLanguage = lngDetector.detect(interaction.targetMessage.cleanContent)?.[0]?.[0];
-
-			if (messageLanguage === "english") return "It looks like that message is already in English";
-
-			if (messageLanguage == null) return "We couldn't detect the language of the message, it's probably too short";
-
-			const translation = await DeeplTranslator.translateText(interaction.targetMessage.cleanContent, null, "en-US")
-				.then((result) => {
-					return result;
-				})
-				.catch(() => {
-					return "An unexpected error has occured while trying to translate the message";
-				});
-
-			if (typeof translation === "string") return translation;
-
-			// save it to cache
-			TranslationCache.push({
-				checksum: messageChecksum,
-				language: LanguageNames.of(translation.detectedSourceLang) ?? "Unknown",
-				messageId: interaction.targetMessage.id,
-				translation: translation.text,
-			});
-
-			// if we've reached the maximum length of cached messages, remove the oldest ones
-			if (TranslationCache.length > MaxTranslationCacheLength) {
-				TranslationCache.splice(0, TranslationCache.length - MaxTranslationCacheLength);
-			}
-
-			interaction.reply({
-				embeds: [
-					CreateEmbed(`Translated text:\n${translation.text}`)
-						.setFooter({ text: "Translation provided by DeepL" })
-						.addFields({
-							name: "Detected language:",
-							value: LanguageNames.of(translation.detectedSourceLang) ?? "Unknown",
-						}),
-				],
-				ephemeral: true,
-			});
-		}
-	},
+        if (interaction.commandName === "Translate message") {
+            return translateMessage(interaction);
+        }
+    }
 };
+
+async function translateMessage(interaction: MessageContextMenuCommandInteraction) {
+    // get the cooldown
+    const cooldown = TranslationCooldown.get(interaction.user.id);
+    if (!cooldown) {
+        return "Sorry, you're still in cooldown";
+    }
+    TranslationCooldown.set(interaction.user.id, 0);
+
+    // check for message length
+    if (interaction.targetMessage.cleanContent.length > 3_000) {
+        return "Sorry, translation of really long messages are not allowed";
+    }
+
+    // now check if the message is already in the cache
+    const cachedTranslation = TranslationCache.find((translation) => {
+        return translation.messageId === interaction.targetMessage.id;
+    });
+
+    const messageChecksum = createHash("md5").update(interaction.targetMessage.cleanContent).digest("hex");
+
+    if (cachedTranslation) {
+        if (cachedTranslation.checksum !== messageChecksum) {
+            TranslationCache.splice(TranslationCache.indexOf(cachedTranslation), 1);
+        } else {
+            interaction.reply({
+                embeds: [
+                    CreateEmbed(`Translated text (from cache):\n${cachedTranslation.translation}`)
+                        .setFooter({
+                            text: "Translation provided by DeepL"
+                        })
+                        .addFields({
+                            name: "Detected language:",
+                            value: cachedTranslation.language
+                        })
+                ],
+                ephemeral: true
+            });
+
+            return;
+        }
+    }
+
+    // at this point, we know it's not cached
+
+    // get the language
+    const messageLanguage = lngDetector.detect(interaction.targetMessage.cleanContent)?.[0]?.[0];
+
+    if (messageLanguage === "english") {
+        return "It looks like that message is already in English";
+    }
+
+    if (messageLanguage == null) {
+        return "We couldn't detect the language of the message, it's probably too short";
+    }
+
+    const translation = await DeeplTranslator.translateText(interaction.targetMessage.cleanContent, null, "en-US")
+        .then((result) => {
+            return result;
+        })
+        .catch(() => {
+            return "An unexpected error has occured while trying to translate the message";
+        });
+
+    if (typeof translation === "string") {
+        return translation;
+    }
+
+    // save it to cache
+    TranslationCache.push({
+        checksum: messageChecksum,
+        language: LanguageNames.of(translation.detectedSourceLang) ?? "Unknown",
+        messageId: interaction.targetMessage.id,
+        translation: translation.text
+    });
+
+    // if we've reached the maximum length of cached messages, remove the oldest ones
+    if (TranslationCache.length > MaxTranslationCacheLength) {
+        TranslationCache.splice(0, TranslationCache.length - MaxTranslationCacheLength);
+    }
+
+    interaction.reply({
+        embeds: [
+            CreateEmbed(`Translated text:\n${translation.text}`)
+                .setFooter({ text: "Translation provided by DeepL" })
+                .addFields({
+                    name: "Detected language:",
+                    value: LanguageNames.of(translation.detectedSourceLang) ?? "Unknown"
+                })
+        ],
+        ephemeral: true
+    });
+}
 
 export default InfoCommand;
