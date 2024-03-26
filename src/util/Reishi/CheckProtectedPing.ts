@@ -18,10 +18,7 @@ export default async function (message: Message<true>) {
         return;
     }
 
-    if (
-        (await ManageRole(message.member, config.roles.Friend, "Check")) ||
-        (await ManageRole(message.member, config.roles.Protected, "Check"))
-    ) {
+    if (await ManageRole(message.member, config.roles.Protected, "Check")) {
         return false;
     }
 

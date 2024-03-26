@@ -1,10 +1,11 @@
 {
-	"editor.tokenColorCustomizations": {
-		"comments": "#888888",
-		"textMateRules": []
-	},
-	"sonarlint.connectedMode.project": {
-		"connectionId": "GV",
-		"projectKey": "Mester-Ulquiorra_bot_AYugtA9WkEolNbGd59LP"
-	}
+    "editor.tokenColorCustomizations": {
+        "comments": "#888888",
+        "textMateRules": []
+    },
+    "sonarlint.connectedMode.project": {
+        "connectionId": "GV",
+        "projectKey": "Mester-Ulquiorra_bot_AYugtA9WkEolNbGd59LP"
+    },
+    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
 }

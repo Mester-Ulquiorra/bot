@@ -227,7 +227,8 @@ async function replyToConversation(message: Message<true>) {
             {
                 name: "generate_summary",
                 description:
-                    "If the user is asking you what's happening and things like that, generate him a summary of the conversation so far.",
+                    // eslint-disable-next-line no-useless-escape, prettier/prettier
+                    "If the user is trying to catch up with phrases such as \"what's happening\" or \"what happened\", generate him a summary of the conversation.",
                 parameters: { type: "object", properties: {} }
             },
             {

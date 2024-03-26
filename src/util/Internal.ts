@@ -3,7 +3,8 @@ import {
     InternalMessageType,
     InternalServer,
     sendInternalMessage,
-    isCreateAppealMessage
+    isCreateAppealMessage,
+    InternalEndpoints
 } from "@mester-ulquiorra/commonlib";
 import { readFileSync } from "fs";
 import { join } from "path";
@@ -20,7 +21,7 @@ const secretKey = Buffer.from(readFileSync(join(__dirname, "..", "..", "internal
  * @param message The message to send
  */
 export async function sendIMessageToAPI<T extends InternalMessageType>(message: InternalMessage<T>) {
-    const success = await sendInternalMessage(secretKey, message, 5659);
+    const success = await sendInternalMessage(secretKey, message, InternalEndpoints.API);
 
     if (typeof success === "string") {
         logger.log(`Failed to send internal message: ${success}`, "error");
@@ -30,7 +31,7 @@ export async function sendIMessageToAPI<T extends InternalMessageType>(message: 
     return true;
 }
 
-const internalServer = new InternalServer(5658, secretKey, async (message) => {
+const internalServer = new InternalServer(InternalEndpoints.BOT, secretKey, async (message) => {
     if (isCreateAppealMessage(message)) {
         const punishment = await PunishmentConfig.findOne({
             punishmentId: message.data.punishmentId

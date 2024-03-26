@@ -67,11 +67,6 @@ function CheckBack(backCheck: Array<string>) {
         if (wordResult) {
             return wordResult;
         }
-
-        wordResult = CheckWord(ReverseLeetSpeak(backCheck.slice(j).join("")));
-        if (wordResult) {
-            return wordResult;
-        }
     }
     return null;
 }

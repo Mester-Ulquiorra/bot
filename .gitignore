@@ -14,8 +14,4 @@ node_modules
 coverage
 logs
 
-bunfig.toml
-bun.lockb
-.npmrc
-
 src/test.ts

@@ -30,7 +30,7 @@ const MessageDeleteEvent: Event = {
         }
 
         // create the embed
-        const embed = CreateEmbed(`**Message sent by ${message.author} has been deleted in ${message.channel.toString()}**`, {
+        const embed = CreateEmbed(`**Message sent by ${message.author} has been deleted in <#${message.channelId}>**`, {
             color: "error"
         });
         if (realContent.length > 0) {
