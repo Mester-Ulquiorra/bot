@@ -49,7 +49,7 @@ const GuildMemberAddEvent: Event = {
 
         // get the welcome channel and send the embed
         GetSpecialChannel("Welcome").send({
-            content: `${member.user}, welcome to Mester's Hub, we hope you'll have a great time here!`,
+            content: `${member.user}, welcome to ${member.guild.name}, we hope you'll have a great time here!`,
             embeds: [embed]
         });
 

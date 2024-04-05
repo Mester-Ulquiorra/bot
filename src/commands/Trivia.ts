@@ -53,6 +53,7 @@ class TriviaGame {
     correctAnswers: number;
     componentCollector: InteractionCollector<ButtonInteraction>;
     summaryEmbed: EmbedBuilder;
+    summaryEmbedGenerated = false;
 
     /**
      * @param message The game's messages
@@ -137,7 +138,7 @@ class TriviaGame {
 
     async showSummary(button: ButtonInteraction) {
         // check if we already have a summary embed
-        if (this.summaryEmbed) {
+        if (this.summaryEmbedGenerated) {
             button.reply({
                 embeds: [this.summaryEmbed],
                 ephemeral: true
@@ -161,6 +162,7 @@ class TriviaGame {
 
         // save the summary embed
         this.summaryEmbed = embed;
+        this.summaryEmbedGenerated + true;
 
         button.reply({
             embeds: [this.summaryEmbed],
