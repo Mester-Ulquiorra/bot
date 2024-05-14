@@ -62,7 +62,8 @@
         "build": "tsc -p tsconfig.json",
         "dev": "tsc -p tsconfig.json -w",
         "format": "biome format .",
-        "lint": "biome lint ."
+        "lint": "biome lint .",
+        "check": "biome check ."
     },
     "keywords": [],
     "author": "Mester",
