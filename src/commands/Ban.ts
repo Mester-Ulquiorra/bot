@@ -54,9 +54,7 @@ const BanCommand: SlashCommand = {
             reason
         });
 
-        logger.log(
-            `${target.user.tag} (${target.id}) has been banned by ${interaction.user.tag} (${interaction.user.id}): ${reason}. ID: ${punishmentId}`
-        );
+        logger.log(`${target.user.tag} (${target.id}) has been banned by ${interaction.user.tag} (${interaction.user.id}): ${reason}. ID: ${punishmentId}`);
 
         const modEmbed = CreateModEmbed(interaction.user, target.user, punishment);
         const userEmbed = CreateModEmbed(interaction.user, target.user, punishment, { userEmbed: true });

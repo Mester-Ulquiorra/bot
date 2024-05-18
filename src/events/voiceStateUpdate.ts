@@ -1,12 +1,12 @@
-import { VoiceState } from "discord.js";
+import { Events, VoiceState } from "discord.js";
 import Event from "../types/Event.js";
 import { GetGuild, GetSpecialChannel } from "../util/ClientUtils.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 
 const VoiceStateUpdateEvent: Event = {
-    name: "voiceStateUpdate",
+    name: Events.VoiceStateUpdate,
 
-    async run(client, oldState: VoiceState, newState: VoiceState) {
+    async run(_, oldState: VoiceState, newState: VoiceState) {
         // create embed for voice channel change logging
         const oldChannel = oldState.channelId ? await GetGuild().channels.fetch(oldState.channelId) : null;
         const newChannel = newState.channelId ? await GetGuild().channels.fetch(newState.channelId) : null;

@@ -1,13 +1,4 @@
-type ErrorType =
-    | "Default"
-    | "Permission"
-    | "Database"
-    | "BadUser"
-    | "Duration"
-    | "BadValue"
-    | "UserUnavailable"
-    | "InsufficentModLevel"
-    | "GuildOnly";
+type ErrorType = "Default" | "Permission" | "Database" | "BadUser" | "Duration" | "BadValue" | "UserUnavailable" | "InsufficentModLevel" | "GuildOnly";
 
 const errorMessages: Record<ErrorType, string> = {
     Default: "Something has went wrong, please try again. If this keeps happening, open a ticket.",

@@ -7,5 +7,10 @@
         "connectionId": "GV",
         "projectKey": "Mester-Ulquiorra_bot_AYugtA9WkEolNbGd59LP"
     },
-    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+    "[typescript]": {
+        "editor.defaultFormatter": "biomejs.biome"
+    },
+    "[json]": {
+        "editor.defaultFormatter": "biomejs.biome"
+    }
 }

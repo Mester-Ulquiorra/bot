@@ -1,4 +1,4 @@
-import { GuildMember } from "discord.js";
+import { Events, GuildMember } from "discord.js";
 import InviteConfig from "../database/InviteConfig.js";
 import Event from "../types/Event.js";
 import { GetSpecialChannel } from "../util/ClientUtils.js";
@@ -6,9 +6,9 @@ import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 
 const GuildMemberRemoveEvent: Event = {
-    name: "guildMemberRemove",
+    name: Events.GuildMemberRemove,
 
-    async run(_client, member: GuildMember) {
+    async run(_, member: GuildMember) {
         // get member config
         const memberConfig = await GetUserConfig(member.id, "new member, leaving");
 

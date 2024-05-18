@@ -111,9 +111,7 @@ async function GenerateRequest(message: Message<true>) {
             replyingString = ` [replying to ${replyingMessage.author.tag}]`;
         }
 
-        request.push(
-            `from ${m.author.tag}${replyingString !== "" ? replyingString : ""}: ${m.content === "" ? "[empty message]" : m.content}`
-        );
+        request.push(`from ${m.author.tag}${replyingString !== "" ? replyingString : ""}: ${m.content === "" ? "[empty message]" : m.content}`);
     }
     return request;
 }
@@ -126,14 +124,11 @@ async function SendWarningEmbed(message: Message<true>, response: InsultEvaluati
 
     // create a message preview, if it's over 1024 characters long, add 3 dots at the end (make sure the total length is 1024)
     const messagePreview = message.content.length > 1024 ? message.content.substring(0, 1021) + "..." : message.content;
-    const embed = CreateEmbed(
-        `**A ${hyperlink("message", message.url)} from ${message.author} in <#${message.channelId}> has been flagged by automod**`,
-        {
-            color: "warning",
-            title: "Automod Warning",
-            author: message.author
-        }
-    ).addFields(
+    const embed = CreateEmbed(`**A ${hyperlink("message", message.url)} from ${message.author} in <#${message.channelId}> has been flagged by automod**`, {
+        color: "warning",
+        title: "Automod Warning",
+        author: message.author
+    }).addFields(
         { name: "Message", value: messagePreview, inline: false },
         {
             name: "Context",

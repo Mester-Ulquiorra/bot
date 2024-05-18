@@ -1,12 +1,4 @@
-import {
-    ActionRowBuilder,
-    ApplicationCommandOptionChoiceData,
-    ChatInputCommandInteraction,
-    ComponentType,
-    StringSelectMenuBuilder,
-    hyperlink,
-    time
-} from "discord.js";
+import { ActionRowBuilder, ApplicationCommandOptionChoiceData, ChatInputCommandInteraction, ComponentType, StringSelectMenuBuilder, hyperlink, time } from "discord.js";
 import SteamAPI from "steamapi";
 import config from "../../config.js";
 import testMode from "../../testMode.js";
@@ -38,9 +30,7 @@ const SteamStatsCommand: SlashCommand = {
     },
 
     async runAutocomplete(interaction) {
-        const apps = (await cachedApps)
-            .filter((app) => app.name.toLowerCase().includes(interaction.options.getString("app", true).toLowerCase()))
-            .slice(0, 25);
+        const apps = (await cachedApps).filter((app) => app.name.toLowerCase().includes(interaction.options.getString("app", true).toLowerCase())).slice(0, 25);
 
         interaction.respond(
             apps.map((app) => {
@@ -80,12 +70,8 @@ async function getUserAchievements(interaction: ChatInputCommandInteraction) {
     }
 
     // completed / total
-    const totalText = `\nCompleted achievements: ${achievements.achievements.filter((a) => a.achieved).length} / ${
-        achievements.achievements.length
-    }`;
-    const embed = CreateEmbed(
-        `**Achievements of ${user.nickname} for ${achievements.gameName}** ${hyperlink("Steam Profile", user.url)}` + totalText
-    );
+    const totalText = `\nCompleted achievements: ${achievements.achievements.filter((a) => a.achieved).length} / ${achievements.achievements.length}`;
+    const embed = CreateEmbed(`**Achievements of ${user.nickname} for ${achievements.gameName}** ${hyperlink("Steam Profile", user.url)}` + totalText);
 
     embed.setThumbnail(user.avatar.large);
     embed.setFields(pages[0]);
@@ -190,10 +176,7 @@ async function getUserProfile(interaction: ChatInputCommandInteraction) {
     const mostPlayed = userGames.sort((a, b) => b.playTime - a.playTime).slice(0, 5);
     const mostPlayedString = mostPlayed
         .map((game) => {
-            return (
-                hyperlink(`${game.name}`, `https://store.steampowered.com/app/${game.appID}`) +
-                ` - ${formatDurationFromMinutes(game.playTime)}`
-            );
+            return hyperlink(`${game.name}`, `https://store.steampowered.com/app/${game.appID}`) + ` - ${formatDurationFromMinutes(game.playTime)}`;
         })
         .join("\n");
 
@@ -220,9 +203,7 @@ async function getSteamApp(interaction: ChatInputCommandInteraction) {
         return "Steam app was not found in local cache, was it recently added?";
     }
 
-    const embed = CreateEmbed(
-        `**Information about ${app.name}** ${hyperlink("Steam Store", `https://store.steampowered.com/app/${appId}`)}`
-    );
+    const embed = CreateEmbed(`**Information about ${app.name}** ${hyperlink("Steam Store", `https://store.steampowered.com/app/${appId}`)}`);
     embed.addFields({
         name: "Description",
         value: details.short_description as string
@@ -354,14 +335,7 @@ function isTrailers(obj: unknown): obj is { mp4: { max: string } }[] {
         typeof obj === "object" &&
         obj !== null &&
         obj instanceof Array &&
-        obj.every(
-            (o) =>
-                typeof o === "object" &&
-                o !== null &&
-                typeof o["mp4"] === "object" &&
-                o["mp4"] !== null &&
-                typeof o["mp4"]["max"] === "string"
-        )
+        obj.every((o) => typeof o === "object" && o !== null && typeof o["mp4"] === "object" && o["mp4"] !== null && typeof o["mp4"]["max"] === "string")
     );
 }
 
@@ -371,12 +345,7 @@ interface ReleaseDate {
 }
 
 function isReleaseDate(obj: unknown): obj is ReleaseDate {
-    return (
-        typeof obj === "object" &&
-        obj !== null &&
-        typeof (obj as ReleaseDate)["coming_soon"] === "boolean" &&
-        typeof (obj as ReleaseDate)["date"] === "string"
-    );
+    return typeof obj === "object" && obj !== null && typeof (obj as ReleaseDate)["coming_soon"] === "boolean" && typeof (obj as ReleaseDate)["date"] === "string";
 }
 
 interface Achievements {

@@ -29,15 +29,7 @@ export type GeoEvent = (typeof IGeoEvents)[number];
 /**
  * All relics
  */
-export const IRelicItems = <const>[
-    "dreamstone_shard",
-    "kings_idol",
-    "luminous_ore",
-    "mothwing_cloak",
-    "arcane_egg",
-    "wanderers_journal",
-    "lifeblood_core"
-];
+export const IRelicItems = <const>["dreamstone_shard", "kings_idol", "luminous_ore", "mothwing_cloak", "arcane_egg", "wanderers_journal", "lifeblood_core"];
 export type RelicItem = (typeof IRelicItems)[number];
 
 /**
@@ -96,32 +88,25 @@ export const ItemNames = Object.assign({}, RelicNames, ArtifactNames);
  * Descriptions of all relics
  */
 export const RelicDescriptions: { [key in RelicItem]: string } = {
-    dreamstone_shard:
-        "[Common] A small shard of shimmering crystal that glows with a soft light. It's said to hold fragments of the dreams of ancient beings.",
+    dreamstone_shard: "[Common] A small shard of shimmering crystal that glows with a soft light. It's said to hold fragments of the dreams of ancient beings.",
     wanderers_journal:
         "[Common] A worn and tattered journal filled with the notes and observations of a traveler. It's said to hold valuable insights into the world of Hallownest.",
-    kings_idol:
-        "[Uncommon] A small figurine depicting a regal figure. It's said to be a token of the Pale King's favor and is highly sought after by collectors.",
-    luminous_ore:
-        "[Uncommon] A rare and valuable ore that glows with a bright light. It's often used in the crafting of powerful magical artifacts.",
+    kings_idol: "[Uncommon] A small figurine depicting a regal figure. It's said to be a token of the Pale King's favor and is highly sought after by collectors.",
+    luminous_ore: "[Uncommon] A rare and valuable ore that glows with a bright light. It's often used in the crafting of powerful magical artifacts.",
     mothwing_cloak: "[Rare] A tattered cloak made of delicate moth wings. It allows its wearer to dash through the air and cling to walls.",
-    arcane_egg:
-        "[Rare] A mysterious egg that hums with arcane energy. Its true purpose is unknown, but many believe it to be a powerful magical artifact.",
-    lifeblood_core:
-        "[Rare] A pulsating core that contains the essence of Lifeblood, a rare substance that can heal even the most grievous wounds."
+    arcane_egg: "[Rare] A mysterious egg that hums with arcane energy. Its true purpose is unknown, but many believe it to be a powerful magical artifact.",
+    lifeblood_core: "[Rare] A pulsating core that contains the essence of Lifeblood, a rare substance that can heal even the most grievous wounds."
 };
 
 /**
  * Descriptions of all artifacts
  */
 export const ArtifactDescriptions: { [key in ArtifactItem]: string } = {
-    void_crystal:
-        "[Rare] A dark, crystalline substance that seems to absorb all light around it. Its jagged edges shimmer with an otherworldly energy.",
+    void_crystal: "[Rare] A dark, crystalline substance that seems to absorb all light around it. Its jagged edges shimmer with an otherworldly energy.",
     mask_shard:
         "[Very rare] A small, intricately carved fragment of some ancient material. It's hard to tell what it was originally a part of, but you have a feeling that if you could find enough of these shards, you might be able to create something truly remarkable.",
     crystal_heart: "[Very rare] A pulsing crystal that glows with an inner light. It seems to resonate with the beating of your own heart.",
-    pale_ore:
-        "[Extremely rare] A rare, shimmering metal that seems to defy all attempts to dull or tarnish it. Its surface is smooth and unblemished."
+    pale_ore: "[Extremely rare] A rare, shimmering metal that seems to defy all attempts to dull or tarnish it. Its surface is smooth and unblemished."
 };
 
 /**

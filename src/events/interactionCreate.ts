@@ -1,4 +1,4 @@
-import { BaseInteraction, Client, InteractionReplyOptions } from "discord.js";
+import { BaseInteraction, Client, Events, InteractionReplyOptions } from "discord.js";
 import { logger } from "../Ulquiorra.js";
 import langs from "../lang/events/interactionCreate.js";
 import Event from "../types/Event.js";
@@ -28,7 +28,7 @@ const IgnoredIds: Array<RegExp> = [
 ];
 
 const InteractionCreateEvent: Event = {
-    name: "interactionCreate",
+    name: Events.InteractionCreate,
     async run(client: Client, interaction: BaseInteraction) {
         const member = interaction.inCachedGuild() ? interaction.member : await GetGuild().members.fetch(interaction.user.id);
         const userLang = await GetMemberLanguage(member);
@@ -46,7 +46,7 @@ const InteractionCreateEvent: Event = {
             returnMessage = await returnStatus.catch((error) => {
                 return error;
             });
-        } catch (error) {
+        } catch {
             // most likely the command doesn't support that "type" of command we're trying to run
             const embed = CreateEmbed(loc.get(userLang, "error.unregistered"), {
                 color: "error",

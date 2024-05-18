@@ -48,23 +48,17 @@ const ChessCommand: SlashCommand = {
                 }
 
                 // create an embed to wait for the user to accept the game
-                const waitEmbed = CreateEmbed(
-                    `**${member}, ${interaction.member} has invited you to play chess! \n Click on the button to accept!**`,
-                    { title: `Chess game invitation`, color: "success" }
-                ).setFooter({
+                const waitEmbed = CreateEmbed(`**${member}, ${interaction.member} has invited you to play chess! \n Click on the button to accept!**`, {
+                    title: `Chess game invitation`,
+                    color: "success"
+                }).setFooter({
                     text: "You have 15 seconds to accept the game!"
                 });
 
                 // create the accept button
                 const components = [
                     new ActionRowBuilder<ButtonBuilder>()
-                        .addComponents([
-                            new ButtonBuilder()
-                                .setCustomId("chess.acceptgame")
-                                .setEmoji("✅")
-                                .setLabel("Accept game")
-                                .setStyle(ButtonStyle.Success)
-                        ])
+                        .addComponents([new ButtonBuilder().setCustomId("chess.acceptgame").setEmoji("✅").setLabel("Accept game").setStyle(ButtonStyle.Success)])
                         .toJSON()
                 ];
 
@@ -341,8 +335,7 @@ class ChessGame {
 
             drawMessage
                 .awaitMessageComponent({
-                    filter: (x: ButtonInteraction) =>
-                        x.user.id === (button.user.id === this.player1.id ? this.player2.id : this.player1.id),
+                    filter: (x: ButtonInteraction) => x.user.id === (button.user.id === this.player1.id ? this.player2.id : this.player1.id),
                     time: 60_000,
                     componentType: ComponentType.Button
                 })
@@ -424,11 +417,7 @@ class ChessGame {
         try {
             const interaction1 = await this.message.channel.awaitMessageComponent({
                 componentType: ComponentType.StringSelect,
-                filter: (i) =>
-                    i.message.id === this.inputMessage.id &&
-                    !!this.turnPlayer &&
-                    i.user.id === this.turnPlayer.id &&
-                    i.customId === "chess.piecetomove"
+                filter: (i) => i.message.id === this.inputMessage.id && !!this.turnPlayer && i.user.id === this.turnPlayer.id && i.customId === "chess.piecetomove"
             });
             await interaction1.deferUpdate();
             if (this.ended) {
@@ -519,11 +508,7 @@ class ChessGame {
 
             const interaction2 = await this.message.channel.awaitMessageComponent({
                 componentType: ComponentType.StringSelect,
-                filter: (i) =>
-                    i.message.id === this.inputMessage.id &&
-                    !!this.turnPlayer &&
-                    i.user.id === this.turnPlayer.id &&
-                    i.customId === "chess.movedest"
+                filter: (i) => i.message.id === this.inputMessage.id && !!this.turnPlayer && i.user.id === this.turnPlayer.id && i.customId === "chess.movedest"
             });
             await interaction2.deferUpdate();
             if (this.ended) {
@@ -688,9 +673,7 @@ class ChessGame {
      * A function for generating the game message.
      */
     generateMessage() {
-        const embed = CreateEmbed(
-            `**${this.player1} (white) vs. ${this.player2} (black)**\n\nThe game will automatically expire at <t:${this.expires}>`
-        );
+        const embed = CreateEmbed(`**${this.player1} (white) vs. ${this.player2} (black)**\n\nThe game will automatically expire at <t:${this.expires}>`);
 
         const components = [
             new ActionRowBuilder<ButtonBuilder>()

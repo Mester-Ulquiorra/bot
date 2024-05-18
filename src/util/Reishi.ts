@@ -189,10 +189,7 @@ export async function PunishMessage(message: Message, type: PunishmentNames, res
         message.delete();
         return;
     }
-    if (
-        !(type === "RepeatedText" && message.mentions.members?.size !== 0) &&
-        (result.forceDelete === undefined || result.forceDelete === true)
-    ) {
+    if (!(type === "RepeatedText" && message.mentions.members?.size !== 0) && (result.forceDelete === undefined || result.forceDelete === true)) {
         message.delete();
     }
 

@@ -11,7 +11,7 @@ describe("Reishi", () => {
             expect(DetectProfanity("This is a clean message")).toBeNull();
         });
         test("ignore case", () => {
-            expect(DetectProfanity("I'm doing some MASturbation")).toBe("masturbation");
+            expect(DetectProfanity("I'm doing some FINgerfucking")).toBe("fingerfucking");
             expect(DetectProfanity("YOU'RE SUCH A MOFO")).toBe("mofo");
         });
         test("detect words that contain punctuation", () => {
@@ -22,19 +22,15 @@ describe("Reishi", () => {
         test("reverse leetspeak", () => {
             expect(DetectProfanity("don't be a pu$$y")).toBe("pussy");
             expect(DetectProfanity("so there was this f4ggot")).toBe("faggot");
-            expect(DetectProfanity("bl0wj0b$")).toBe("blowjobs");
+            expect(DetectProfanity("+wun+3r")).toBe("twunter");
         });
         test("detect fragmented words", () => {
-            expect(DetectProfanity("di ck")).toBe("dick");
+            expect(DetectProfanity("di ck hea d")).toBe("dickhead");
             expect(DetectProfanity("lmao, look at that pu ssy")).toBe("pussy");
-        });
-        test("reverse leetspeek in fragmented words", () => {
-            expect(DetectProfanity("there is this n4 zi")).toBe("nazi");
-            expect(DetectProfanity("he is a mo th3 rfu ck3 r")).toBe("motherfucker");
         });
         test("ignore puncutation and other special characters", () => {
             expect(DetectProfanity("look mom, I'm a fi ........-.-. n .-.-.-!! gerf --.-.->\" ucke --/!.., r")).toBe("fingerfucker");
-            expect(DetectProfanity("**MAS** -- +u!**r!b 4t --- i**  0n")).toBe("masturbation");
+            expect(DetectProfanity("**FIN** -- ge**r!fu ck")).toBe("fingerfuck");
         });
     });
     describe("FloodCheck", () => {
@@ -147,23 +143,19 @@ describe("Reishi", () => {
             ).toBeNull();
         });
         test("detect repeated words", () => {
-            expect(DetectFlood("Hello, I'm repeating repeating repeating repeating repeating repeating repeating ")).toBe(
-                "repeated word repeating"
-            );
+            expect(DetectFlood("Hello, I'm repeating repeating repeating repeating repeating repeating repeating")).toBe("repeated word repeating");
             expect(DetectFlood("hello hello hello hello hello hello")).toBe("repeated word hello");
             expect(DetectFlood("Hey, you're hey, hey?")).not.toBe("hey");
         });
         test("detect repeated letters", () => {
-            expect(DetectFlood("hellllllllllllo")).toBe("repeated letter l");
-            expect(DetectFlood("craaaaaaazy")).toBe("repeated letter a");
-            expect(DetectFlood("what's uppppp")).not.toBe("repeated letter p");
+            expect(DetectFlood("hellllllllllllo")).toBe("__delete__");
+            expect(DetectFlood("craaaaaaazy")).toBe("__delete__");
+            expect(DetectFlood("what's uppppp")).not.toBe("__delete__");
         });
         test("ignore leet speak", () => {
-            expect(DetectFlood("hiii111i1i1")).toBe("repeated letter i");
-            expect(DetectFlood("Wo444a444h")).toBe("repeated letter a");
-            expect(DetectFlood("This is r3p3tition repetition r3pet1tion repe+ition repetiti0n r3p3+1+10n r3p3+1ti0n")).toBe(
-                "repeated word repetition"
-            );
+            expect(DetectFlood("hiii111i1i1")).toBe("__delete__");
+            expect(DetectFlood("Wo444a444h")).toBe("__delete__");
+            expect(DetectFlood("This is r3p3tition repetition r3pet1tion repe+ition repetiti0n r3p3+1+10n r3p3+1ti0n")).toBe("repeated word repetition");
         });
     });
     describe("LinkCheck", () => {

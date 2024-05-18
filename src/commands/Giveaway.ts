@@ -110,11 +110,9 @@ async function endGiveaway(giveaway: IDBGiveaway) {
     giveaway.ended = true;
 
     // get giveaway message
-    const message = await (GetGuild().channels.cache.get(giveaway.channel) as GuildTextBasedChannel).messages
-        .fetch(giveaway.message)
-        .catch(() => {
-            return;
-        });
+    const message = await (GetGuild().channels.cache.get(giveaway.channel) as GuildTextBasedChannel).messages.fetch(giveaway.message).catch(() => {
+        return;
+    });
 
     if (!message) {
         logger.log(`Giveaway ${giveaway.giveawayId} has ended, but it's missing the message.`, "warn");

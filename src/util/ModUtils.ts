@@ -204,9 +204,7 @@ export function CreateModEmbed<T extends boolean = false, U extends boolean = fa
     // set the footer to the punishment id
     const footer =
         `Punishment ID: ${punishment?.punishmentId ?? "#unknown#"} ` +
-        (punishment?.automated && options.userEmbed && !options.anti
-            ? "(this is an automated punishment, false positives might occur)"
-            : "");
+        (punishment?.automated && options.userEmbed && !options.anti ? "(this is an automated punishment, false positives might occur)" : "");
     embed.setFooter({ text: footer });
 
     // we're done with the basic stuff, but if this is an anti punishment, we also need to add the original moderator

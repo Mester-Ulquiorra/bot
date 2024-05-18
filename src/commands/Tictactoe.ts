@@ -110,17 +110,15 @@ async function play(interaction: ChatInputCommandInteraction) {
     }
 
     // create an embed to wait for the user to accept the game
-    const waitEmbed = CreateEmbed(
-        `**${member}, ${interaction.member} has invited you to play tictactoe! \n Click on the button to accept!**`,
-        { title: `Tictactoe game invitation`, color: "success" }
-    ).setFooter({ text: "You have 15 seconds to accept the game!" });
+    const waitEmbed = CreateEmbed(`**${member}, ${interaction.member} has invited you to play tictactoe! \n Click on the button to accept!**`, {
+        title: `Tictactoe game invitation`,
+        color: "success"
+    }).setFooter({ text: "You have 15 seconds to accept the game!" });
 
     // create the accept button
     const components = [
         new ActionRowBuilder<ButtonBuilder>()
-            .addComponents([
-                new ButtonBuilder().setCustomId("tictactoe.acceptgame").setEmoji("✅").setLabel("Accept game").setStyle(ButtonStyle.Success)
-            ])
+            .addComponents([new ButtonBuilder().setCustomId("tictactoe.acceptgame").setEmoji("✅").setLabel("Accept game").setStyle(ButtonStyle.Success)])
             .toJSON()
     ];
 
@@ -187,11 +185,11 @@ async function stats(interaction: ChatInputCommandInteraction) {
 
     const stats = member == null ? await getTictactoeStat(interaction.user.id) : await getTictactoeStat(member.id);
 
-    const drawn_games = stats.gamesPlayed - stats.gamesWon - stats.gamesLost;
+    const drawnGames = stats.gamesPlayed - stats.gamesWon - stats.gamesLost;
 
-    let win_percentage = (stats.gamesWon * 100) / (stats.gamesPlayed - drawn_games);
-    if (isNaN(win_percentage)) {
-        win_percentage = 0;
+    let winPercentage = (stats.gamesWon * 100) / (stats.gamesPlayed - drawnGames);
+    if (isNaN(winPercentage)) {
+        winPercentage = 0;
     }
 
     const embed = CreateEmbed(`**${member || "Your"}${member != null ? "'s" : ""} tictactoe stats**`).addFields([
@@ -212,12 +210,12 @@ async function stats(interaction: ChatInputCommandInteraction) {
         },
         {
             name: "Games drawn",
-            value: drawn_games.toString(),
+            value: drawnGames.toString(),
             inline: true
         },
         {
             name: "Win percentage (not including draws)",
-            value: win_percentage.toFixed(2) + "%",
+            value: winPercentage.toFixed(2) + "%",
             inline: true
         },
         {
@@ -359,9 +357,7 @@ class TicTacToeGame {
         // wait for a button to be pressed
         this.message
             .awaitMessageComponent({
-                filter: (button) =>
-                    !!button.customId.match(/tictactoe.board[1-9]/) &&
-                    button.user.id === (this.turn === 1 ? this.player1.id : this.player2.id),
+                filter: (button) => !!button.customId.match(/tictactoe.board[1-9]/) && button.user.id === (this.turn === 1 ? this.player1.id : this.player2.id),
                 time: 60_000,
                 componentType: ComponentType.Button
             })
@@ -661,11 +657,11 @@ async function ReadPage(page: number, maxPage: number) {
 
         const stats = cachepage[i].stat;
 
-        const ELO = getElo(stats);
+        const elo = getElo(stats);
 
-        let win_percentage = (stats.gamesWon * 100) / stats.gamesPlayed;
-        if (isNaN(win_percentage)) {
-            win_percentage = 0;
+        let winPercentage = (stats.gamesWon * 100) / stats.gamesPlayed;
+        if (isNaN(winPercentage)) {
+            winPercentage = 0;
         }
 
         embed.addFields([
@@ -673,9 +669,9 @@ async function ReadPage(page: number, maxPage: number) {
                 // this part figures out the position of the rank in the leaderboard
                 name: `${((page - 1) * PageSize + i + 1).toString()}. ${cachepage[i].name}`,
 
-                value: `Games played: ${stats.gamesPlayed} | Games won: ${stats.gamesWon} | Games lost: ${
-                    stats.gamesLost
-                }\nWin percentage: ${win_percentage.toFixed(2) + "%"} | ELO: ${ELO}`,
+                value: `Games played: ${stats.gamesPlayed} | Games won: ${stats.gamesWon} | Games lost: ${stats.gamesLost}\nWin percentage: ${
+                    winPercentage.toFixed(2) + "%"
+                } | ELO: ${elo}`,
 
                 inline: false
             }
@@ -728,10 +724,10 @@ async function CachePage(stats: DBTictactoe[], page: number, client: Client) {
     const buffer = new Array<PageCache>(PageSize);
 
     // create the start index for levels
-    const start_index = (page - 1) * PageSize;
+    const startIndex = (page - 1) * PageSize;
 
     // now read PAGE_SIZE levels
-    for (let j = start_index; j < start_index + PageSize && j < stats.length; j++) {
+    for (let j = startIndex; j < startIndex + PageSize && j < stats.length; j++) {
         // read level
         const stat = stats[j];
 
@@ -749,7 +745,7 @@ async function CachePage(stats: DBTictactoe[], page: number, client: Client) {
         const name = user ? user.tag : "Unknown";
 
         // write to buffer
-        buffer[j - start_index] = {
+        buffer[j - startIndex] = {
             name,
             stat: stat
         };

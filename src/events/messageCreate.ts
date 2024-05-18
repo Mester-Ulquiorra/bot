@@ -1,5 +1,5 @@
 import { Cache, IDBUser, TicketType, TicketTypes } from "@mester-ulquiorra/commonlib";
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, ComponentType, Message, quote } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, ComponentType, Events, Message, quote } from "discord.js";
 import openai, { ChatCompletionRequestMessage } from "openai";
 import { shutdown } from "../Ulquiorra.js";
 import config from "../config.js";
@@ -37,7 +37,7 @@ The format of the input is as follows: [date] author: message.`;
 const summaryCooldown = new Cache<string, number>(15 * 60 * 1000);
 
 const MessageCreateEvent: Event = {
-    name: "messageCreate",
+    name: Events.MessageCreate,
     async run(client: Client, message: Message) {
         if (!client.user || !message.inGuild()) {
             return;
@@ -91,9 +91,7 @@ async function handleSuperuserCommand(client: Client, message: Message) {
 
     if (command === "hi") {
         message.reply({
-            content:
-                `Hi! Latency: ${Math.abs(Date.now() - message.createdTimestamp)}ms. API Latency: ${Math.round(client.ws.ping)}ms` +
-                `\nVersion: ${config.Version}`,
+            content: `Hi! Latency: ${Math.abs(Date.now() - message.createdTimestamp)}ms. API Latency: ${Math.round(client.ws.ping)}ms` + `\nVersion: ${config.Version}`,
             allowedMentions: { users: [] }
         });
         return true;
@@ -219,16 +217,14 @@ async function replyToConversation(message: Message<true>) {
     }
 
     const response = await openAIClient.createChatCompletion({
-        model: "gpt-3.5-turbo-0125",
+        model: "gpt-4o",
         messages: conversation,
         max_tokens: 1024,
         temperature: 1.2,
         functions: [
             {
                 name: "generate_summary",
-                description:
-                    // eslint-disable-next-line no-useless-escape, prettier/prettier
-                    "If the user is trying to catch up with phrases such as \"what's happening\" or \"what happened\", generate him a summary of the conversation.",
+                description: 'If the user is trying to catch up to chat with phrases such as "what\'s happening" or "what happened", generate him a summary of the conversation.',
                 parameters: { type: "object", properties: {} }
             },
             {
@@ -292,9 +288,7 @@ async function replyToConversation(message: Message<true>) {
 async function generateSummary(message: Message<true>, conversation: openai.ChatCompletionRequestMessage[]) {
     const cooldown = summaryCooldown.get(message.channelId);
     if (cooldown && cooldown > Date.now()) {
-        return void message.reply(
-            `You can only use this command once per hour. Please wait ${Math.ceil((cooldown - Date.now()) / 1000)} seconds.`
-        );
+        return void message.reply(`You can only use this command once per hour. Please wait ${Math.ceil((cooldown - Date.now()) / 1000)} seconds.`);
     }
 
     // reply with a prompt
@@ -344,7 +338,7 @@ async function generateSummary(message: Message<true>, conversation: openai.Chat
 
     // generate the summary
     const summaryResponse = await openAIClient.createChatCompletion({
-        model: "gpt-4",
+        model: "gpt-4o",
         messages: [
             {
                 role: "system",
@@ -374,25 +368,14 @@ async function generateSummary(message: Message<true>, conversation: openai.Chat
     });
 }
 
-async function openTicket(
-    message: Message<true>,
-    conversation: openai.ChatCompletionRequestMessage[],
-    functionCall: openai.ChatCompletionRequestMessageFunctionCall
-) {
+async function openTicket(message: Message<true>, conversation: openai.ChatCompletionRequestMessage[], functionCall: openai.ChatCompletionRequestMessageFunctionCall) {
     const args = JSON.parse(functionCall.arguments ?? "{}") as {
         reason: string;
         type: TicketType;
     };
 
     // check if the arguments are valid
-    if (
-        !message.member ||
-        !args.reason ||
-        !args.type ||
-        args.reason.length < 20 ||
-        args.reason.length > 128 ||
-        !TicketTypes.includes(args.type)
-    ) {
+    if (!message.member || !args.reason || !args.type || args.reason.length < 20 || args.reason.length > 128 || !TicketTypes.includes(args.type)) {
         return void message.reply("__An unexpected error has happened__");
     }
 

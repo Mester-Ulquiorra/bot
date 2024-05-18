@@ -63,7 +63,6 @@ export default {
         "cyberfucking",
         "dickhead",
         "dirsa",
-        "dlck",
         "dogfucker",
         "doggin",
         "dogging",

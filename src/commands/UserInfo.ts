@@ -1,12 +1,4 @@
-import {
-    ActionRowBuilder,
-    ButtonBuilder,
-    ButtonInteraction,
-    ButtonStyle,
-    ChatInputCommandInteraction,
-    GuildMember,
-    User
-} from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, GuildMember, User } from "discord.js";
 import PunishmentConfig from "../database/PunishmentConfig.js";
 import SlashCommand from "../types/SlashCommand.js";
 import { GetGuild } from "../util/ClientUtils.js";
@@ -18,8 +10,7 @@ const UserInfoCommand: SlashCommand = {
     name: "userinfo",
 
     async run(interaction) {
-        const target: GuildMember | User =
-            (interaction.options.getMember("member") as GuildMember) || interaction.options.getUser("member");
+        const target: GuildMember | User = (interaction.options.getMember("member") as GuildMember) || interaction.options.getUser("member");
         if (!target) {
             return GetError("UserUnavailable");
         }
@@ -66,9 +57,7 @@ async function GenerateUserInfo(interaction: ChatInputCommandInteraction | Butto
             {
                 name: "Username (nickname)",
                 // yeah, I know this looks terrible, but oh well
-                value:
-                    (target instanceof GuildMember ? target.user.tag : target.tag) +
-                    (target instanceof GuildMember && target.nickname ? ` (${target.nickname})` : ""),
+                value: (target instanceof GuildMember ? target.user.tag : target.tag) + (target instanceof GuildMember && target.nickname ? ` (${target.nickname})` : ""),
                 inline: true
             },
             {
@@ -106,17 +95,13 @@ async function GenerateUserInfo(interaction: ChatInputCommandInteraction | Butto
                 .setLabel("View active punishment")
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(latestPunishment == null),
-            new ButtonBuilder()
-                .setCustomId(`punishmentinfo.showallp-${target.id}`)
-                .setLabel("View all punishments")
-                .setStyle(ButtonStyle.Primary),
+            new ButtonBuilder().setCustomId(`punishmentinfo.showallp-${target.id}`).setLabel("View all punishments").setStyle(ButtonStyle.Primary),
             new ButtonBuilder()
                 .setLabel("Show avatar")
                 .setStyle(ButtonStyle.Link)
                 .setURL(
-                    (target instanceof GuildMember
-                        ? target.displayAvatarURL({ extension: "png" })
-                        : target.avatarURL({ extension: "png" })) ?? "https://cdn.discordapp.com/embed/avatars/0.png"
+                    (target instanceof GuildMember ? target.displayAvatarURL({ extension: "png" }) : target.avatarURL({ extension: "png" })) ??
+                        "https://cdn.discordapp.com/embed/avatars/0.png"
                 )
         )
     ];

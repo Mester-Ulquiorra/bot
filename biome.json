@@ -1,17 +1,25 @@
 {
     "$schema": "https://biomejs.dev/schemas/1.7.3/schema.json",
+    "vcs": {
+        "enabled": true,
+        "clientKind": "git",
+        "useIgnoreFile": true,
+        "defaultBranch": "main"
+    },
     "formatter": {
         "enabled": true,
         "formatWithErrors": false,
         "indentStyle": "space",
         "indentWidth": 4,
         "lineEnding": "lf",
-        "lineWidth": 140,
+        "lineWidth": 180,
         "attributePosition": "auto",
         "ignore": ["**/package.json"],
         "include": ["src/**/*.ts"]
     },
-    "organizeImports": { "enabled": true },
+    "organizeImports": {
+        "enabled": false
+    },
     "linter": {
         "include": ["src/**", "./**/*.ts"],
         "enabled": true,
@@ -49,6 +57,7 @@
                 "noUnusedLabels": "error",
                 "noUnusedPrivateClassMembers": "error",
                 "noUnusedVariables": "warn",
+                "noUnusedImports": "error",
                 "useIsNan": "error",
                 "useValidForDirection": "error",
                 "useYield": "error"
@@ -98,47 +107,13 @@
             "jsxQuoteStyle": "double",
             "quoteProperties": "asNeeded",
             "trailingComma": "none",
-            "semicolons": "asNeeded",
+            "semicolons": "always",
             "arrowParentheses": "always",
             "bracketSpacing": true,
             "bracketSameLine": false,
-            "quoteStyle": "single",
+            "quoteStyle": "double",
             "attributePosition": "auto"
-        }
-    },
-    "overrides": [
-        {
-            "include": ["*.ts", "*.tsx", "*.mts", "*.cts"],
-            "linter": {
-                "rules": {
-                    "correctness": {
-                        "noConstAssign": "off",
-                        "noGlobalObjectCalls": "off",
-                        "noInvalidConstructorSuper": "off",
-                        "noNewSymbol": "off",
-                        "noSetterReturn": "off",
-                        "noUndeclaredVariables": "off",
-                        "noUnreachable": "off",
-                        "noUnreachableSuper": "off"
-                    },
-                    "style": {
-                        "noArguments": "error",
-                        "noVar": "error",
-                        "useConst": "error"
-                    },
-                    "suspicious": {
-                        "noDuplicateClassMembers": "off",
-                        "noDuplicateObjectKeys": "off",
-                        "noDuplicateParameters": "off",
-                        "noFunctionAssign": "off",
-                        "noImportAssign": "off",
-                        "noRedeclare": "off",
-                        "noUnsafeNegation": "off",
-                        "useGetterReturn": "off",
-                        "useValidTypeof": "off"
-                    }
-                }
-            }
-        }
-    ]
+        },
+        "globals": ["const"]
+    }
 }

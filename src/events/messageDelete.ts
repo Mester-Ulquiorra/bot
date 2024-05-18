@@ -1,4 +1,4 @@
-import { ChannelType, Message } from "discord.js";
+import { ChannelType, Events, Message } from "discord.js";
 import Event from "../types/Event.js";
 import { GetSpecialChannel } from "../util/ClientUtils.js";
 import CreateEmbed from "../util/CreateEmbed.js";
@@ -6,9 +6,9 @@ import CreateEmbed from "../util/CreateEmbed.js";
 const MaxContentLength = 1021;
 
 const MessageDeleteEvent: Event = {
-    name: "messageDelete",
+    name: Events.MessageDelete,
 
-    async run(client, message: Message) {
+    async run(_, message: Message) {
         if (message.author.bot || message.channel.type === ChannelType.DM) {
             return;
         }
@@ -52,9 +52,7 @@ const MessageDeleteEvent: Event = {
                 text:
                     `Member ID: ${message.author.id} | Message ID: ${message.id} ` +
                     // this part adds extra information about the replied message if it exists
-                    (repliedMessage != null
-                        ? `| Replied user ID: ${repliedMessage.author.id} | Replied message ID: ${repliedMessage.id}`
-                        : "")
+                    (repliedMessage != null ? `| Replied user ID: ${repliedMessage.author.id} | Replied message ID: ${repliedMessage.id}` : "")
             });
 
         // create the field for attachments

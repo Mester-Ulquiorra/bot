@@ -82,9 +82,7 @@ type LockableChannel = Exclude<GuildTextBasedChannel, AnyThreadChannel>;
  */
 async function lockAll(unlock: boolean, reason: string, interaction: ChatInputCommandInteraction) {
     // fetch all channels that are in the all lock id array
-    const channelsToLock = (await GetGuild().channels.fetch()).filter(
-        (channel) => channel && config.channels.LockAllIds.includes(channel.id)
-    );
+    const channelsToLock = (await GetGuild().channels.fetch()).filter((channel) => channel && config.channels.LockAllIds.includes(channel.id));
 
     for (const [, channel] of channelsToLock) {
         lockOne(channel as TextChannel, !unlock, reason, interaction);

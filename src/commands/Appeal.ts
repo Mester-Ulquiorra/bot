@@ -90,15 +90,9 @@ export async function createAppeal(userId: string, punishment: DBPunishment, rea
             .toJSON(),
         new ActionRowBuilder<ButtonBuilder>()
             .addComponents(
-                new ButtonBuilder()
-                    .setLabel("Show punishment")
-                    .setStyle(ButtonStyle.Secondary)
-                    .setCustomId(`punishmentinfo.showp-${punishment.punishmentId}`),
+                new ButtonBuilder().setLabel("Show punishment").setStyle(ButtonStyle.Secondary).setCustomId(`punishmentinfo.showp-${punishment.punishmentId}`),
                 new ButtonBuilder().setLabel("Show user info").setStyle(ButtonStyle.Secondary).setCustomId(`userinfo.showu-${user.id}`),
-                new ButtonBuilder()
-                    .setLabel("Punishment history")
-                    .setStyle(ButtonStyle.Secondary)
-                    .setCustomId(`punishmentinfo.showallp-${user.id}`)
+                new ButtonBuilder().setLabel("Punishment history").setStyle(ButtonStyle.Secondary).setCustomId(`punishmentinfo.showallp-${user.id}`)
             )
             .toJSON()
     ];
@@ -124,11 +118,7 @@ async function manageAppeal(interaction: ButtonInteraction, accepted: boolean) {
     // get the reason for the action
     const reasonMessage = await interaction.reply({
         embeds: [
-            CreateEmbed(
-                `**Please give a reason for your action by __replying__ to this message.** (Max. length: 500 characters)\n**Type ${inlineCode(
-                    "cancel"
-                )} to cancel.**`
-            )
+            CreateEmbed(`**Please give a reason for your action by __replying__ to this message.** (Max. length: 500 characters)\n**Type ${inlineCode("cancel")} to cancel.**`)
         ],
         fetchReply: true
     });
@@ -235,9 +225,9 @@ async function manageAppeal(interaction: ButtonInteraction, accepted: boolean) {
     }
 
     logger.log(
-        `${interaction.user.tag} (${interaction.user.id}) has ${accepted ? "accepted" : "declined"} the punishment appeal of ${
-            target.tag
-        } (${target.id}). ID: ${punishment.punishmentId}`
+        `${interaction.user.tag} (${interaction.user.id}) has ${accepted ? "accepted" : "declined"} the punishment appeal of ${target.tag} (${target.id}). ID: ${
+            punishment.punishmentId
+        }`
     );
 
     // send an internal message to the API

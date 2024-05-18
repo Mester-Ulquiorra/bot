@@ -26,11 +26,7 @@ const PunishmentInfoCommand: SlashCommand = {
                 return showPunishmentById(interaction, interaction.options.getString("id", true));
             }
             case "member": {
-                return showPunishmentsOfMember(
-                    interaction,
-                    interaction.options.getUser("member", true),
-                    interaction.options.getInteger("page") ?? 1
-                );
+                return showPunishmentsOfMember(interaction, interaction.options.getUser("member", true), interaction.options.getInteger("page") ?? 1);
             }
         }
 
@@ -183,12 +179,7 @@ async function showPunishmentById(interaction: ChatInputCommandInteraction | But
  * @param page The page to display.
  * @param refresh If this is a refresh (the interaction already exists)
  */
-async function showPunishmentsOfMember(
-    interaction: ChatInputCommandInteraction | ButtonInteraction | StringSelectMenuInteraction,
-    user: User,
-    page: number,
-    refresh = false
-) {
+async function showPunishmentsOfMember(interaction: ChatInputCommandInteraction | ButtonInteraction | StringSelectMenuInteraction, user: User, page: number, refresh = false) {
     const maxPage = await GetMaxPunishmentPages(user.id);
 
     // check if page is bigger than the available pages

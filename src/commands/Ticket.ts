@@ -19,14 +19,7 @@ import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import GetError from "../util/GetError.js";
 import { CanManageUser, ModNameToLevel } from "../util/ModUtils.js";
-import {
-    CanManageTicket,
-    ChannelIsTicket,
-    CreateTicket,
-    CreateWaitingforMessage,
-    ReloadTicketPermissions,
-    TicketTypeToName
-} from "../util/TicketUtils.js";
+import { CanManageTicket, ChannelIsTicket, CreateTicket, CreateWaitingforMessage, ReloadTicketPermissions, TicketTypeToName } from "../util/TicketUtils.js";
 
 const TicketCreateRegex = /^ticket\.create-\w+$/;
 
@@ -153,9 +146,7 @@ const TicketCommand: SlashCommand = {
 
     async runUserContextCommand(interaction) {
         if (interaction.commandName === "Create Ticket") {
-            CreateTicket(interaction.member as GuildMember, `added ${interaction.targetUser} from context menu`, interaction, "private", [
-                interaction.targetId
-            ]);
+            CreateTicket(interaction.member as GuildMember, `added ${interaction.targetUser} from context menu`, interaction, "private", [interaction.targetId]);
         }
     }
 };
@@ -168,13 +159,7 @@ const TicketCommand: SlashCommand = {
  * @param type Either to add or remove the member
  * @param reason The reason for the action
  */
-async function manageUser(
-    interaction: ChatInputCommandInteraction,
-    target: GuildMember,
-    userConfig: DBUser,
-    type: "ADD" | "REMOVE",
-    reason: string
-) {
+async function manageUser(interaction: ChatInputCommandInteraction, target: GuildMember, userConfig: DBUser, type: "ADD" | "REMOVE", reason: string) {
     // get member config
     const targetConfig = await GetUserConfig(target.id, "managing user in ticket");
 

@@ -62,9 +62,7 @@ async function setBirthday(interaction: ChatInputCommandInteraction): SlashComma
 
     await targetConfig.save();
 
-    const embedDescription = birthday
-        ? `Successfully set ${target}'s birthday to ${birthday}`
-        : `Successfully removed ${target}'s birthday`;
+    const embedDescription = birthday ? `Successfully set ${target}'s birthday to ${birthday}` : `Successfully removed ${target}'s birthday`;
 
     const embed = CreateEmbed(embedDescription, { color: "success" });
     await interaction.reply({ embeds: [embed] });

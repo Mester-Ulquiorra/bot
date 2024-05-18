@@ -49,9 +49,7 @@ const ClearCommmand: SlashCommand = {
         let messagesText = `Bulk delete report generated at ${format(new Date(), "yyyy-MM-dd HH:mm:ss")}`;
         for (const message of messagesToDelete.map((m) => m)) {
             const nickname = message.member?.nickname ? ` (${message.member.nickname})` : null;
-            messagesText += `\n${message.author.tag}${nickname ?? ""} [${format(message.createdTimestamp, "yyyy-MM-dd HH:mm:ss")}]: ${
-                message.content
-            }`;
+            messagesText += `\n${message.author.tag}${nickname ?? ""} [${format(message.createdTimestamp, "yyyy-MM-dd HH:mm:ss")}]: ${message.content}`;
         }
 
         interaction.channel.bulkDelete(messagesToDelete);
@@ -59,9 +57,7 @@ const ClearCommmand: SlashCommand = {
         const embed = CreateEmbed(`Successfully deleted ${messagesToDelete.length} messages!`, { color: "success" });
         const logEmbed = CreateEmbed(`**${interaction.user} has deleted ${messagesToDelete.length} messages in <#${interaction.id}>**`);
 
-        logger.log(
-            `${interaction.user.tag} (${interaction.user.id}) has deleted ${messagesToDelete.length} messages in ${interaction.channel.name} (${interaction.channelId})`
-        );
+        logger.log(`${interaction.user.tag} (${interaction.user.id}) has deleted ${messagesToDelete.length} messages in ${interaction.channel.name} (${interaction.channelId})`);
 
         interaction.editReply({ embeds: [embed] });
         GetSpecialChannel("MessageLog").send({

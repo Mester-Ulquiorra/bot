@@ -1,16 +1,16 @@
-import { Client, Collection, GuildMember } from "discord.js";
+import { Client, Collection, Events, GuildMember } from "discord.js";
 import config from "../config.js";
+import InviteConfig from "../database/InviteConfig.js";
 import Event from "../types/Event.js";
 import { GetSpecialChannel } from "../util/ClientUtils.js";
 import { GetUserConfig } from "../util/ConfigHelper.js";
 import CreateEmbed from "../util/CreateEmbed.js";
 import ManageRole from "../util/ManageRole.js";
-import InviteConfig from "../database/InviteConfig.js";
 
 export const invites = new Collection<string, number>();
 
 const GuildMemberAddEvent: Event = {
-    name: "guildMemberAdd",
+    name: Events.GuildMemberAdd,
 
     async run(client, member: GuildMember) {
         // get the member config (doesn't matter if it didn't exist before)
@@ -71,23 +71,21 @@ async function manageInvite(client: Client, member: GuildMember) {
     const inviter = await client.users.fetch(invite.inviterId);
 
     // update the invite
-    InviteConfig.findOneAndUpdate({ code: invite.code, userId: inviter.id }, { $inc: { uses: 1 } }, { upsert: true, new: true }).then(
-        (doc) => {
-            const embed = CreateEmbed(`${member.user} invited by ${inviter}.`).setThumbnail(member.user.displayAvatarURL()).addFields(
-                {
-                    name: "Invite Code",
-                    value: invite.code,
-                    inline: true
-                },
-                {
-                    name: "Uses",
-                    value: doc.uses.toString(),
-                    inline: true
-                }
-            );
-            GetSpecialChannel("MiscLog").send({ embeds: [embed] });
-        }
-    );
+    InviteConfig.findOneAndUpdate({ code: invite.code, userId: inviter.id }, { $inc: { uses: 1 } }, { upsert: true, new: true }).then((doc) => {
+        const embed = CreateEmbed(`${member.user} invited by ${inviter}.`).setThumbnail(member.user.displayAvatarURL()).addFields(
+            {
+                name: "Invite Code",
+                value: invite.code,
+                inline: true
+            },
+            {
+                name: "Uses",
+                value: doc.uses.toString(),
+                inline: true
+            }
+        );
+        GetSpecialChannel("MiscLog").send({ embeds: [embed] });
+    });
 
     const userConfig = await GetUserConfig(member.id, "adding invite code");
     userConfig.joinedWith = invite.code;

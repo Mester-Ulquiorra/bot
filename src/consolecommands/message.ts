@@ -33,10 +33,7 @@ const MessageConsoleCommand: ConsoleCommand = {
         }
 
         // create embed
-        const embed = new EmbedBuilder()
-            .setTitle("Message from Console")
-            .setDescription(consoleMessage)
-            .setFooter({ text: "You have 1 minute to respond." });
+        const embed = new EmbedBuilder().setTitle("Message from Console").setDescription(consoleMessage).setFooter({ text: "You have 1 minute to respond." });
 
         // send the message
         user.send({ embeds: [embed] })
@@ -70,9 +67,7 @@ const MessageConsoleCommand: ConsoleCommand = {
 
                     // edit the message to show that they have responded
                     message.edit({
-                        embeds: [
-                            new EmbedBuilder().setTitle("You've successfully responded!").setDescription(consoleMessage).setColor("#00ff00")
-                        ]
+                        embeds: [new EmbedBuilder().setTitle("You've successfully responded!").setDescription(consoleMessage).setColor("#00ff00")]
                     });
 
                     // remove user from waiting for a response
