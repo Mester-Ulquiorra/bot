@@ -1,0 +1,27 @@
+name: Check Prettier
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  check-prettier:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4.1.1
+
+    - name: Prettier Check
+      id: pretier-run
+      uses: rutajdash/prettier-cli-action@v1.0.1
+      with:
+        config_path: ./.prettierrc
+        file_pattern: ./src/**/*.ts
+        
+    - name: Prettier Output
+      if: ${{ failure() }}
+      shell: bash
+      run: |-
+        echo "There are files that are not formatted properly. Please run prettier and commit again."
