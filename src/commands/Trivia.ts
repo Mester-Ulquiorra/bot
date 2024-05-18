@@ -154,7 +154,7 @@ class TriviaGame {
 
         // save the summary embed
         this.summaryEmbed = embed;
-        this.summaryEmbedGenerated + true;
+        this.summaryEmbedGenerated = true;
 
         button.reply({
             embeds: [this.summaryEmbed],
