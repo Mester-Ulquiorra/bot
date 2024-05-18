@@ -7,6 +7,8 @@
         "moduleDetection": "force",
         "jsx": "react-jsx",
         "allowJs": true,
+
+        "typeRoots": ["node_modules/@types"],
     
         // Bundler mode
         "moduleResolution": "bundler",
@@ -24,8 +26,7 @@
         "noPropertyAccessFromIndexSignature": true
     },
     "include": [
-        "src/**/*.ts",
-        "src/example.config.ts"
+        "src/**/*.ts"
     ],
     "exclude": [
         "node_modules"

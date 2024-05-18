@@ -1,11 +1,11 @@
-import { Invite } from "discord.js";
+import { Events, Invite } from "discord.js";
 import Event from "../types/Event.js";
 import { invites } from "./guildMemberAdd.js";
 
 const inviteDeleteEvent: Event = {
-    name: "inviteDelete",
+    name: Events.InviteDelete,
 
-    async run(client, invite: Invite) {
+    async run(_, invite: Invite) {
         invites.delete(invite.code);
     }
 };

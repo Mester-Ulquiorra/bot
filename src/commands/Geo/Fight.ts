@@ -68,10 +68,7 @@ class GeoFight {
                 new ActionRowBuilder<ButtonBuilder>().addComponents(
                     new ButtonBuilder().setCustomId("geofight.attack").setLabel("Attack").setStyle(ButtonStyle.Primary),
                     new ButtonBuilder().setCustomId("geofight.skill").setLabel("Skill").setStyle(ButtonStyle.Secondary),
-                    new ButtonBuilder()
-                        .setCustomId("geofight.end")
-                        .setLabel("Let the enemy eat you (end fight)")
-                        .setStyle(ButtonStyle.Danger)
+                    new ButtonBuilder().setCustomId("geofight.end").setLabel("Let the enemy eat you (end fight)").setStyle(ButtonStyle.Danger)
                 )
             ];
 
@@ -86,8 +83,7 @@ class GeoFight {
 
         this.message
             .awaitMessageComponent({
-                filter: (i) =>
-                    i.user.id === this.player.member.id && ["geofight.attack", "geofight.skill", "geofight.end"].includes(i.customId),
+                filter: (i) => i.user.id === this.player.member.id && ["geofight.attack", "geofight.skill", "geofight.end"].includes(i.customId),
                 time: 120 * 1000,
                 componentType: ComponentType.Button
             })
@@ -129,9 +125,7 @@ class GeoFight {
 
         this.enemy.hp = Math.max(0, RoundNumber(this.enemy.hp - enemyDamage));
 
-        const embed = CreateEmbed(
-            `**${this.player.member.user.username}** dealt ${enemyDamage} damage to **${this.enemy.name}**!`
-        ).setFooter({
+        const embed = CreateEmbed(`**${this.player.member.user.username}** dealt ${enemyDamage} damage to **${this.enemy.name}**!`).setFooter({
             text: "This is a tech preview of the Geo fight system, the UI is not final"
         });
 
@@ -146,11 +140,7 @@ class GeoFight {
             { name: "Enemy defense", value: `${this.enemy.defense}`, inline: true }
         );
 
-        const components = [
-            new ActionRowBuilder<ButtonBuilder>().addComponents(
-                new ButtonBuilder().setCustomId("geofight.next").setLabel("Next").setStyle(ButtonStyle.Success)
-            )
-        ];
+        const components = [new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder().setCustomId("geofight.next").setLabel("Next").setStyle(ButtonStyle.Success))];
 
         await interaction.update({
             embeds: [embed],
@@ -179,9 +169,7 @@ class GeoFight {
                 const playerDamage = this.enemy.attack * playerDamageReduction;
                 this.player.health = Math.max(0, RoundNumber(this.player.health - playerDamage));
 
-                const embed = CreateEmbed(
-                    `**${this.enemy.name}** dealt ${playerDamage} damage to **${this.player.member.user.username}**!`
-                ).setFooter({
+                const embed = CreateEmbed(`**${this.enemy.name}** dealt ${playerDamage} damage to **${this.player.member.user.username}**!`).setFooter({
                     text: "This is a tech preview of the Geo fight system, the UI is not final"
                 });
 
@@ -197,9 +185,7 @@ class GeoFight {
                 );
 
                 const components = [
-                    new ActionRowBuilder<ButtonBuilder>().addComponents(
-                        new ButtonBuilder().setCustomId("geofight.next").setLabel("Next").setStyle(ButtonStyle.Success)
-                    )
+                    new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder().setCustomId("geofight.next").setLabel("Next").setStyle(ButtonStyle.Success))
                 ];
 
                 this.message.edit({

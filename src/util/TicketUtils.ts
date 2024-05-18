@@ -1,15 +1,5 @@
 import { DBTicket, DBUser, TicketType } from "@mester-ulquiorra/commonlib";
-import {
-    APIActionRowComponent,
-    APIButtonComponent,
-    ActionRowBuilder,
-    ButtonBuilder,
-    ButtonStyle,
-    EmbedBuilder,
-    GuildMember,
-    RepliableInteraction,
-    TextChannel
-} from "discord.js";
+import { APIActionRowComponent, APIButtonComponent, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildMember, RepliableInteraction, TextChannel } from "discord.js";
 import { SnowFlake } from "../Ulquiorra.js";
 import config from "../config.js";
 import TicketConfig from "../database/TicketConfig.js";
@@ -178,11 +168,7 @@ export function CanManageTicket(ticket: DBTicket, userConfig: DBUser) {
  * @param reason The reason for the waiting.
  * @param showcancel Whether or not to show the cancel button.
  */
-export function CreateWaitingforMessage(
-    modlevel: number,
-    reason = "no reason",
-    showcancel = true
-): [EmbedBuilder, APIActionRowComponent<APIButtonComponent>] {
+export function CreateWaitingforMessage(modlevel: number, reason = "no reason", showcancel = true): [EmbedBuilder, APIActionRowComponent<APIButtonComponent>] {
     const returnembed = CreateEmbed(`**This ticket is now waiting for a mod with at least ${modlevel} mod level: __${reason}__**`);
 
     const components = new ActionRowBuilder<ButtonBuilder>().addComponents([
@@ -190,9 +176,7 @@ export function CreateWaitingforMessage(
     ]);
 
     if (showcancel) {
-        components.addComponents([
-            new ButtonBuilder().setCustomId("ticket.cancelsendto").setLabel("Cancel").setStyle(ButtonStyle.Danger).setEmoji("❎")
-        ]);
+        components.addComponents([new ButtonBuilder().setCustomId("ticket.cancelsendto").setLabel("Cancel").setStyle(ButtonStyle.Danger).setEmoji("❎")]);
     }
 
     return [returnembed, components.toJSON()];

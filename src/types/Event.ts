@@ -1,14 +1,14 @@
-import { Client } from "discord.js";
+import { Client, Events } from "discord.js";
 
 interface Event {
     /**
-     * The name of the event (same as the Discord.JS event names)
+     * The name of the event (same as the Discord.JS event name)
      */
-    name: string;
+    name: Events;
     /**
      * The main function that executes when the event is run
      */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny: <any is fine here, it'll be specified by the events>
     run: (client: Client, ...args: Array<any>) => Promise<void>;
 }
 

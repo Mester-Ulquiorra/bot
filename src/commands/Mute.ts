@@ -56,13 +56,7 @@ interface AdvancedMuteOptions {
  * @param duration The duration of the mute
  * @param reason The reason of the mute
  */
-export async function InternalMute(
-    mod: GuildMember,
-    target: GuildMember | null,
-    duration: number,
-    reason: string,
-    options: AdvancedMuteOptions = {}
-) {
+export async function InternalMute(mod: GuildMember, target: GuildMember | null, duration: number, reason: string, options: AdvancedMuteOptions = {}) {
     if (!target) {
         return GetError("UserUnavailable");
     }

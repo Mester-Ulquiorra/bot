@@ -4,14 +4,14 @@ import { GetResFolder } from "../../Ulquiorra.js";
 
 const resRoot = join(GetResFolder(), "gibberish");
 
-const accepted_Chars = "abcdefghijklmnopqrstuvwxyz ";
+const acceptedChars = "abcdefghijklmnopqrstuvwxyz ";
 
-const k = accepted_Chars.length;
+const k = acceptedChars.length;
 
 const pos: { [char: string]: number } = {};
 
 for (let i = 0; i < k; i++) {
-    pos[accepted_Chars[i]] = i;
+    pos[acceptedChars[i]] = i;
 }
 
 const trainFile = "big.txt";
@@ -27,7 +27,7 @@ const modelFile = "gib_model.json";
 function normalize(line: string): string[] {
     const arr = line.toLowerCase().split("");
     return arr.filter(function (item) {
-        return accepted_Chars.indexOf(item) > -1;
+        return acceptedChars.indexOf(item) > -1;
     });
 }
 
@@ -36,14 +36,14 @@ function train() {
     //prior or smoothing factor.  This way, if we see a character transition
     //live that we've never observed in the past, we won't assume the entire
     //string has 0 probability.
-    const log_prob_matrix = [];
+    const logProbMatrix = [];
 
     for (let i = 0; i < k; i++) {
         const temp = [];
         for (let j = 0; j < k; j++) {
             temp.push(10);
         }
-        log_prob_matrix.push(temp);
+        logProbMatrix.push(temp);
     }
 
     //Count transitions from big text file, taken
@@ -52,13 +52,13 @@ function train() {
     //
     for (const key in lines) {
         //Return all n grams from l after normalizing
-        const filtered_line = normalize(lines[key]);
+        const filteredLine = normalize(lines[key]);
         let a: boolean | string = false;
-        for (const b in filtered_line) {
+        for (const b in filteredLine) {
             if (a !== false) {
-                log_prob_matrix[pos[a]][pos[filtered_line[b]]] += 1;
+                logProbMatrix[pos[a]][pos[filteredLine[b]]] += 1;
             }
-            a = filtered_line[b];
+            a = filteredLine[b];
         }
     }
 
@@ -67,48 +67,48 @@ function train() {
     //numeric underflow issues with long texts.
     //This contains a justification:
     //http://squarecog.wordpress.com/2009/01/10/dealing-with-underflow-in-joint-probability-calculations/
-    for (const i in log_prob_matrix) {
-        const s = log_prob_matrix[i].reduce(function (a, b) {
+    for (const i in logProbMatrix) {
+        const s = logProbMatrix[i].reduce(function (a, b) {
             return a + b;
         });
-        for (const j in log_prob_matrix[i]) {
-            log_prob_matrix[i][j] = Math.log(log_prob_matrix[i][j] / s);
+        for (const j in logProbMatrix[i]) {
+            logProbMatrix[i][j] = Math.log(logProbMatrix[i][j] / s);
         }
     }
 
     //Find the probability of generating a few arbitrarily choosen good and
     //bad phrases.
-    const good_lines = readFileSync(join(resRoot, goodFile)).toString("utf8").split("\n");
-    const good_probs = [];
-    for (const key in good_lines) {
-        good_probs.push(averageTransitionProbability(good_lines[key], log_prob_matrix));
+    const goodLines = readFileSync(join(resRoot, goodFile)).toString("utf8").split("\n");
+    const goodProbs = [];
+    for (const key in goodLines) {
+        goodProbs.push(averageTransitionProbability(goodLines[key], logProbMatrix));
     }
 
-    const bad_lines = readFileSync(join(resRoot, badFile)).toString("utf8").split("\n");
-    const bad_probs = new Array<number>();
-    for (const key in bad_lines) {
-        bad_probs.push(averageTransitionProbability(bad_lines[key], log_prob_matrix));
+    const badLines = readFileSync(join(resRoot, badFile)).toString("utf8").split("\n");
+    const badProbs = new Array<number>();
+    for (const key in badLines) {
+        badProbs.push(averageTransitionProbability(badLines[key], logProbMatrix));
     }
 
     //Assert that we actually are capable of detecting the junk.
-    const min_good_probs = Math.min.apply(null, good_probs);
-    const max_bad_probs = Math.max.apply(null, bad_probs);
-    if (min_good_probs <= max_bad_probs) {
+    const minGoodProbs = Math.min.apply(null, goodProbs);
+    const maxBadProbs = Math.max.apply(null, badProbs);
+    if (minGoodProbs <= maxBadProbs) {
         return false;
     }
 
     //And pick a threshold halfway between the worst good and best bad inputs.
-    const threshold = (min_good_probs + max_bad_probs) / 2;
+    const threshold = (minGoodProbs + maxBadProbs) / 2;
 
-    console.log("good", good_probs);
-    console.log("bad", bad_probs);
+    console.log("good", goodProbs);
+    console.log("bad", badProbs);
     console.log("th", threshold);
 
     //save matrix
     writeFileSync(
         join(resRoot, modelFile),
         JSON.stringify({
-            matrix: log_prob_matrix,
+            matrix: logProbMatrix,
             threshold: threshold
         })
     );
@@ -121,32 +121,32 @@ function train() {
  * @param log_prob_matrix The log probability matrix to use for the calculation.
  * @returns The average transition probability from the given line through the log probability matrix.
  */
-function averageTransitionProbability(line: string, log_prob_matrix: number[][]): number {
+function averageTransitionProbability(line: string, logProbMatrix: number[][]): number {
     //Return the average transition prob from line through log_prob_mat.
-    let log_prob = 1.0;
-    let transition_ct = 0;
+    let logProb = 1.0;
+    let transitionCt = 0;
 
-    const filtered_line = normalize(line);
+    const filteredLine = normalize(line);
     let a: boolean | string = false;
 
-    for (const b in filtered_line) {
+    for (const b in filteredLine) {
         if (a !== false) {
-            log_prob += log_prob_matrix[pos[a]][pos[filtered_line[b]]];
-            transition_ct += 1;
+            logProb += logProbMatrix[pos[a]][pos[filteredLine[b]]];
+            transitionCt += 1;
         }
-        a = filtered_line[b];
+        a = filteredLine[b];
     }
 
-    return Math.exp(log_prob / (transition_ct || 1));
+    return Math.exp(logProb / (transitionCt || 1));
 }
 
-let model_data: { matrix?: number[][]; threshold?: number } = {};
+let modelData: { matrix?: number[][]; threshold?: number } = {};
 
 try {
     if (!existsSync(join(resRoot, modelFile))) {
         train();
     }
-    model_data = JSON.parse(readFileSync(join(resRoot, modelFile)).toString("utf8"));
+    modelData = JSON.parse(readFileSync(join(resRoot, modelFile)).toString("utf8"));
 } catch (e) {
     console.log(e);
 }
@@ -157,9 +157,9 @@ try {
  * @returns True if the string is gibberish, false otherwise
  */
 export default function (line: string) {
-    if (!model_data || !model_data.matrix || !model_data.threshold) {
+    if (!modelData || !modelData.matrix || !modelData.threshold) {
         return;
     }
 
-    return averageTransitionProbability(line, model_data.matrix) > model_data.threshold;
+    return averageTransitionProbability(line, modelData.matrix) > modelData.threshold;
 }

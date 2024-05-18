@@ -1,17 +1,11 @@
-import {
-    InternalMessage,
-    InternalMessageType,
-    InternalServer,
-    sendInternalMessage,
-    isCreateAppealMessage,
-    InternalEndpoints
-} from "@mester-ulquiorra/commonlib";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { fileURLToPath } from "url";
-import { logger } from "../Ulquiorra.js";
+
 import { createAppeal } from "../commands/Appeal.js";
+import { logger } from "../Ulquiorra.js";
 import PunishmentConfig from "../database/PunishmentConfig.js";
+import { InternalEndpoints, InternalMessage, InternalMessageType, InternalServer, isCreateAppealMessage, sendInternalMessage } from "@mester-ulquiorra/commonlib";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const secretKey = Buffer.from(readFileSync(join(__dirname, "..", "..", "internal-secret"), "utf-8"), "hex");

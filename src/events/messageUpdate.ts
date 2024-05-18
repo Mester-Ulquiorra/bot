@@ -1,4 +1,4 @@
-import { ChannelType, Message } from "discord.js";
+import { ChannelType, Events, Message } from "discord.js";
 import Event from "../types/Event.js";
 import { GetSpecialChannel } from "../util/ClientUtils.js";
 import CreateEmbed from "../util/CreateEmbed.js";
@@ -7,9 +7,9 @@ import { CheckMessage } from "../util/Reishi.js";
 const MaxContentLength = 1021;
 
 const MessageUpdateEvent: Event = {
-    name: "messageUpdate",
+    name: Events.MessageUpdate,
 
-    async run(client, oldMessage: Message, newMessage: Message) {
+    async run(_, oldMessage: Message, newMessage: Message) {
         if (newMessage.author.bot || newMessage.channel.type === ChannelType.DM) {
             return;
         }
@@ -23,10 +23,9 @@ const MessageUpdateEvent: Event = {
         }
 
         // create a new embed
-        const embed = CreateEmbed(
-            `**Message sent by <@${oldMessage.author.id}> has been edited in <#${oldMessage.channelId}>** [Jump to message](${newMessage.url})`,
-            { color: "warning" }
-        ).setFooter({
+        const embed = CreateEmbed(`**Message sent by <@${oldMessage.author.id}> has been edited in <#${oldMessage.channelId}>** [Jump to message](${newMessage.url})`, {
+            color: "warning"
+        }).setFooter({
             text: `Member ID: ${oldMessage.author.id} | Message ID: ${oldMessage.id}`
         });
 

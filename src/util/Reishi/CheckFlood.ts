@@ -79,9 +79,9 @@ function CheckRepeatedText(string: string) {
         }
 
         // check the letters
-        const letter_result = CheckLetters(word);
-        if (letter_result) {
-            return letter_result;
+        const letterResult = CheckLetters(word);
+        if (letterResult) {
+            return letterResult;
         }
 
         // increase the count of the word
@@ -105,8 +105,9 @@ function CheckRepeatedText(string: string) {
 }
 
 /**
+ * Function to check for repeated letters
  * @param word The word to check
- * @returns The repeated letter (if none, it's null).
+ * @returns __delete__ (null, if no repeated letters are found).
  */
 function CheckLetters(word: string) {
     // variables used to check if there are multiple letters in a row

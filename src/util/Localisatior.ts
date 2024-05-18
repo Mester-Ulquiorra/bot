@@ -28,7 +28,7 @@ export default class {
         const data = this.langFiles[lang]?.[key] ?? "#error#";
 
         // replace {\d} with the arguments
-        return data.replace(/{(\d+)}/g, (match, number) => {
+        return data.replace(/{(\d+)}/g, (_, number) => {
             return args[number] ?? "#error#";
         });
     }

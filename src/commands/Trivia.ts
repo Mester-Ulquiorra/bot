@@ -31,12 +31,7 @@ const TriviaCommmand: SlashCommand = {
         });
 
         // create the game
-        const game = new TriviaGame(
-            message,
-            interaction.member as GuildMember,
-            category,
-            (interaction.options.getString("difficulty") as TriviaDifficulty) ?? "medium"
-        );
+        const game = new TriviaGame(message, interaction.member as GuildMember, category, (interaction.options.getString("difficulty") as TriviaDifficulty) ?? "medium");
         game.start(interaction.options.getInteger("rounds") ?? 5);
     }
 };
@@ -111,10 +106,7 @@ class TriviaGame {
                             embeds: [embed],
                             components: [
                                 new ActionRowBuilder<ButtonBuilder>().addComponents([
-                                    new ButtonBuilder()
-                                        .setCustomId("trivia.history")
-                                        .setStyle(ButtonStyle.Secondary)
-                                        .setLabel("Show questions")
+                                    new ButtonBuilder().setCustomId("trivia.history").setStyle(ButtonStyle.Secondary).setLabel("Show questions")
                                 ])
                             ]
                         });
@@ -241,10 +233,7 @@ class TriviaGame {
                     this.correctAnswers++;
 
                     // redraw message
-                    const { embed: embed2, components: components2 } = this.generateMessage(
-                        true,
-                        this.questions[this.turn].value + `\nYour answer: **${userAnswer}**`
-                    );
+                    const { embed: embed2, components: components2 } = this.generateMessage(true, this.questions[this.turn].value + `\nYour answer: **${userAnswer}**`);
 
                     this.message.edit({
                         embeds: [embed2],
@@ -334,9 +323,7 @@ class TriviaGame {
             return { embed, components };
         }
 
-        const allAnswers = shuffleArray(
-            [this.questions[this.turn].correctAnswer, ...this.questions[this.turn].incorrectAnswers].map((x) => String(x))
-        );
+        const allAnswers = shuffleArray([this.questions[this.turn].correctAnswer, ...this.questions[this.turn].incorrectAnswers].map((x) => String(x)));
 
         // assign a random id to each answer
         const answerMap = new Array<{ id: number; answer: string }>();
@@ -358,9 +345,7 @@ class TriviaGame {
 
         const components = [
             new ActionRowBuilder<StringSelectMenuBuilder>()
-                .addComponents([
-                    new StringSelectMenuBuilder().setCustomId("trivia.answer").setOptions(options).setMaxValues(1).setMinValues(1)
-                ])
+                .addComponents([new StringSelectMenuBuilder().setCustomId("trivia.answer").setOptions(options).setMaxValues(1).setMinValues(1)])
                 .toJSON()
         ];
 

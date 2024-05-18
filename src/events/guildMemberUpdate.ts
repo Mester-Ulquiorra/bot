@@ -1,4 +1,4 @@
-import { AuditLogEvent, GuildMember } from "discord.js";
+import { AuditLogEvent, Events, GuildMember } from "discord.js";
 import { InternalKick } from "../commands/Kick.js";
 import Event from "../types/Event.js";
 import { GetGuild, GetSpecialChannel } from "../util/ClientUtils.js";
@@ -6,8 +6,8 @@ import CreateEmbed from "../util/CreateEmbed.js";
 import { DetectProfanity } from "../util/Reishi/CheckProfanity.js";
 
 const GuildMemberUpdateEvent: Event = {
-    name: "guildMemberUpdate",
-    async run(_client, oldMember: GuildMember, newMember: GuildMember) {
+    name: Events.GuildMemberUpdate,
+    async run(_, oldMember: GuildMember, newMember: GuildMember) {
         if (oldMember.roles.cache.size !== newMember.roles.cache.size) {
             roleChange(oldMember, newMember);
         }

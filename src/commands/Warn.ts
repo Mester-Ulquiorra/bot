@@ -44,9 +44,7 @@ const WarnCommand: SlashCommand = {
             active: false
         });
 
-        logger.log(
-            `${target.user.tag} (${target.id}) has been warned by ${interaction.user.tag} (${interaction.user.id}): ${reason}. ID: ${punishmentId}`
-        );
+        logger.log(`${target.user.tag} (${target.id}) has been warned by ${interaction.user.tag} (${interaction.user.id}): ${reason}. ID: ${punishmentId}`);
 
         // create the embeds for the warn
         const modEmbed = CreateModEmbed(interaction.user, target.user, punishment);

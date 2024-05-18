@@ -1,4 +1,4 @@
-import { Client } from "discord.js";
+import { Client, Events } from "discord.js";
 import { logger } from "../Ulquiorra.js";
 import config from "../config.js";
 import Event from "../types/Event.js";
@@ -8,7 +8,7 @@ import ServerStats from "../util/ServerStats.js";
 import { invites } from "./guildMemberAdd.js";
 
 const ReadyEvent: Event = {
-    name: "ready",
+    name: Events.ClientReady,
 
     async run(client: Client) {
         // fetch the guild and its channels (make sure that fetchMe is blocking, because it's important)

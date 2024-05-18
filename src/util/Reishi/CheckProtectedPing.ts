@@ -23,9 +23,7 @@ export default async function (message: Message<true>) {
     }
 
     // check if the message contains a mention with the protected role
-    const protectedPings = [
-        ...new Set(message.mentions.members.map((member) => member).filter((member) => member.roles.cache.has(config.roles.Protected)))
-    ];
+    const protectedPings = [...new Set(message.mentions.members.map((member) => member).filter((member) => member.roles.cache.has(config.roles.Protected)))];
 
     if (protectedPings.length === 0) {
         return false;

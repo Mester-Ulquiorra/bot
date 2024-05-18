@@ -35,13 +35,9 @@ const SetModCommand: SlashCommand = {
 
         SetModRole(target, modLevel);
 
-        logger.log(
-            `Mod level of ${target.user.tag} (${target.id}) has been set to ${modLevel} by ${interaction.user.tag} (${interaction.user.id})`
-        );
+        logger.log(`Mod level of ${target.user.tag} (${target.id}) has been set to ${modLevel} by ${interaction.user.tag} (${interaction.user.id})`);
 
-        const returnEmbed = CreateEmbed(`**${target}'s mod level has been set to ${modLevel}**`, { color: "success" }).addFields([
-            { name: "Reason", value: reason, inline: true }
-        ]);
+        const returnEmbed = CreateEmbed(`**${target}'s mod level has been set to ${modLevel}**`, { color: "success" }).addFields([{ name: "Reason", value: reason, inline: true }]);
 
         const userEmbed = CreateEmbed(`**Your mod level has been set to ${modLevel} by ${interaction.user}**`, {
             color: "success"

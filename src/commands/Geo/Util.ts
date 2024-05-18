@@ -18,10 +18,7 @@ export async function GetGeoConfig(userId: string) {
  * @param multipliers The multipliers to apply to the weights
  * @returns The names and weights of the items
  */
-export function extractWeights<T extends WeightedItems>(
-    items: ItemsWithWeight<T>,
-    multipliers: GeoMultipler | null = null
-): [T[], number[]] {
+export function extractWeights<T extends WeightedItems>(items: ItemsWithWeight<T>, multipliers: GeoMultipler | null = null): [T[], number[]] {
     // extract both the names and weights from the array
     const names = new Array<T>();
     const weights = new Array<number>();

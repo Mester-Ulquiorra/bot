@@ -33,17 +33,7 @@ if (testMode) {
 
 /* ------ Set up client ------ */
 const Ulquiorra = new Client({
-    intents: [
-        "Guilds",
-        "GuildMembers",
-        "GuildBans",
-        "GuildMessages",
-        "GuildVoiceStates",
-        "GuildMessageReactions",
-        "DirectMessages",
-        "MessageContent",
-        "GuildInvites"
-    ],
+    intents: ["Guilds", "GuildMembers", "GuildBans", "GuildMessages", "GuildVoiceStates", "GuildMessageReactions", "DirectMessages", "MessageContent", "GuildInvites"],
     allowedMentions: {
         parse: ["roles", "users"],
         repliedUser: true

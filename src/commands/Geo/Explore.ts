@@ -20,13 +20,8 @@ const ExploreCommand: SlashCommand = {
         }
 
         // check if user can explore
-        if (
-            Date.now() - geoConfig.explore.lastExplore < GeoData.Explore.Cooldown &&
-            !(config.MesterId === interaction.user.id && testMode)
-        ) {
-            return `Woah, not so fast buddy, you can explore again in ${Math.round(
-                (GeoData.Explore.Cooldown - (Date.now() - geoConfig.explore.lastExplore)) / 1000
-            )} seconds`;
+        if (Date.now() - geoConfig.explore.lastExplore < GeoData.Explore.Cooldown && !(config.MesterId === interaction.user.id && testMode)) {
+            return `Woah, not so fast buddy, you can explore again in ${Math.round((GeoData.Explore.Cooldown - (Date.now() - geoConfig.explore.lastExplore)) / 1000)} seconds`;
         }
 
         const exploreEvent = GeoChance.weighted(...extractWeights(GeoData.Explore.Events, multipliers));
